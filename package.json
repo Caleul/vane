@@ -1,0 +1,29 @@
+{
+	"name": "vane",
+	"version": "0.0.1",
+	"description": "A package for defining entities and events with decorators, generating IaC for deployment.",
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "tsc",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Caleul/vane.git"
+	},
+	"keywords": ["iac", "decorators", "typescript", "deployment"],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"bugs": {
+		"url": "https://github.com/Caleul/vane/issues"
+	},
+	"homepage": "https://github.com/Caleul/vane#readme",
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@types/node": "^22.10.5",
+		"typescript": "^5.7.3"
+	}
+}
