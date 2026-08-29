@@ -1,8 +1,10 @@
 # Nestjs specific
 /dist
+/dist-test
 /node_modules
 /build
 /tmp
+.DS_Store
 
 # Logs
 logs
