@@ -183,4 +183,50 @@ describe("compileSemanticIr", () => {
       ["VANE_SEM_REFERENCE_COLUMN"],
     );
   });
+
+  it("rejects numeric Rule literals that JSON cannot preserve", () => {
+    const result = compileSemanticIr({
+      name: "Sales",
+      entities: [
+        {
+          name: "Range",
+          columns: [
+            { name: "id", type: "uuid", identity: true },
+            { name: "minimum", type: "decimal" },
+            { name: "maximum", type: "decimal" },
+          ],
+          rules: [
+            {
+              name: "FiniteRange",
+              expression: {
+                kind: "logical",
+                operator: "and",
+                operands: [
+                  {
+                    kind: "comparison",
+                    operator: "lte",
+                    left: { kind: "column", column: "minimum" },
+                    right: { kind: "column", column: "maximum" },
+                  },
+                  {
+                    kind: "comparison",
+                    operator: "lt",
+                    left: { kind: "column", column: "maximum" },
+                    right: { kind: "literal", value: Number.POSITIVE_INFINITY },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.deepEqual(
+      result.diagnostics.map(({ code }) => code),
+      ["VANE_SEM_RULE_LITERAL"],
+    );
+  });
 });

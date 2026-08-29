@@ -157,6 +157,17 @@ function validateEntity(
       });
     }
 
+    const nonFiniteLiterals = collectNonFiniteRuleLiterals(rule.expression);
+    for (const literal of nonFiniteLiterals) {
+      diagnostics.push({
+        code: "VANE_SEM_RULE_LITERAL",
+        path: [...entityPath, "rules", rule.name, "expression"],
+        message: `Rule ${entity.name}.${rule.name} contains the non-finite numeric literal ${String(literal)}.`,
+        correction:
+          "Use a finite number so serialization preserves the Rule meaning.",
+      });
+    }
+
     if (referencedColumns.size < 2) {
       diagnostics.push({
         code: "VANE_SEM_RULE_ARITY",
@@ -263,6 +274,29 @@ function collectRuleColumns(
   }
 
   return columns;
+}
+
+function collectNonFiniteRuleLiterals(
+  expression: RuleExpressionDeclaration,
+): number[] {
+  if (expression.kind === "comparison") {
+    return [expression.left, expression.right]
+      .filter(
+        (value): value is Extract<RuleValueDeclaration, { kind: "literal" }> =>
+          value.kind === "literal",
+      )
+      .map(({ value }) => value)
+      .filter(
+        (value): value is number =>
+          typeof value === "number" && !Number.isFinite(value),
+      );
+  }
+
+  if (expression.kind === "not") {
+    return collectNonFiniteRuleLiterals(expression.operand);
+  }
+
+  return expression.operands.flatMap(collectNonFiniteRuleLiterals);
 }
 
 function canonicalizeExpression(
