@@ -268,7 +268,14 @@ function collectRuleColumns(
 function canonicalizeExpression(
   expression: RuleExpressionDeclaration,
 ): RuleExpressionDeclaration {
-  if (expression.kind === "comparison") return expression;
+  if (expression.kind === "comparison") {
+    return {
+      kind: "comparison",
+      operator: expression.operator,
+      left: canonicalizeRuleValue(expression.left),
+      right: canonicalizeRuleValue(expression.right),
+    };
+  }
   if (expression.kind === "not") {
     return { kind: "not", operand: canonicalizeExpression(expression.operand) };
   }
@@ -282,6 +289,14 @@ function canonicalizeExpression(
         compare(JSON.stringify(left), JSON.stringify(right)),
       ),
   };
+}
+
+function canonicalizeRuleValue(
+  value: RuleValueDeclaration,
+): RuleValueDeclaration {
+  return value.kind === "column"
+    ? { kind: "column", column: value.column }
+    : { kind: "literal", value: value.value };
 }
 
 function validateName(

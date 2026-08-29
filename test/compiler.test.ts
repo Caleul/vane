@@ -60,6 +60,10 @@ describe("compileSemanticIr", () => {
   });
 
   it("serializes equivalent declaration orders byte-identically", () => {
+    const sourceExpression = salesModule.entities[0]?.rules?.[0]?.expression;
+    assert.equal(sourceExpression?.kind, "comparison");
+    if (!sourceExpression || sourceExpression.kind !== "comparison") return;
+
     const reordered: ModuleDeclaration = {
       ...salesModule,
       entities: salesModule.entities.map((entity) => {
@@ -72,6 +76,17 @@ describe("compileSemanticIr", () => {
           ...entity,
           columns: [...entity.columns].reverse(),
           ...(events ? { events } : {}),
+          rules: [
+            {
+              name: "EndsAfterStart",
+              expression: {
+                right: { column: "startDate", kind: "column" },
+                left: { column: "endDate", kind: "column" },
+                operator: "gt",
+                kind: "comparison",
+              },
+            },
+          ],
         };
       }),
     };
