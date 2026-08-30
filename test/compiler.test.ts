@@ -45,7 +45,7 @@ describe("compileSemanticIr", () => {
     if (!result.success) return;
 
     assert.equal(result.ir.schema, "vane.semantic-ir");
-    assert.equal(result.ir.version, 1);
+    assert.equal(result.ir.version, 2);
     assert.equal(result.ir.module.entities[0]?.identityColumn, "id");
     assert.deepEqual(result.ir.module.entities[0]?.events[0], {
       identity: "Subscription.CreateSubscription",

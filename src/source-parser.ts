@@ -5,6 +5,7 @@ import {
   type ColumnDeclaration,
   type ColumnReferenceDeclaration,
   type ColumnType,
+  type EntityColumnReferenceDeclaration,
   type EntityDeclaration,
   type EntityEventDeclaration,
   type EventInputDeclaration,
@@ -12,6 +13,15 @@ import {
   type RuleDeclaration,
   type RuleExpressionDeclaration,
   type RuleValueDeclaration,
+  type ViewDeclaration,
+  type ViewExpressionDeclaration,
+  type ViewOrderDeclaration,
+  type ViewOutputDeclaration,
+  type ViewOutputExpressionDeclaration,
+  type ViewPaginationDeclaration,
+  type ViewPaginationValueDeclaration,
+  type ViewQueryDeclaration,
+  type ViewValueDeclaration,
 } from "./declaration.js";
 import type { Diagnostic, SourceLocation } from "./diagnostic.js";
 import type { SemanticIr } from "./semantic-ir.js";
@@ -23,6 +33,7 @@ const DSL_SYMBOLS = new Set([
   "Column",
   "Rule",
   "Event",
+  "View",
   "column",
   "literal",
   "eq",
@@ -35,8 +46,17 @@ const DSL_SYMBOLS = new Set([
   "or",
   "not",
   "optional",
+  "input",
+  "count",
+  "sum",
+  "avg",
+  "min",
+  "max",
+  "asc",
+  "desc",
 ]);
 const COMPARISON_OPERATORS = new Set(["eq", "neq", "gt", "gte", "lt", "lte"]);
+const VIEW_AGGREGATES = new Set(["count", "sum", "avg", "min", "max"]);
 const COLUMN_TYPE_SET = new Set<string>(COLUMN_TYPES);
 
 export interface ModuleSourceParserInput {
@@ -215,7 +235,9 @@ function parseModuleClass(
 
   const options = decoratorObject(context, decorator, ["module"], "Module");
   if (options) {
-    rejectUnknownOptions(context, options, new Set(["entities"]), ["module"]);
+    rejectUnknownOptions(context, options, new Set(["entities", "views"]), [
+      "module",
+    ]);
   }
   const entitiesExpression = options?.get("entities");
   if (!entitiesExpression || !ts.isArrayLiteralExpression(entitiesExpression)) {
@@ -275,7 +297,63 @@ function parseModuleClass(
     if (entity) entities.push(entity);
   }
 
-  return { name, entities };
+  const views: ViewDeclaration[] = [];
+  const viewsExpression = options?.get("views");
+  if (viewsExpression) {
+    if (!ts.isArrayLiteralExpression(viewsExpression)) {
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_MODULE_VIEWS",
+          ["module", "views"],
+          "@Module views must be a static array of View class identifiers.",
+          "Use @Module({ entities: [...], views: [OrderDetails] }).",
+          viewsExpression,
+        ),
+      );
+    } else {
+      recordLocation(context, ["module", "views"], viewsExpression);
+      const viewClasses = new Map(
+        classes
+          .filter((candidate) => hasDecorator(context, candidate, "View"))
+          .flatMap((candidate) =>
+            candidate.name ? [[candidate.name.text, candidate] as const] : [],
+          ),
+      );
+      for (const element of viewsExpression.elements) {
+        if (!ts.isIdentifier(element)) {
+          context.diagnostics.push(
+            staticDiagnostic(
+              context,
+              ["module", "views"],
+              "Module View references",
+              element,
+              "Use a class identifier from this source file.",
+            ),
+          );
+          continue;
+        }
+        const viewClass = viewClasses.get(element.text);
+        if (!viewClass) {
+          context.diagnostics.push(
+            createDiagnostic(
+              context,
+              "VANE_PARSE_MODULE_VIEW",
+              ["module", "views", element.text],
+              `@Module references ${element.text}, but no matching @View class exists in this source file.`,
+              "Declare and decorate the View in the same source file.",
+              element,
+            ),
+          );
+          continue;
+        }
+        const view = parseViewClass(context, viewClass);
+        if (view) views.push(view);
+      }
+    }
+  }
+
+  return { name, entities, views };
 }
 
 function parseEntityClass(
@@ -345,6 +423,452 @@ function parseEntityClass(
   }
 
   return { name, columns, rules, events };
+}
+
+function parseViewClass(
+  context: ParserContext,
+  node: ts.ClassDeclaration,
+): ViewDeclaration | undefined {
+  const name = className(context, node, ["view", "name"], "View");
+  const path = ["view", name ?? "unknown"];
+  const decorator = oneDecorator(context, node, "View", path);
+  if (!name || !decorator) return undefined;
+
+  for (const member of node.members) {
+    const forbidden = ["Column", "Rule", "Event"].filter((symbol) =>
+      hasDecorator(context, member, symbol),
+    );
+    if (forbidden.length === 0) continue;
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_DECORATOR_TARGET",
+        [...path, "members"],
+        `@View cannot contain ${forbidden.map((symbol) => `@${symbol}`).join(", ")} members.`,
+        "Declare View input, output, and query in @View; Views do not persist or own Events.",
+        member,
+      ),
+    );
+  }
+
+  const semanticPath = ["module", "views", name];
+  recordLocation(context, semanticPath, node);
+  recordLocation(context, [...semanticPath, "name"], node.name ?? node);
+  const options = decoratorObject(context, decorator, path, "View");
+  if (!options) return undefined;
+  rejectUnknownOptions(
+    context,
+    options,
+    new Set(["input", "output", "query"]),
+    path,
+  );
+
+  const inputExpression = options.get("input");
+  const outputExpression = options.get("output");
+  const queryExpression = options.get("query");
+  if (!inputExpression || !outputExpression || !queryExpression) {
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_VIEW_OPTIONS",
+        path,
+        "@View requires static input, output, and query properties.",
+        "Use @View({ input: {...}, output: {...}, query: {...} }).",
+        decorator,
+      ),
+    );
+    return undefined;
+  }
+
+  recordLocation(context, [...semanticPath, "input"], inputExpression);
+  recordLocation(context, [...semanticPath, "output"], outputExpression);
+  recordLocation(context, [...semanticPath, "query"], queryExpression);
+  const input = parseTypedInputs(
+    context,
+    inputExpression,
+    [...path, "input"],
+    "View input",
+  );
+  const output = parseViewOutput(context, outputExpression, [
+    ...path,
+    "output",
+  ]);
+  const query = parseViewQuery(context, queryExpression, [...path, "query"]);
+  return input && output && query ? { name, input, output, query } : undefined;
+}
+
+function parseViewOutput(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): readonly ViewOutputDeclaration[] | undefined {
+  const object = staticObject(context, node, path, "View output");
+  if (!object) return undefined;
+  const output: ViewOutputDeclaration[] = [];
+  for (const [name, expression] of object) {
+    const parsed = parseViewOutputExpression(context, expression, [
+      ...path,
+      name,
+    ]);
+    if (parsed) output.push({ name, expression: parsed });
+  }
+  return output;
+}
+
+function parseViewOutputExpression(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): ViewOutputExpressionDeclaration | undefined {
+  const column = parseEntityColumnReference(node);
+  if (column) return { kind: "column", ...column };
+
+  const call = dslCall(context, node);
+  if (call && VIEW_AGGREGATES.has(call.symbol)) {
+    if (!requireArgumentCount(context, call.expression, 1, path, call.symbol)) {
+      return undefined;
+    }
+    const argument = call.expression.arguments[0];
+    const value = argument ? parseEntityColumnReference(argument) : undefined;
+    if (value) {
+      return {
+        kind: "aggregate",
+        function: call.symbol as "count" | "sum" | "avg" | "min" | "max",
+        value,
+      };
+    }
+  }
+
+  context.diagnostics.push(
+    staticDiagnostic(
+      context,
+      path,
+      "View output expressions",
+      node,
+      "Use Entity.column or count/sum/avg/min/max(Entity.column).",
+    ),
+  );
+  return undefined;
+}
+
+function parseViewQuery(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): ViewQueryDeclaration | undefined {
+  const object = staticObject(context, node, path, "View query");
+  if (!object) return undefined;
+  rejectUnknownOptions(
+    context,
+    object,
+    new Set(["root", "where", "orderBy", "pagination"]),
+    path,
+  );
+
+  const rootExpression = object.get("root");
+  if (!rootExpression || !ts.isIdentifier(rootExpression)) {
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_VIEW_ROOT",
+        [...path, "root"],
+        "View query root must be an Entity class identifier.",
+        "Use query: { root: Order, ... }.",
+        rootExpression ?? node,
+      ),
+    );
+    return undefined;
+  }
+
+  const whereExpression = object.get("where");
+  const where = whereExpression
+    ? parseViewExpression(context, whereExpression, [...path, "where"])
+    : undefined;
+  const orderByExpression = object.get("orderBy");
+  const parsedOrderBy = orderByExpression
+    ? parseViewOrderBy(context, orderByExpression, [...path, "orderBy"])
+    : [];
+  const paginationExpression = object.get("pagination");
+  const pagination = paginationExpression
+    ? parseViewPagination(context, paginationExpression, [
+        ...path,
+        "pagination",
+      ])
+    : undefined;
+
+  if (
+    (whereExpression && !where) ||
+    (orderByExpression && !parsedOrderBy) ||
+    (paginationExpression && !pagination)
+  ) {
+    return undefined;
+  }
+  const orderBy = parsedOrderBy ?? [];
+  return {
+    root: rootExpression.text,
+    ...(where ? { where } : {}),
+    ...(orderBy.length > 0 ? { orderBy } : {}),
+    ...(pagination ? { pagination } : {}),
+  };
+}
+
+function parseViewExpression(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): ViewExpressionDeclaration | undefined {
+  const call = dslCall(context, node);
+  if (!call) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        path,
+        "View filter expressions",
+        node,
+        "Use Vane comparison and logical helper calls only.",
+      ),
+    );
+    return undefined;
+  }
+  const { symbol, expression } = call;
+  if (COMPARISON_OPERATORS.has(symbol)) {
+    if (!requireArgumentCount(context, expression, 2, path, symbol)) {
+      return undefined;
+    }
+    const left = parseViewValue(context, expression.arguments[0], [
+      ...path,
+      "left",
+    ]);
+    const right = parseViewValue(context, expression.arguments[1], [
+      ...path,
+      "right",
+    ]);
+    if (!left || !right) return undefined;
+    return {
+      kind: "comparison",
+      operator: symbol as "eq" | "neq" | "gt" | "gte" | "lt" | "lte",
+      left,
+      right,
+    };
+  }
+  if (symbol === "and" || symbol === "or") {
+    if (expression.arguments.length < 2) {
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_ARGUMENTS",
+          path,
+          `${symbol} requires at least two operands.`,
+          `Pass two or more View filter expressions to ${symbol}(...).`,
+          expression,
+        ),
+      );
+      return undefined;
+    }
+    const operands = expression.arguments.flatMap((argument, index) => {
+      const operand = parseViewExpression(context, argument, [
+        ...path,
+        String(index),
+      ]);
+      return operand ? [operand] : [];
+    });
+    return operands.length === expression.arguments.length
+      ? { kind: "logical", operator: symbol, operands }
+      : undefined;
+  }
+  if (symbol === "not") {
+    if (!requireArgumentCount(context, expression, 1, path, symbol)) {
+      return undefined;
+    }
+    const argument = expression.arguments[0];
+    if (!argument) return undefined;
+    const operand = parseViewExpression(context, argument, [
+      ...path,
+      "operand",
+    ]);
+    return operand ? { kind: "not", operand } : undefined;
+  }
+  context.diagnostics.push(
+    createDiagnostic(
+      context,
+      "VANE_PARSE_VIEW_EXPRESSION",
+      path,
+      `${symbol} is not a View filter operator.`,
+      "Use eq, neq, gt, gte, lt, lte, and, or, or not.",
+      node,
+    ),
+  );
+  return undefined;
+}
+
+function parseViewValue(
+  context: ParserContext,
+  node: ts.Expression | undefined,
+  path: readonly string[],
+): ViewValueDeclaration | undefined {
+  if (!node) return undefined;
+  const column = parseEntityColumnReference(node);
+  if (column) return { kind: "column", ...column };
+
+  const call = dslCall(context, node);
+  if (!call || (call.symbol !== "input" && call.symbol !== "literal")) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        path,
+        "View filter values",
+        node,
+        'Use Entity.column, input("name"), or literal(value).',
+      ),
+    );
+    return undefined;
+  }
+  if (!requireArgumentCount(context, call.expression, 1, path, call.symbol)) {
+    return undefined;
+  }
+  const argument = call.expression.arguments[0];
+  if (call.symbol === "input" && argument && ts.isStringLiteral(argument)) {
+    return { kind: "input", input: argument.text };
+  }
+  if (call.symbol === "literal" && argument) {
+    const literal = parseLiteral(argument);
+    if (literal.matched) return { kind: "literal", value: literal.value };
+  }
+  context.diagnostics.push(
+    staticDiagnostic(
+      context,
+      path,
+      call.symbol === "input" ? "View input references" : "View literals",
+      argument ?? node,
+      call.symbol === "input"
+        ? "Pass a string literal to input(...)."
+        : "Pass null, a boolean, a finite number, or a string to literal(...).",
+    ),
+  );
+  return undefined;
+}
+
+function parseViewOrderBy(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): readonly ViewOrderDeclaration[] | undefined {
+  if (!ts.isArrayLiteralExpression(node)) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        path,
+        "View ordering",
+        node,
+        "Use an array such as [asc(Order.createdAt)].",
+      ),
+    );
+    return undefined;
+  }
+  const orders: ViewOrderDeclaration[] = [];
+  for (const [index, element] of node.elements.entries()) {
+    const itemPath = [...path, String(index)];
+    const call = dslCall(context, element);
+    if (!call || (call.symbol !== "asc" && call.symbol !== "desc")) {
+      context.diagnostics.push(
+        staticDiagnostic(
+          context,
+          itemPath,
+          "View ordering",
+          element,
+          "Use asc(Entity.column) or desc(Entity.column).",
+        ),
+      );
+      continue;
+    }
+    if (
+      !requireArgumentCount(context, call.expression, 1, itemPath, call.symbol)
+    ) {
+      continue;
+    }
+    const argument = call.expression.arguments[0];
+    const value = argument ? parseEntityColumnReference(argument) : undefined;
+    if (!value) {
+      context.diagnostics.push(
+        staticDiagnostic(
+          context,
+          itemPath,
+          "View ordering Columns",
+          argument ?? element,
+          "Pass an Entity.column reference to asc or desc.",
+        ),
+      );
+      continue;
+    }
+    orders.push({ value, direction: call.symbol });
+  }
+  return orders;
+}
+
+function parseViewPagination(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): ViewPaginationDeclaration | undefined {
+  const object = staticObject(context, node, path, "View pagination");
+  if (!object) return undefined;
+  rejectUnknownOptions(context, object, new Set(["limit", "offset"]), path);
+  const limitExpression = object.get("limit");
+  const offsetExpression = object.get("offset");
+  const limit = limitExpression
+    ? parsePaginationValue(context, limitExpression, [...path, "limit"])
+    : undefined;
+  const offset = offsetExpression
+    ? parsePaginationValue(context, offsetExpression, [...path, "offset"])
+    : undefined;
+  if ((limitExpression && !limit) || (offsetExpression && !offset)) {
+    return undefined;
+  }
+  return {
+    ...(limit ? { limit } : {}),
+    ...(offset ? { offset } : {}),
+  };
+}
+
+function parsePaginationValue(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): ViewPaginationValueDeclaration | undefined {
+  const literal = parseLiteral(node);
+  if (literal.matched && typeof literal.value === "number") {
+    return { kind: "literal", value: literal.value };
+  }
+  const call = dslCall(context, node);
+  if (call?.symbol === "input") {
+    if (!requireArgumentCount(context, call.expression, 1, path, "input")) {
+      return undefined;
+    }
+    const argument = call.expression.arguments[0];
+    if (argument && ts.isStringLiteral(argument)) {
+      return { kind: "input", input: argument.text };
+    }
+  }
+  context.diagnostics.push(
+    staticDiagnostic(
+      context,
+      path,
+      "View pagination values",
+      node,
+      'Use an integer literal or input("name").',
+    ),
+  );
+  return undefined;
+}
+
+function parseEntityColumnReference(
+  node: ts.Expression,
+): EntityColumnReferenceDeclaration | undefined {
+  return ts.isPropertyAccessExpression(node) &&
+    ts.isIdentifier(node.expression) &&
+    ts.isIdentifier(node.name)
+    ? { entity: node.expression.text, column: node.name.text }
+    : undefined;
 }
 
 function parseColumn(
@@ -642,16 +1166,22 @@ function parseEvent(
   const inputExpression = options.get("input");
   if (!inputExpression) return { name, input: [] };
   recordLocation(context, [...semanticPath, "input"], inputExpression);
-  const inputs = parseEventInputs(context, inputExpression, [...path, "input"]);
+  const inputs = parseTypedInputs(
+    context,
+    inputExpression,
+    [...path, "input"],
+    "Event input",
+  );
   return inputs ? { name, input: inputs } : undefined;
 }
 
-function parseEventInputs(
+function parseTypedInputs(
   context: ParserContext,
   node: ts.Expression,
   path: readonly string[],
+  subject: string,
 ): readonly EventInputDeclaration[] | undefined {
-  const object = staticObject(context, node, path, "Event input");
+  const object = staticObject(context, node, path, subject);
   if (!object) return undefined;
   const inputs: EventInputDeclaration[] = [];
   for (const [name, expression] of object) {

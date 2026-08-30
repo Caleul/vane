@@ -6,6 +6,7 @@ export type {
   ColumnDeclaration,
   ColumnReferenceDeclaration,
   ColumnType,
+  EntityColumnReferenceDeclaration,
   EntityDeclaration,
   EntityEventDeclaration,
   EventInputDeclaration,
@@ -13,6 +14,15 @@ export type {
   RuleDeclaration,
   RuleExpressionDeclaration,
   RuleValueDeclaration,
+  ViewDeclaration,
+  ViewExpressionDeclaration,
+  ViewOrderDeclaration,
+  ViewOutputDeclaration,
+  ViewOutputExpressionDeclaration,
+  ViewPaginationDeclaration,
+  ViewPaginationValueDeclaration,
+  ViewQueryDeclaration,
+  ViewValueDeclaration,
 } from "./declaration.js";
 export { COLUMN_TYPES } from "./declaration.js";
 export type {
@@ -36,4 +46,7 @@ export {
   type SemanticEventInput,
   type SemanticIr,
   type SemanticRule,
+  type SemanticView,
+  type SemanticViewInput,
+  type SemanticViewOutput,
 } from "./semantic-ir.js";

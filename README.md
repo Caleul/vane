@@ -20,6 +20,8 @@ stage and are intentionally absent from this slice.
 - an Entity maps to a persistent concept and has exactly one identity Column;
 - an Event owned by an Entity receives the stable identity `Entity.Event`;
 - a Rule references at least two Columns from its own Entity;
+- a View has typed input and output, owns its query, never persists, and is a
+  public result;
 - invalid definitions return actionable diagnostics and never a partial IR;
 - equivalent declaration orders produce byte-identical serialized IR;
 - the Semantic IR contains no runtime, provider, transport, credential, or
