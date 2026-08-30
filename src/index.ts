@@ -15,7 +15,18 @@ export type {
   RuleValueDeclaration,
 } from "./declaration.js";
 export { COLUMN_TYPES } from "./declaration.js";
-export type { Diagnostic } from "./diagnostic.js";
+export type {
+  Diagnostic,
+  SourceLocation,
+  SourcePosition,
+} from "./diagnostic.js";
+export {
+  compileModuleSource,
+  parseModuleSource,
+  type ModuleSourceCompilationResult,
+  type ModuleSourceParseResult,
+  type ModuleSourceParserInput,
+} from "./source-parser.js";
 export {
   SEMANTIC_IR_VERSION,
   serializeSemanticIr,
