@@ -89,11 +89,13 @@ describe("View Semantic IR", () => {
         {
           name: "id",
           type: "uuid",
+          nullable: false,
           expression: { kind: "column", entity: "Order", column: "id" },
         },
         {
           name: "total",
           type: "decimal",
+          nullable: false,
           expression: { kind: "column", entity: "Order", column: "total" },
         },
       ],
@@ -173,15 +175,49 @@ describe("View Semantic IR", () => {
     assert.equal(result.success, true);
     if (!result.success) return;
     assert.deepEqual(
-      result.ir.module.views[0]?.output.map(({ name, type }) => ({
+      result.ir.module.views[0]?.output.map(({ name, type, nullable }) => ({
         name,
         type,
+        nullable,
       })),
       [
-        { name: "orderCount", type: "integer" },
-        { name: "totalAmount", type: "decimal" },
+        { name: "orderCount", type: "integer", nullable: false },
+        { name: "totalAmount", type: "decimal", nullable: true },
       ],
     );
+  });
+
+  it("preserves nullability in public View output contracts", () => {
+    const view = moduleWithView.views?.[0];
+    const entity = moduleWithView.entities[0];
+    assert.ok(view);
+    assert.ok(entity);
+    const result = compileSemanticIr({
+      ...moduleWithView,
+      entities: [
+        {
+          ...entity,
+          columns: entity.columns.map((column) =>
+            column.name === "total" ? { ...column, nullable: true } : column,
+          ),
+        },
+      ],
+      views: [
+        {
+          ...view,
+          output: [
+            {
+              name: "total",
+              expression: { kind: "column", entity: "Order", column: "total" },
+            },
+          ],
+        },
+      ],
+    });
+
+    assert.equal(result.success, true);
+    if (!result.success) return;
+    assert.equal(result.ir.module.views[0]?.output[0]?.nullable, true);
   });
 
   it("rejects aggregates whose grouping semantics would be ambiguous", () => {
@@ -375,13 +411,14 @@ describe("View source parser", () => {
     if (!result.success) return;
     assert.equal(result.ir.module.views[0]?.name, "OrderDetails");
     assert.deepEqual(
-      result.ir.module.views[0]?.output.map(({ name, type }) => ({
+      result.ir.module.views[0]?.output.map(({ name, type, nullable }) => ({
         name,
         type,
+        nullable,
       })),
       [
-        { name: "id", type: "uuid" },
-        { name: "total", type: "decimal" },
+        { name: "id", type: "uuid", nullable: false },
+        { name: "total", type: "decimal", nullable: false },
       ],
     );
   });

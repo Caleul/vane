@@ -63,6 +63,7 @@ export interface SemanticViewInput {
 export interface SemanticViewOutput {
   readonly name: string;
   readonly type: ColumnType;
+  readonly nullable: boolean;
   readonly expression: ViewOutputExpressionDeclaration;
 }
 

@@ -651,11 +651,17 @@ function toSemanticView(
       }))
       .sort((left, right) => compare(left.name, right.name)),
     output: view.output
-      .map((output) => ({
-        name: output.name,
-        type: inferViewOutputType(output.expression, entitiesByName),
-        expression: canonicalizeViewOutput(output.expression),
-      }))
+      .map((output) => {
+        const contract = inferViewOutputContract(
+          output.expression,
+          entitiesByName,
+        );
+        return {
+          name: output.name,
+          ...contract,
+          expression: canonicalizeViewOutput(output.expression),
+        };
+      })
       .sort((left, right) => compare(left.name, right.name)),
     query: {
       root: view.query.root,
@@ -675,20 +681,27 @@ function toSemanticView(
   };
 }
 
-function inferViewOutputType(
+function inferViewOutputContract(
   expression: ViewOutputExpressionDeclaration,
   entitiesByName: ReadonlyMap<string, EntityDeclaration>,
-): ColumnType {
+): { readonly type: ColumnType; readonly nullable: boolean } {
   const reference =
     expression.kind === "column" ? expression : expression.value;
-  const type = entitiesByName
+  const column = entitiesByName
     .get(reference.entity)
-    ?.columns.find((column) => column.name === reference.column)?.type;
-  if (!type)
+    ?.columns.find((candidate) => candidate.name === reference.column);
+  if (!column)
     throw new Error("Validated View output has no resolvable Column type.");
-  if (expression.kind === "column") return type;
-  if (expression.function === "count") return "integer";
-  return expression.function === "avg" ? "decimal" : type;
+  if (expression.kind === "column") {
+    return { type: column.type, nullable: column.nullable ?? false };
+  }
+  if (expression.function === "count") {
+    return { type: "integer", nullable: false };
+  }
+  return {
+    type: expression.function === "avg" ? "decimal" : column.type,
+    nullable: true,
+  };
 }
 
 function canonicalizeViewOutput(

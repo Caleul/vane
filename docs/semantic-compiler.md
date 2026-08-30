@@ -116,7 +116,9 @@ View output supports direct Column projections and `count`, `sum`, `avg`,
 `min`, and `max`. Filters use Entity Column references, declared inputs, static
 literals, comparisons, and logical operators. Ordering and pagination remain
 ordered query properties. The Semantic IR records that a View cannot persist
-and is a public result.
+and is a public result. Each output contract also preserves nullability:
+projected Columns inherit it, `count` is non-null, and the other aggregates are
+nullable because an empty result set has no aggregate value.
 
 Until grouping has an explicit grammar, an aggregate View may contain only
 aggregate outputs and cannot order by ungrouped Columns. Mixing `Order.id` with
