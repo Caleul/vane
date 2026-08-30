@@ -26,9 +26,11 @@
     "url": "git+https://github.com/Caleul/vane.git"
   },
   "license": "MIT",
+  "dependencies": {
+    "typescript": "5.7.3"
+  },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/node": "22.10.5",
-    "typescript": "5.7.3"
+    "@types/node": "22.10.5"
   }
 }
