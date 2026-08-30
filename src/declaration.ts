@@ -73,6 +73,77 @@ export interface EntityDeclaration {
   readonly events?: readonly EntityEventDeclaration[];
 }
 
+export interface EntityColumnReferenceDeclaration {
+  readonly entity: string;
+  readonly column: string;
+}
+
+export type ViewValueDeclaration =
+  | ({ readonly kind: "column" } & EntityColumnReferenceDeclaration)
+  | { readonly kind: "input"; readonly input: string }
+  | {
+      readonly kind: "literal";
+      readonly value: boolean | number | string | null;
+    };
+
+export type ViewExpressionDeclaration =
+  | {
+      readonly kind: "comparison";
+      readonly operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+      readonly left: ViewValueDeclaration;
+      readonly right: ViewValueDeclaration;
+    }
+  | {
+      readonly kind: "logical";
+      readonly operator: "and" | "or";
+      readonly operands: readonly ViewExpressionDeclaration[];
+    }
+  | {
+      readonly kind: "not";
+      readonly operand: ViewExpressionDeclaration;
+    };
+
+export type ViewOutputExpressionDeclaration =
+  | ({ readonly kind: "column" } & EntityColumnReferenceDeclaration)
+  | {
+      readonly kind: "aggregate";
+      readonly function: "count" | "sum" | "avg" | "min" | "max";
+      readonly value: EntityColumnReferenceDeclaration;
+    };
+
+export interface ViewOutputDeclaration {
+  readonly name: string;
+  readonly expression: ViewOutputExpressionDeclaration;
+}
+
+export interface ViewOrderDeclaration {
+  readonly value: EntityColumnReferenceDeclaration;
+  readonly direction: "asc" | "desc";
+}
+
+export type ViewPaginationValueDeclaration =
+  | { readonly kind: "literal"; readonly value: number }
+  | { readonly kind: "input"; readonly input: string };
+
+export interface ViewPaginationDeclaration {
+  readonly limit?: ViewPaginationValueDeclaration;
+  readonly offset?: ViewPaginationValueDeclaration;
+}
+
+export interface ViewQueryDeclaration {
+  readonly root: string;
+  readonly where?: ViewExpressionDeclaration;
+  readonly orderBy?: readonly ViewOrderDeclaration[];
+  readonly pagination?: ViewPaginationDeclaration;
+}
+
+export interface ViewDeclaration {
+  readonly name: string;
+  readonly input: readonly EventInputDeclaration[];
+  readonly output: readonly ViewOutputDeclaration[];
+  readonly query: ViewQueryDeclaration;
+}
+
 /**
  * Parser-to-compiler boundary for the first executable slice.
  *
@@ -81,4 +152,5 @@ export interface EntityDeclaration {
 export interface ModuleDeclaration {
   readonly name: string;
   readonly entities: readonly EntityDeclaration[];
+  readonly views?: readonly ViewDeclaration[];
 }

@@ -14,7 +14,8 @@ user-facing DSL.
 
 The Semantic IR must preserve meaning without choosing how that meaning is
 executed. It can state that an Event belongs to an Entity and necessarily
-persists its owner. It cannot choose PostgreSQL, NestJS, HTTP, SSE, a queue,
+persists its owner, and that a View is a non-persistent public result. It cannot
+choose PostgreSQL, NestJS, HTTP, SSE, a queue,
 retry policy, credentials, or deployment topology.
 
 Those choices require a `ServiceConfiguration` and belong to stage two.
@@ -39,8 +40,8 @@ executes the user's module.
 ## Provisional static grammar
 
 The parser recognizes named imports from `@lilka/vane`, including aliases, and
-the decorators `@Module`, `@Entity`, `@Column`, `@Rule`, and `@Event`. The first
-slice intentionally keeps all Entities in one source file.
+the decorators `@Module`, `@Entity`, `@Column`, `@Rule`, `@Event`, and `@View`.
+The first slice intentionally keeps all declarations in one source file.
 
 ```ts
 import {
@@ -78,6 +79,54 @@ Rule values use `column("name")` and `literal(value)`. Comparisons use `eq`,
 `not`. Column references accept `Customer.id` or
 `{ entity: Customer, column: "id" }`.
 
+Views declare typed input, an output whose types are derived from projections,
+and a mandatory query owned by the View:
+
+```ts
+@View({
+  input: {
+    customerId: "uuid",
+    pageSize: "integer",
+    offset: optional("integer"),
+  },
+  output: {
+    id: Order.id,
+    total: Order.total,
+  },
+  query: {
+    root: Order,
+    where: and(
+      eq(Order.customerId, input("customerId")),
+      gt(Order.total, literal(0)),
+    ),
+    orderBy: [desc(Order.createdAt)],
+    pagination: {
+      limit: input("pageSize"),
+      offset: input("offset"),
+    },
+  },
+})
+class OrderDetails {}
+
+@Module({ entities: [Order], views: [OrderDetails] })
+class Sales {}
+```
+
+View output supports direct Column projections and `count`, `sum`, `avg`,
+`min`, and `max`. Filters use Entity Column references, declared inputs, static
+literals, comparisons, and logical operators. Ordering and pagination remain
+ordered query properties. The Semantic IR records that a View cannot persist
+and is a public result.
+
+Until grouping has an explicit grammar, an aggregate View may contain only
+aggregate outputs and cannot order by ungrouped Columns. Mixing `Order.id` with
+`count(Order.id)` is rejected instead of assigning accidental SQL semantics.
+
+This slice accepts only Columns from the query root. Relation navigation is
+deliberately rejected until the compiler has an explicit relation path it can
+validate; accepting `User.orders.total` without that guarantee would silently
+invent query semantics.
+
 Decorator configuration must consist of inline object and array literals,
 literal scalar values, Entity identifiers, and the recognized helper calls.
 Variables, spreads, shorthand properties, computed properties, and arbitrary
@@ -89,7 +138,7 @@ boundary and executable invariants; it does not freeze the final DSL ergonomics.
 ## Deliberately deferred
 
 - persistence operation grammar;
-- Views and their query grammar;
+- View relation navigation and joins;
 - ACL Events;
 - Saga graphs;
 - ServiceConfiguration and provider capability negotiation;

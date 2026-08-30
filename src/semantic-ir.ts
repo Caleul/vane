@@ -2,9 +2,13 @@ import type {
   ColumnReferenceDeclaration,
   ColumnType,
   RuleExpressionDeclaration,
+  ViewExpressionDeclaration,
+  ViewOrderDeclaration,
+  ViewOutputExpressionDeclaration,
+  ViewPaginationDeclaration,
 } from "./declaration.js";
 
-export const SEMANTIC_IR_VERSION = 1 as const;
+export const SEMANTIC_IR_VERSION = 2 as const;
 
 export interface SemanticColumn {
   readonly name: string;
@@ -50,12 +54,39 @@ export interface SemanticEntity {
   readonly events: readonly SemanticEntityEvent[];
 }
 
+export interface SemanticViewInput {
+  readonly name: string;
+  readonly type: ColumnType;
+  readonly optional: boolean;
+}
+
+export interface SemanticViewOutput {
+  readonly name: string;
+  readonly type: ColumnType;
+  readonly expression: ViewOutputExpressionDeclaration;
+}
+
+export interface SemanticView {
+  readonly name: string;
+  readonly input: readonly SemanticViewInput[];
+  readonly output: readonly SemanticViewOutput[];
+  readonly query: {
+    readonly root: string;
+    readonly where: ViewExpressionDeclaration | null;
+    readonly orderBy: readonly ViewOrderDeclaration[];
+    readonly pagination: ViewPaginationDeclaration | null;
+  };
+  readonly persistence: { readonly allowed: false };
+  readonly publicResult: { readonly kind: "view" };
+}
+
 export interface SemanticIr {
   readonly schema: "vane.semantic-ir";
   readonly version: typeof SEMANTIC_IR_VERSION;
   readonly module: {
     readonly name: string;
     readonly entities: readonly SemanticEntity[];
+    readonly views: readonly SemanticView[];
   };
 }
 
