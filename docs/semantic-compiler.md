@@ -14,9 +14,10 @@ user-facing DSL.
 
 The Semantic IR must preserve meaning without choosing how that meaning is
 executed. It can state that an Event belongs to an Entity and necessarily
-persists its owner, and that a View is a non-persistent public result. It cannot
-choose PostgreSQL, NestJS, HTTP, SSE, a queue,
-retry policy, credentials, or deployment topology.
+persists its owner, that an Event belongs to an Anti-Corruption Layer and
+interprets external results, and that a View is a non-persistent public result.
+It cannot choose PostgreSQL, NestJS, HTTP, SSE, a queue, retry policy,
+credentials, or deployment topology.
 
 Those choices require a `ServiceConfiguration` and belong to stage two.
 
@@ -40,8 +41,9 @@ executes the user's module.
 ## Provisional static grammar
 
 The parser recognizes named imports from `@lilka/vane`, including aliases, and
-the decorators `@Module`, `@Entity`, `@Column`, `@Rule`, `@Event`, and `@View`.
-The first slice intentionally keeps all declarations in one source file.
+the decorators `@Module`, `@Entity`, `@Column`, `@Rule`, `@Event`, `@View`, and
+`@ACL`. The first slices intentionally keep all declarations in one source
+file.
 
 ```ts
 import {
@@ -129,6 +131,46 @@ deliberately rejected until the compiler has an explicit relation path it can
 validate; accepting `User.orders.total` without that guarantee would silently
 invent query semantics.
 
+Anti-Corruption Layers declare external Events without declaring how the
+external system is reached:
+
+```ts
+@ACL()
+class PaymentGateway {
+  @Event({
+    input: {
+      amount: "decimal",
+      currency: "string",
+    },
+    results: {
+      approved: success({
+        transactionId: "string",
+        authorizationCode: "string",
+      }),
+      declined: fail({
+        declineCode: "string",
+        reason: optional("string"),
+      }),
+    },
+  })
+  Authorize() {}
+}
+
+@Module({
+  entities: [Payment],
+  antiCorruptionLayers: [PaymentGateway],
+})
+class Payments {}
+```
+
+The result names belong to the ubiquitous language at the boundary. Each one
+is interpreted as the Event's `success` or `fail` and can carry typed semantic
+data. An ACL Event must declare at least one interpretation of each terminal
+outcome. The Semantic IR records the stable identity
+`PaymentGateway.Authorize`; it does not contain endpoint, protocol,
+credentials, status codes, serialization, timeout, retry, or idempotency.
+Those mappings require ServiceConfiguration in compiler stage two.
+
 Decorator configuration must consist of inline object and array literals,
 literal scalar values, Entity identifiers, and the recognized helper calls.
 Variables, spreads, shorthand properties, computed properties, and arbitrary
@@ -141,7 +183,6 @@ boundary and executable invariants; it does not freeze the final DSL ergonomics.
 
 - persistence operation grammar;
 - View relation navigation and joins;
-- ACL Events;
 - Saga graphs;
 - ServiceConfiguration and provider capability negotiation;
 - Runtime, Storage, Contract, and Infrastructure IRs.

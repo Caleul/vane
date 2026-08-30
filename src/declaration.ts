@@ -66,6 +66,23 @@ export interface EntityEventDeclaration {
   readonly input?: readonly EventInputDeclaration[];
 }
 
+export interface AntiCorruptionLayerEventResultDeclaration {
+  readonly name: string;
+  readonly outcome: "success" | "fail";
+  readonly data: readonly EventInputDeclaration[];
+}
+
+export interface AntiCorruptionLayerEventDeclaration {
+  readonly name: string;
+  readonly input?: readonly EventInputDeclaration[];
+  readonly results: readonly AntiCorruptionLayerEventResultDeclaration[];
+}
+
+export interface AntiCorruptionLayerDeclaration {
+  readonly name: string;
+  readonly events: readonly AntiCorruptionLayerEventDeclaration[];
+}
+
 export interface EntityDeclaration {
   readonly name: string;
   readonly columns: readonly ColumnDeclaration[];
@@ -153,4 +170,5 @@ export interface ModuleDeclaration {
   readonly name: string;
   readonly entities: readonly EntityDeclaration[];
   readonly views?: readonly ViewDeclaration[];
+  readonly antiCorruptionLayers?: readonly AntiCorruptionLayerDeclaration[];
 }

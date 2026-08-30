@@ -58,6 +58,7 @@ describe("parseModuleSource", () => {
     assert.deepEqual(result.declaration, {
       name: "Sales",
       views: [],
+      antiCorruptionLayers: [],
       entities: [
         {
           name: "Subscription",
