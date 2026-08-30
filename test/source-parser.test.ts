@@ -209,6 +209,34 @@ describe("parseModuleSource", () => {
     );
   });
 
+  it("rejects DSL decorators attached to unsupported member kinds", () => {
+    const result = parseModuleSource({
+      fileName: "wrong-targets.vane.ts",
+      sourceText: `
+        import { Module, Entity, Column, Rule, Event, column, eq } from "@lilka/vane";
+        @Entity()
+        class Customer {
+          @Column({ type: "uuid", identity: true }) id!: string;
+          @Event() BadEvent!: unknown;
+          @Column({ type: "string" }) BadColumn() {}
+          @Rule({ expression: eq(column("id"), column("id")) }) BadRule!: unknown;
+        }
+        @Module({ entities: [Customer] }) class CRM {}
+      `,
+    });
+
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.deepEqual(
+      result.diagnostics.map(({ code }) => code),
+      [
+        "VANE_PARSE_DECORATOR_TARGET",
+        "VANE_PARSE_DECORATOR_TARGET",
+        "VANE_PARSE_DECORATOR_TARGET",
+      ],
+    );
+  });
+
   it("reports TypeScript syntax errors with a location", () => {
     const result = parseModuleSource({
       fileName: "broken.vane.ts",

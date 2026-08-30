@@ -300,24 +300,47 @@ function parseEntityClass(
   const rules: RuleDeclaration[] = [];
   const events: EntityEventDeclaration[] = [];
   for (const member of node.members) {
-    if (
-      ts.isPropertyDeclaration(member) &&
-      hasDecorator(context, member, "Column")
-    ) {
+    const memberDecorators = ["Column", "Rule", "Event"].filter((symbol) =>
+      hasDecorator(context, member, symbol),
+    );
+    if (memberDecorators.length === 0) continue;
+    if (memberDecorators.length > 1) {
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_DECORATOR_TARGET",
+          ["entity", name, "members"],
+          `Entity member combines incompatible DSL decorators: ${memberDecorators.map((symbol) => `@${symbol}`).join(", ")}.`,
+          "Apply exactly one of @Column, @Rule, or @Event to each Entity member.",
+          member,
+        ),
+      );
+      continue;
+    }
+
+    const memberDecorator = memberDecorators[0];
+    if (memberDecorator === "Column" && ts.isPropertyDeclaration(member)) {
       const column = parseColumn(context, name, member);
       if (column) columns.push(column);
-    } else if (
-      ts.isMethodDeclaration(member) &&
-      hasDecorator(context, member, "Rule")
-    ) {
+    } else if (memberDecorator === "Rule" && ts.isMethodDeclaration(member)) {
       const rule = parseRule(context, name, member);
       if (rule) rules.push(rule);
-    } else if (
-      ts.isMethodDeclaration(member) &&
-      hasDecorator(context, member, "Event")
-    ) {
+    } else if (memberDecorator === "Event" && ts.isMethodDeclaration(member)) {
       const event = parseEvent(context, name, member);
       if (event) events.push(event);
+    } else if (memberDecorator) {
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_DECORATOR_TARGET",
+          ["entity", name, "members"],
+          `@${memberDecorator} cannot decorate this kind of Entity member.`,
+          memberDecorator === "Column"
+            ? "Apply @Column to a property declaration."
+            : `Apply @${memberDecorator} to a method declaration.`,
+          member,
+        ),
+      );
     }
   }
 
