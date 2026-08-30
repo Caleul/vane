@@ -1,4 +1,5 @@
 import type {
+  AntiCorruptionLayerDeclaration,
   ColumnType,
   EntityColumnReferenceDeclaration,
   EntityDeclaration,
@@ -14,6 +15,7 @@ import type {
 import type { Diagnostic } from "./diagnostic.js";
 import {
   SEMANTIC_IR_VERSION,
+  type SemanticAntiCorruptionLayer,
   type SemanticEntity,
   type SemanticIr,
   type SemanticView,
@@ -47,6 +49,13 @@ export function compileSemanticIr(
     "View",
     diagnostics,
   );
+  validateUniqueNames(
+    declaration.antiCorruptionLayers ?? [],
+    ["module", "antiCorruptionLayers"],
+    "Anti-Corruption Layer",
+    diagnostics,
+  );
+  validateEventOwnerNames(declaration, diagnostics);
 
   const entitiesByName = new Map(
     declaration.entities.map((entity) => [entity.name, entity] as const),
@@ -56,6 +65,9 @@ export function compileSemanticIr(
   }
   for (const view of declaration.views ?? []) {
     validateView(view, entitiesByName, diagnostics);
+  }
+  for (const antiCorruptionLayer of declaration.antiCorruptionLayers ?? []) {
+    validateAntiCorruptionLayer(antiCorruptionLayer, diagnostics);
   }
 
   if (diagnostics.length > 0) {
@@ -76,9 +88,34 @@ export function compileSemanticIr(
         views: (declaration.views ?? [])
           .map((view) => toSemanticView(view, entitiesByName))
           .sort((left, right) => compare(left.name, right.name)),
+        antiCorruptionLayers: (declaration.antiCorruptionLayers ?? [])
+          .map(toSemanticAntiCorruptionLayer)
+          .sort((left, right) => compare(left.name, right.name)),
       },
     },
   };
+}
+
+function validateEventOwnerNames(
+  declaration: ModuleDeclaration,
+  diagnostics: Diagnostic[],
+): void {
+  const entityNames = new Set(declaration.entities.map(({ name }) => name));
+  for (const antiCorruptionLayer of declaration.antiCorruptionLayers ?? []) {
+    if (!entityNames.has(antiCorruptionLayer.name)) continue;
+    diagnostics.push({
+      code: "VANE_SEM_EVENT_OWNER",
+      path: [
+        "module",
+        "antiCorruptionLayers",
+        antiCorruptionLayer.name,
+        "name",
+      ],
+      message: `Event owner name ${antiCorruptionLayer.name} is used by both an Entity and an Anti-Corruption Layer.`,
+      correction:
+        "Give every Entity and Anti-Corruption Layer a distinct owner name so Owner.Event identities remain unambiguous.",
+    });
+  }
 }
 
 function validateEntity(
@@ -218,6 +255,88 @@ function validateEntity(
         "Event input",
         diagnostics,
       );
+    }
+  }
+}
+
+function validateAntiCorruptionLayer(
+  antiCorruptionLayer: AntiCorruptionLayerDeclaration,
+  diagnostics: Diagnostic[],
+): void {
+  const layerPath = [
+    "module",
+    "antiCorruptionLayers",
+    antiCorruptionLayer.name,
+  ];
+  validateName(
+    antiCorruptionLayer.name,
+    [...layerPath, "name"],
+    "Anti-Corruption Layer",
+    diagnostics,
+  );
+  validateUniqueNames(
+    antiCorruptionLayer.events,
+    [...layerPath, "events"],
+    "ACL Event",
+    diagnostics,
+  );
+
+  for (const event of antiCorruptionLayer.events) {
+    const eventPath = [...layerPath, "events", event.name];
+    validateName(event.name, [...eventPath, "name"], "ACL Event", diagnostics);
+    validateUniqueNames(
+      event.input ?? [],
+      [...eventPath, "input"],
+      "ACL Event input",
+      diagnostics,
+    );
+    validateUniqueNames(
+      event.results,
+      [...eventPath, "results"],
+      "ACL Event result",
+      diagnostics,
+    );
+    for (const input of event.input ?? []) {
+      validateName(
+        input.name,
+        [...eventPath, "input", input.name],
+        "ACL Event input",
+        diagnostics,
+      );
+    }
+    for (const result of event.results) {
+      const resultPath = [...eventPath, "results", result.name];
+      validateName(
+        result.name,
+        [...resultPath, "name"],
+        "ACL Event result",
+        diagnostics,
+      );
+      validateUniqueNames(
+        result.data,
+        [...resultPath, "data"],
+        "ACL Event result data",
+        diagnostics,
+      );
+      for (const field of result.data) {
+        validateName(
+          field.name,
+          [...resultPath, "data", field.name],
+          "ACL Event result data",
+          diagnostics,
+        );
+      }
+    }
+
+    const outcomes = new Set(event.results.map(({ outcome }) => outcome));
+    for (const required of ["success", "fail"] as const) {
+      if (outcomes.has(required)) continue;
+      diagnostics.push({
+        code: "VANE_SEM_ACL_EVENT_OUTCOME",
+        path: [...eventPath, "results"],
+        message: `ACL Event ${antiCorruptionLayer.name}.${event.name} does not interpret any external result as ${required}.`,
+        correction: `Declare at least one ${required}(...) result interpretation.`,
+      });
     }
   }
 }
@@ -815,6 +934,52 @@ function toSemanticEntity(entity: EntityDeclaration): SemanticEntity {
       }))
       .sort((left, right) => compare(left.identity, right.identity)),
   };
+}
+
+function toSemanticAntiCorruptionLayer(
+  antiCorruptionLayer: AntiCorruptionLayerDeclaration,
+): SemanticAntiCorruptionLayer {
+  return {
+    name: antiCorruptionLayer.name,
+    events: antiCorruptionLayer.events
+      .map((event) => ({
+        identity: `${antiCorruptionLayer.name}.${event.name}`,
+        name: event.name,
+        owner: {
+          kind: "antiCorruptionLayer" as const,
+          antiCorruptionLayer: antiCorruptionLayer.name,
+        },
+        input: toSemanticEventFields(event.input ?? []),
+        results: event.results
+          .map((result) => ({
+            name: result.name,
+            outcome: result.outcome,
+            data: toSemanticEventFields(result.data),
+          }))
+          .sort((left, right) => compare(left.name, right.name)),
+      }))
+      .sort((left, right) => compare(left.identity, right.identity)),
+  };
+}
+
+function toSemanticEventFields(
+  fields: readonly {
+    readonly name: string;
+    readonly type: ColumnType;
+    readonly optional?: boolean;
+  }[],
+): readonly {
+  readonly name: string;
+  readonly type: ColumnType;
+  readonly optional: boolean;
+}[] {
+  return fields
+    .map((field) => ({
+      name: field.name,
+      type: field.type,
+      optional: field.optional ?? false,
+    }))
+    .sort((left, right) => compare(left.name, right.name));
 }
 
 function collectRuleColumns(

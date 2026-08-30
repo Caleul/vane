@@ -3,6 +3,9 @@ export {
   type SemanticCompilationResult,
 } from "./compiler.js";
 export type {
+  AntiCorruptionLayerDeclaration,
+  AntiCorruptionLayerEventDeclaration,
+  AntiCorruptionLayerEventResultDeclaration,
   ColumnDeclaration,
   ColumnReferenceDeclaration,
   ColumnType,
@@ -41,6 +44,9 @@ export {
   SEMANTIC_IR_VERSION,
   serializeSemanticIr,
   type SemanticColumn,
+  type SemanticAntiCorruptionLayer,
+  type SemanticAntiCorruptionLayerEvent,
+  type SemanticAntiCorruptionLayerEventResult,
   type SemanticEntity,
   type SemanticEntityEvent,
   type SemanticEventInput,

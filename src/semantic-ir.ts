@@ -1,4 +1,5 @@
 import type {
+  AntiCorruptionLayerEventResultDeclaration,
   ColumnReferenceDeclaration,
   ColumnType,
   RuleExpressionDeclaration,
@@ -8,7 +9,7 @@ import type {
   ViewPaginationDeclaration,
 } from "./declaration.js";
 
-export const SEMANTIC_IR_VERSION = 2 as const;
+export const SEMANTIC_IR_VERSION = 3 as const;
 
 export interface SemanticColumn {
   readonly name: string;
@@ -54,6 +55,28 @@ export interface SemanticEntity {
   readonly events: readonly SemanticEntityEvent[];
 }
 
+export interface SemanticAntiCorruptionLayerEventResult {
+  readonly name: string;
+  readonly outcome: AntiCorruptionLayerEventResultDeclaration["outcome"];
+  readonly data: readonly SemanticEventInput[];
+}
+
+export interface SemanticAntiCorruptionLayerEvent {
+  readonly identity: string;
+  readonly name: string;
+  readonly owner: {
+    readonly kind: "antiCorruptionLayer";
+    readonly antiCorruptionLayer: string;
+  };
+  readonly input: readonly SemanticEventInput[];
+  readonly results: readonly SemanticAntiCorruptionLayerEventResult[];
+}
+
+export interface SemanticAntiCorruptionLayer {
+  readonly name: string;
+  readonly events: readonly SemanticAntiCorruptionLayerEvent[];
+}
+
 export interface SemanticViewInput {
   readonly name: string;
   readonly type: ColumnType;
@@ -88,6 +111,7 @@ export interface SemanticIr {
     readonly name: string;
     readonly entities: readonly SemanticEntity[];
     readonly views: readonly SemanticView[];
+    readonly antiCorruptionLayers: readonly SemanticAntiCorruptionLayer[];
   };
 }
 

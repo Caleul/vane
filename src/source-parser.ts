@@ -1,6 +1,9 @@
 import ts from "typescript";
 import { compileSemanticIr } from "./compiler.js";
 import {
+  type AntiCorruptionLayerDeclaration,
+  type AntiCorruptionLayerEventDeclaration,
+  type AntiCorruptionLayerEventResultDeclaration,
   COLUMN_TYPES,
   type ColumnDeclaration,
   type ColumnReferenceDeclaration,
@@ -29,6 +32,7 @@ import type { SemanticIr } from "./semantic-ir.js";
 const VANE_MODULE = "@lilka/vane";
 const DSL_SYMBOLS = new Set([
   "Module",
+  "ACL",
   "Entity",
   "Column",
   "Rule",
@@ -54,6 +58,8 @@ const DSL_SYMBOLS = new Set([
   "max",
   "asc",
   "desc",
+  "success",
+  "fail",
 ]);
 const COMPARISON_OPERATORS = new Set(["eq", "neq", "gt", "gte", "lt", "lte"]);
 const VIEW_AGGREGATES = new Set(["count", "sum", "avg", "min", "max"]);
@@ -235,9 +241,12 @@ function parseModuleClass(
 
   const options = decoratorObject(context, decorator, ["module"], "Module");
   if (options) {
-    rejectUnknownOptions(context, options, new Set(["entities", "views"]), [
-      "module",
-    ]);
+    rejectUnknownOptions(
+      context,
+      options,
+      new Set(["entities", "views", "antiCorruptionLayers"]),
+      ["module"],
+    );
   }
   const entitiesExpression = options?.get("entities");
   if (!entitiesExpression || !ts.isArrayLiteralExpression(entitiesExpression)) {
@@ -353,7 +362,67 @@ function parseModuleClass(
     }
   }
 
-  return { name, entities, views };
+  const antiCorruptionLayers: AntiCorruptionLayerDeclaration[] = [];
+  const layersExpression = options?.get("antiCorruptionLayers");
+  if (layersExpression) {
+    if (!ts.isArrayLiteralExpression(layersExpression)) {
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_MODULE_ACLS",
+          ["module", "antiCorruptionLayers"],
+          "@Module antiCorruptionLayers must be a static array of @ACL class identifiers.",
+          "Use @Module({ entities: [...], antiCorruptionLayers: [PaymentGateway] }).",
+          layersExpression,
+        ),
+      );
+    } else {
+      recordLocation(
+        context,
+        ["module", "antiCorruptionLayers"],
+        layersExpression,
+      );
+      const layerClasses = new Map(
+        classes
+          .filter((candidate) => hasDecorator(context, candidate, "ACL"))
+          .flatMap((candidate) =>
+            candidate.name ? [[candidate.name.text, candidate] as const] : [],
+          ),
+      );
+      for (const element of layersExpression.elements) {
+        if (!ts.isIdentifier(element)) {
+          context.diagnostics.push(
+            staticDiagnostic(
+              context,
+              ["module", "antiCorruptionLayers"],
+              "Module Anti-Corruption Layer references",
+              element,
+              "Use an @ACL class identifier from this source file.",
+            ),
+          );
+          continue;
+        }
+        const layerClass = layerClasses.get(element.text);
+        if (!layerClass) {
+          context.diagnostics.push(
+            createDiagnostic(
+              context,
+              "VANE_PARSE_MODULE_ACL",
+              ["module", "antiCorruptionLayers", element.text],
+              `@Module references ${element.text}, but no matching @ACL class exists in this source file.`,
+              "Declare and decorate the Anti-Corruption Layer in the same source file.",
+              element,
+            ),
+          );
+          continue;
+        }
+        const layer = parseAntiCorruptionLayerClass(context, layerClass);
+        if (layer) antiCorruptionLayers.push(layer);
+      }
+    }
+  }
+
+  return { name, entities, views, antiCorruptionLayers };
 }
 
 function parseEntityClass(
@@ -423,6 +492,51 @@ function parseEntityClass(
   }
 
   return { name, columns, rules, events };
+}
+
+function parseAntiCorruptionLayerClass(
+  context: ParserContext,
+  node: ts.ClassDeclaration,
+): AntiCorruptionLayerDeclaration | undefined {
+  const name = className(context, node, ["antiCorruptionLayer", "name"], "ACL");
+  const path = ["antiCorruptionLayer", name ?? "unknown"];
+  const decorator = oneDecorator(context, node, "ACL", path);
+  if (!name || !decorator) return undefined;
+  requireArgumentCount(context, decorator, 0, path, "ACL");
+
+  const semanticPath = ["module", "antiCorruptionLayers", name];
+  recordLocation(context, semanticPath, node);
+  recordLocation(context, [...semanticPath, "name"], node.name ?? node);
+  recordLocation(context, [...semanticPath, "events"], node);
+
+  const events: AntiCorruptionLayerEventDeclaration[] = [];
+  for (const member of node.members) {
+    const decorators = ["Column", "Rule", "Event"].filter((symbol) =>
+      hasDecorator(context, member, symbol),
+    );
+    if (decorators.length === 0) continue;
+    if (
+      decorators.length === 1 &&
+      decorators[0] === "Event" &&
+      ts.isMethodDeclaration(member)
+    ) {
+      const event = parseAntiCorruptionLayerEvent(context, name, member);
+      if (event) events.push(event);
+      continue;
+    }
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_DECORATOR_TARGET",
+        [...path, "members"],
+        `@ACL members may only be Event methods; found ${decorators.map((symbol) => `@${symbol}`).join(", ")}.`,
+        "Apply exactly one @Event decorator to a method declaration.",
+        member,
+      ),
+    );
+  }
+
+  return { name, events };
 }
 
 function parseViewClass(
@@ -1173,6 +1287,123 @@ function parseEvent(
     "Event input",
   );
   return inputs ? { name, input: inputs } : undefined;
+}
+
+function parseAntiCorruptionLayerEvent(
+  context: ParserContext,
+  layerName: string,
+  node: ts.MethodDeclaration,
+): AntiCorruptionLayerEventDeclaration | undefined {
+  const name = memberName(context, node.name, [
+    "antiCorruptionLayer",
+    layerName,
+    "events",
+  ]);
+  const path = ["antiCorruptionLayer", layerName, "events", name ?? "unknown"];
+  const decorator = oneDecorator(context, node, "Event", path);
+  if (!name || !decorator) return undefined;
+
+  const semanticPath = [
+    "module",
+    "antiCorruptionLayers",
+    layerName,
+    "events",
+    name,
+  ];
+  recordLocation(context, semanticPath, node);
+  recordLocation(context, [...semanticPath, "name"], node.name);
+  const options = decoratorObject(context, decorator, path, "ACL Event");
+  if (!options) return undefined;
+  rejectUnknownOptions(context, options, new Set(["input", "results"]), path);
+
+  const inputExpression = options.get("input");
+  const resultsExpression = options.get("results");
+  if (!resultsExpression) {
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_ACL_EVENT_RESULTS",
+        [...path, "results"],
+        `ACL Event ${layerName}.${name} must declare static result interpretations.`,
+        "Declare results such as { approved: success({...}), declined: fail({...}) }.",
+        decorator,
+      ),
+    );
+    return undefined;
+  }
+
+  const input = inputExpression
+    ? parseTypedInputs(
+        context,
+        inputExpression,
+        [...path, "input"],
+        "ACL Event input",
+      )
+    : [];
+  const results = parseAntiCorruptionLayerEventResults(
+    context,
+    resultsExpression,
+    [...path, "results"],
+  );
+  recordLocation(context, [...semanticPath, "results"], resultsExpression);
+  if (inputExpression)
+    recordLocation(context, [...semanticPath, "input"], inputExpression);
+  return input && results ? { name, input, results } : undefined;
+}
+
+function parseAntiCorruptionLayerEventResults(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): readonly AntiCorruptionLayerEventResultDeclaration[] | undefined {
+  const object = staticObject(context, node, path, "ACL Event results");
+  if (!object) return undefined;
+  const results: AntiCorruptionLayerEventResultDeclaration[] = [];
+
+  for (const [name, expression] of object) {
+    const resultPath = [...path, name];
+    const call = dslCall(context, expression);
+    if (!call || (call.symbol !== "success" && call.symbol !== "fail")) {
+      context.diagnostics.push(
+        staticDiagnostic(
+          context,
+          resultPath,
+          "ACL Event result interpretations",
+          expression,
+          "Use success({...}) or fail({...}) with a static typed result object.",
+        ),
+      );
+      continue;
+    }
+    if (
+      !requireArgumentCount(
+        context,
+        call.expression,
+        1,
+        resultPath,
+        call.symbol,
+      )
+    ) {
+      continue;
+    }
+    const argument = call.expression.arguments[0];
+    if (!argument) continue;
+    const data = parseTypedInputs(
+      context,
+      argument,
+      [...resultPath, "data"],
+      "ACL Event result data",
+    );
+    if (data) {
+      results.push({
+        name,
+        outcome: call.symbol,
+        data,
+      });
+    }
+  }
+
+  return results;
 }
 
 function parseTypedInputs(
