@@ -722,11 +722,15 @@ function validateColumnConstraints(
         message:
           issue.kind === "cycle"
             ? `Column ${entityName}.${column.name} contains a cycle in its default value.`
-            : `Column ${entityName}.${column.name} contains a non-finite number in its default value.`,
+            : issue.kind === "sparseArray"
+              ? `Column ${entityName}.${column.name} contains a sparse array in its default value.`
+              : `Column ${entityName}.${column.name} contains a non-finite number in its default value.`,
         correction:
           issue.kind === "cycle"
             ? "Use an acyclic JSON value so it can be materialized and serialized deterministically."
-            : "Use only finite JSON numbers so serialization preserves the default exactly.",
+            : issue.kind === "sparseArray"
+              ? "Fill every JSON array position explicitly so the in-memory and serialized defaults are identical."
+              : "Use only finite JSON numbers so serialization preserves the default exactly.",
       });
     }
   }
@@ -774,7 +778,7 @@ function validateColumnConstraints(
 }
 
 interface JsonDefaultIssue {
-  readonly kind: "cycle" | "nonFinite";
+  readonly kind: "cycle" | "nonFinite" | "sparseArray";
   readonly path: readonly string[];
 }
 
@@ -790,13 +794,20 @@ function collectJsonDefaultIssues(
     if (activeContainers.has(value)) return [{ kind: "cycle", path }];
     const nestedActiveContainers = new Set(activeContainers).add(value);
     if (Array.isArray(value)) {
-      return value.flatMap((nested, index) =>
-        collectJsonDefaultIssues(
-          nested,
-          [...path, String(index)],
-          nestedActiveContainers,
-        ),
-      );
+      return Array.from({ length: value.length }, (_, index) =>
+        Object.hasOwn(value, index)
+          ? collectJsonDefaultIssues(
+              value[index] as JsonValue,
+              [...path, String(index)],
+              nestedActiveContainers,
+            )
+          : [
+              {
+                kind: "sparseArray" as const,
+                path: [...path, String(index)],
+              },
+            ],
+      ).flat();
     }
     return Object.entries(value).flatMap(([key, nested]) =>
       collectJsonDefaultIssues(nested, [...path, key], nestedActiveContainers),

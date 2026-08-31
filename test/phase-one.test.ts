@@ -351,6 +351,32 @@ describe("phase one completion gate", () => {
     );
   });
 
+  it("rejects sparse JSON arrays before serialization changes them", () => {
+    const sparse = new Array<JsonValue>(1);
+    const result = compileSemanticIr({
+      name: "Configuration",
+      entities: [
+        {
+          name: "Profile",
+          columns: [
+            { name: "id", type: "uuid", identity: true },
+            { name: "settings", type: "json", default: sparse },
+          ],
+        },
+      ],
+    });
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, path, message }) =>
+          code === "VANE_SEM_COLUMN_CONSTRAINT" &&
+          path.at(-1) === "0" &&
+          message.includes("sparse array"),
+      ),
+    );
+  });
+
   it("preserves special JSON object keys as data properties", () => {
     const result = compileProjectSources([
       {
