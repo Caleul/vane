@@ -71,9 +71,14 @@ export interface RuleOptions {
   readonly expression: RuleExpressionDeclaration;
 }
 
-export interface EventOptions {
+export interface EntityEventOptions {
   readonly input?: Readonly<Record<string, TypedField>>;
-  readonly results?: Readonly<Record<string, EventResultToken>>;
+}
+
+export type EventOptions = EntityEventOptions;
+
+export interface ACLEventOptions extends EntityEventOptions {
+  readonly results: Readonly<Record<string, EventResultToken>>;
 }
 
 export interface EventResultToken {
@@ -131,7 +136,10 @@ export function Column(_options: ColumnOptions): PropertyDecorator {
 export function Rule(_options: RuleOptions): MethodDecorator {
   return methodDecorator;
 }
-export function Event(_options: EventOptions = {}): MethodDecorator {
+export function Event(_options: EntityEventOptions = {}): MethodDecorator {
+  return methodDecorator;
+}
+export function ACLEvent(_options: ACLEventOptions): MethodDecorator {
   return methodDecorator;
 }
 export function View(_options: ViewOptions): ClassDecorator {

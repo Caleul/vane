@@ -222,7 +222,7 @@ describe("Anti-Corruption Layer source parser", () => {
       fileName: "payments.vane.ts",
       sourceText: `
         import {
-          Module, Entity, Column, ACL, Event, optional, success, fail
+          Module, Entity, Column, ACL, ACLEvent, optional, success, fail
         } from "@lilka/vane";
 
         @Entity()
@@ -232,7 +232,7 @@ describe("Anti-Corruption Layer source parser", () => {
 
         @ACL()
         class PaymentGateway {
-          @Event({
+          @ACLEvent({
             input: { amount: "decimal", currency: "string" },
             results: {
               approved: success({
@@ -279,7 +279,7 @@ describe("Anti-Corruption Layer source parser", () => {
     const result = parseModuleSource({
       fileName: "leaky-acl.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, ACL, Event, success, fail }
+        import { Module, Entity, Column, ACL, ACLEvent, success, fail }
           from "@lilka/vane";
         @Entity()
         class Payment {
@@ -287,7 +287,7 @@ describe("Anti-Corruption Layer source parser", () => {
         }
         @ACL()
         class PaymentGateway {
-          @Event({
+          @ACLEvent({
             endpoint: "https://gateway.example",
             timeout: 5000,
             results: {
@@ -319,7 +319,7 @@ describe("Anti-Corruption Layer source parser", () => {
     const result = parseModuleSource({
       fileName: "dynamic-acl.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, ACL, Event }
+        import { Module, Entity, Column, ACL, ACLEvent }
           from "@lilka/vane";
         const approved = loadResult();
         @Entity()
@@ -328,7 +328,7 @@ describe("Anti-Corruption Layer source parser", () => {
         }
         @ACL()
         class PaymentGateway {
-          @Event({ results: { approved } }) Authorize() {}
+          @ACLEvent({ results: { approved } }) Authorize() {}
         }
         @Module({
           entities: [Payment],
@@ -343,5 +343,55 @@ describe("Anti-Corruption Layer source parser", () => {
     assert.ok(
       result.diagnostics.some(({ code }) => code === "VANE_PARSE_STATIC_VALUE"),
     );
+  });
+
+  it("keeps Entity and ACL Event decorators owner-specific", () => {
+    const entityResult = parseModuleSource({
+      fileName: "entity-acl-event.vane.ts",
+      sourceText: `
+        import { Module, Entity, ACLEvent, success, fail } from "@lilka/vane";
+        @Entity()
+        class Order {
+          @ACLEvent({
+            results: { approved: success({}), declined: fail({}) },
+          })
+          Place() {}
+        }
+        @Module({ entities: [Order] }) class Sales {}
+      `,
+    });
+    assert.equal(entityResult.success, false);
+    if (!entityResult.success) {
+      assert.ok(
+        entityResult.diagnostics.some(
+          ({ code, message }) =>
+            code === "VANE_PARSE_DECORATOR_TARGET" &&
+            message.includes("@ACLEvent"),
+        ),
+      );
+    }
+
+    const aclResult = parseModuleSource({
+      fileName: "acl-entity-event.vane.ts",
+      sourceText: `
+        import { Module, ACL, Event } from "@lilka/vane";
+        @ACL()
+        class PaymentGateway {
+          @Event() Authorize() {}
+        }
+        @Module({ entities: [], antiCorruptionLayers: [PaymentGateway] })
+        class Payments {}
+      `,
+    });
+    assert.equal(aclResult.success, false);
+    if (!aclResult.success) {
+      assert.ok(
+        aclResult.diagnostics.some(
+          ({ code, message }) =>
+            code === "VANE_PARSE_DECORATOR_TARGET" &&
+            message.includes("@Event"),
+        ),
+      );
+    }
   });
 });

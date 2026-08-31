@@ -6,6 +6,7 @@ export {
 } from "./compiler.js";
 export {
   ACL,
+  ACLEvent,
   Column,
   Entity,
   Event,
@@ -41,9 +42,11 @@ export {
   success,
   sum,
   type AggregateToken,
+  type ACLEventOptions,
   type ColumnOptions,
   type ColumnToken,
   type EventOptions,
+  type EntityEventOptions,
   type EventResultToken,
   type EventToken,
   type ModuleOptions,

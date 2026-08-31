@@ -40,6 +40,7 @@ const VANE_MODULE = "@lilka/vane";
 const DSL_SYMBOLS = new Set([
   "Module",
   "ACL",
+  "ACLEvent",
   "Saga",
   "Entity",
   "Column",
@@ -1049,8 +1050,8 @@ function parseEntityClass(
   const rules: RuleDeclaration[] = [];
   const events: EntityEventDeclaration[] = [];
   for (const member of node.members) {
-    const memberDecorators = ["Column", "Rule", "Event"].filter((symbol) =>
-      hasDecorator(context, member, symbol),
+    const memberDecorators = ["Column", "Rule", "Event", "ACLEvent"].filter(
+      (symbol) => hasDecorator(context, member, symbol),
     );
     if (memberDecorators.length === 0) continue;
     if (memberDecorators.length > 1) {
@@ -1060,7 +1061,7 @@ function parseEntityClass(
           "VANE_PARSE_DECORATOR_TARGET",
           ["entity", name, "members"],
           `Entity member combines incompatible DSL decorators: ${memberDecorators.map((symbol) => `@${symbol}`).join(", ")}.`,
-          "Apply exactly one of @Column, @Rule, or @Event to each Entity member.",
+          "Apply exactly one of @Column, @Rule, or @Event to each Entity member; @ACLEvent is reserved for @ACL classes.",
           member,
         ),
       );
@@ -1113,13 +1114,13 @@ function parseAntiCorruptionLayerClass(
 
   const events: AntiCorruptionLayerEventDeclaration[] = [];
   for (const member of node.members) {
-    const decorators = ["Column", "Rule", "Event"].filter((symbol) =>
-      hasDecorator(context, member, symbol),
+    const decorators = ["Column", "Rule", "Event", "ACLEvent"].filter(
+      (symbol) => hasDecorator(context, member, symbol),
     );
     if (decorators.length === 0) continue;
     if (
       decorators.length === 1 &&
-      decorators[0] === "Event" &&
+      decorators[0] === "ACLEvent" &&
       ts.isMethodDeclaration(member)
     ) {
       const event = parseAntiCorruptionLayerEvent(context, name, member);
@@ -1131,8 +1132,8 @@ function parseAntiCorruptionLayerClass(
         context,
         "VANE_PARSE_DECORATOR_TARGET",
         [...path, "members"],
-        `@ACL members may only be Event methods; found ${decorators.map((symbol) => `@${symbol}`).join(", ")}.`,
-        "Apply exactly one @Event decorator to a method declaration.",
+        `@ACL members may only be ACLEvent methods; found ${decorators.map((symbol) => `@${symbol}`).join(", ")}.`,
+        "Apply exactly one @ACLEvent decorator to a method declaration.",
         member,
       ),
     );
@@ -1151,7 +1152,7 @@ function parseSagaClass(
   if (!name || !decorator) return undefined;
 
   for (const member of node.members) {
-    const forbidden = ["Column", "Rule", "Event"].filter((symbol) =>
+    const forbidden = ["Column", "Rule", "Event", "ACLEvent"].filter((symbol) =>
       hasDecorator(context, member, symbol),
     );
     if (forbidden.length === 0) continue;
@@ -1398,7 +1399,7 @@ function parseViewClass(
   if (!name || !decorator) return undefined;
 
   for (const member of node.members) {
-    const forbidden = ["Column", "Rule", "Event"].filter((symbol) =>
+    const forbidden = ["Column", "Rule", "Event", "ACLEvent"].filter((symbol) =>
       hasDecorator(context, member, symbol),
     );
     if (forbidden.length === 0) continue;
@@ -2415,7 +2416,7 @@ function parseAntiCorruptionLayerEvent(
     "events",
   ]);
   const path = ["antiCorruptionLayer", layerName, "events", name ?? "unknown"];
-  const decorator = oneDecorator(context, node, "Event", path);
+  const decorator = oneDecorator(context, node, "ACLEvent", path);
   if (!name || !decorator) return undefined;
 
   const semanticPath = [

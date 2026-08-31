@@ -248,7 +248,7 @@ describe("Saga Semantic IR", () => {
 describe("Saga source parser", () => {
   const source = `
     import {
-      Module, Entity, Column, Event, View, ACL, Saga,
+      Module, Entity, Column, Event, View, ACL, ACLEvent, Saga,
       event, success, fail
     } from "@lilka/vane";
 
@@ -275,7 +275,7 @@ describe("Saga source parser", () => {
 
     @ACL()
     class PaymentGateway {
-      @Event({
+      @ACLEvent({
         results: {
           approved: success({}),
           declined: fail({}),

@@ -13,7 +13,7 @@ type tests.
 | Static AST/declarations | Complete | `parseModuleSource`; `compileProjectSources`; parser tests prove user code is never executed |
 | Entity, Column, Rule, Event | Complete | ownership, identity, references, full constraints, persistence and terminal guarantees in Semantic IR v5 |
 | View and query | Complete | typed projection, filters, aggregates, ordering, pagination, explicit relation paths, no persistence |
-| ACL Event | Complete | semantic input/result interpretations, mandatory success/fail, no technical policy |
+| ACL Event | Complete | owner-specific `@ACLEvent` contract, semantic input/result interpretations, mandatory success/fail, no technical policy |
 | Saga and Saga Stream | Complete | causal DAG, compensation, single terminal sink, durable/causal guarantees, terminal-only visibility |
 | Module composition | Complete | explicit imports, transitive visibility, unknown/duplicate/self/cycle/ambiguity rejection |
 | Deterministic IR | Complete | canonical module/project ordering and byte-identical serialization tests |

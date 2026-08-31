@@ -1,5 +1,6 @@
 import {
   ACL,
+  ACLEvent,
   Column,
   Entity,
   Event,
@@ -68,7 +69,7 @@ class Order {
 
 @ACL()
 class PaymentGateway {
-  @Event({
+  @ACLEvent({
     input: { amount: "decimal" },
     results: {
       approved: success({ transactionId: "string" }),
@@ -77,6 +78,16 @@ class PaymentGateway {
   })
   Authorize() {}
 }
+
+@Entity()
+class InvalidEntityEventOptions {
+  // @ts-expect-error ACL result interpretations require @ACLEvent, not @Event.
+  @Event({ results: { approved: success({}), declined: fail({}) } })
+  Authorize() {}
+}
+
+// @ts-expect-error ACL Events must declare result interpretations.
+ACLEvent({ input: { amount: "decimal" } });
 
 @View({
   input: { customerId: "uuid", limit: "integer" },
