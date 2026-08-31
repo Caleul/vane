@@ -74,9 +74,44 @@ export interface EventInputDeclaration {
   readonly optional?: boolean;
 }
 
+export type EventOperationValueDeclaration =
+  | { readonly kind: "input"; readonly input: string }
+  | {
+      readonly kind: "literal";
+      readonly value: boolean | number | string | null;
+    }
+  | { readonly kind: "column"; readonly column: string }
+  | {
+      readonly kind: "arithmetic";
+      readonly operator: "add" | "subtract";
+      readonly left: EventOperationValueDeclaration;
+      readonly right: EventOperationValueDeclaration;
+    };
+
+export interface EventOperationAssignmentDeclaration {
+  readonly column: string;
+  readonly value: EventOperationValueDeclaration;
+}
+
+export type EntityEventOperationDeclaration =
+  | {
+      readonly kind: "create";
+      readonly values: readonly EventOperationAssignmentDeclaration[];
+    }
+  | {
+      readonly kind: "update" | "upsert";
+      readonly identity: EventOperationValueDeclaration;
+      readonly values: readonly EventOperationAssignmentDeclaration[];
+    }
+  | {
+      readonly kind: "delete";
+      readonly identity: EventOperationValueDeclaration;
+    };
+
 export interface EntityEventDeclaration {
   readonly name: string;
   readonly input?: readonly EventInputDeclaration[];
+  readonly operation: EntityEventOperationDeclaration;
 }
 
 export interface AntiCorruptionLayerEventResultDeclaration {

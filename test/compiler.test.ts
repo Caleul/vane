@@ -31,6 +31,19 @@ const salesModule: ModuleDeclaration = {
             { name: "startDate", type: "date" },
             { name: "endDate", type: "date" },
           ],
+          operation: {
+            kind: "create",
+            values: [
+              {
+                column: "startDate",
+                value: { kind: "input", input: "startDate" },
+              },
+              {
+                column: "endDate",
+                value: { kind: "input", input: "endDate" },
+              },
+            ],
+          },
         },
       ],
     },
@@ -45,7 +58,7 @@ describe("compileSemanticIr", () => {
     if (!result.success) return;
 
     assert.equal(result.ir.schema, "vane.semantic-ir");
-    assert.equal(result.ir.version, 5);
+    assert.equal(result.ir.version, 6);
     assert.equal(result.ir.module.entities[0]?.identityColumn, "id");
     assert.deepEqual(result.ir.module.entities[0]?.events[0], {
       identity: "Subscription.CreateSubscription",
@@ -56,6 +69,19 @@ describe("compileSemanticIr", () => {
         { name: "endDate", type: "date", optional: false },
         { name: "startDate", type: "date", optional: false },
       ],
+      operation: {
+        kind: "create",
+        values: [
+          {
+            column: "endDate",
+            value: { kind: "input", input: "endDate" },
+          },
+          {
+            column: "startDate",
+            value: { kind: "input", input: "startDate" },
+          },
+        ],
+      },
       publicResult: {
         success: "viewOnly",
         fail: { code: "stable", message: "safe", correlationId: true },
@@ -144,7 +170,10 @@ describe("compileSemanticIr", () => {
         {
           name: "Order",
           columns: [{ name: "number", type: "string" }],
-          events: [{ name: "CreateOrder" }, { name: "CreateOrder" }],
+          events: [
+            { name: "CreateOrder", operation: { kind: "create", values: [] } },
+            { name: "CreateOrder", operation: { kind: "create", values: [] } },
+          ],
         },
       ],
     });

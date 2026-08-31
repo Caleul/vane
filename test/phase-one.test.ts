@@ -18,7 +18,16 @@ const customer: EntityDeclaration = {
     { name: "id", type: "uuid", identity: true, generated: "uuid" },
     { name: "name", type: "string", minLength: 1, maxLength: 120 },
   ],
-  events: [{ name: "Register", input: [{ name: "name", type: "string" }] }],
+  events: [
+    {
+      name: "Register",
+      input: [{ name: "name", type: "string" }],
+      operation: {
+        kind: "create",
+        values: [{ column: "name", value: { kind: "input", input: "name" } }],
+      },
+    },
+  ],
 };
 
 const order: EntityDeclaration = {
@@ -35,7 +44,7 @@ const order: EntityDeclaration = {
 };
 
 describe("phase one completion gate", () => {
-  it("preserves every Column constraint and terminal Event guarantee in IR v5", () => {
+  it("preserves every Column constraint and terminal Event guarantee in IR v6", () => {
     const result = compileSemanticIr({ name: "CRM", entities: [customer] });
     assert.equal(result.success, true);
     if (!result.success) return;
@@ -763,11 +772,11 @@ describe("phase one completion gate", () => {
           fileName: "saga.vane.ts",
           sourceText: `
             import {
-              Module, Entity, Column, Event, View, Saga, event, field
+              Module, Entity, Column, Event, View, Saga, event, field, create, literal
             } from "@lilka/vane";
             @Entity() class Order {
               id = Column({ type: "uuid", identity: true });
-              Place = Event();
+              Place = Event({ operation: create({ id: literal("placed") }) });
             }
             @View({
               output: { id: field(Order, "id") },
@@ -1275,7 +1284,7 @@ describe("phase one completion gate", () => {
         sourceText: `
           import {
             Module, Entity, Column, Event, View, Saga,
-            field, reference, relation, event, eventRef
+            field, reference, relation, event, eventRef, create, remove, input, literal
           } from "@lilka/vane";
           @Entity() class Customer {
             id = Column({ type: "uuid", identity: true });
@@ -1284,8 +1293,14 @@ describe("phase one completion gate", () => {
           @Entity() class Order {
             id = Column({ type: "uuid", identity: true });
             customerId = Column({ type: "uuid", references: reference(Customer, "id") });
-            Place = Event();
-            Cancel = Event();
+            Place = Event({
+              input: { customerId: "uuid" },
+              operation: create({
+                id: literal("placed"),
+                customerId: input("customerId"),
+              }),
+            });
+            Cancel = Event({ input: { id: "uuid" }, operation: remove(input("id")) });
           }
           @View({
             input: {},

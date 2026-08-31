@@ -39,12 +39,48 @@ const moduleWithSaga: ModuleDeclaration = {
     {
       name: "Order",
       columns: [{ name: "id", type: "uuid", identity: true }],
-      events: [{ name: "Place" }, { name: "Cancel" }],
+      events: [
+        {
+          name: "Place",
+          operation: {
+            kind: "create",
+            values: [
+              { column: "id", value: { kind: "literal", value: "placed" } },
+            ],
+          },
+        },
+        {
+          name: "Cancel",
+          input: [{ name: "id", type: "uuid" }],
+          operation: {
+            kind: "delete",
+            identity: { kind: "input", input: "id" },
+          },
+        },
+      ],
     },
     {
       name: "Payment",
       columns: [{ name: "id", type: "uuid", identity: true }],
-      events: [{ name: "Capture" }, { name: "Refund" }],
+      events: [
+        {
+          name: "Capture",
+          operation: {
+            kind: "create",
+            values: [
+              { column: "id", value: { kind: "literal", value: "capture" } },
+            ],
+          },
+        },
+        {
+          name: "Refund",
+          input: [{ name: "id", type: "uuid" }],
+          operation: {
+            kind: "delete",
+            identity: { kind: "input", input: "id" },
+          },
+        },
+      ],
     },
   ],
   views: [
@@ -83,7 +119,7 @@ describe("Saga Semantic IR", () => {
 
     assert.equal(result.success, true);
     if (!result.success) return;
-    assert.equal(result.ir.version, 5);
+    assert.equal(result.ir.version, 6);
     assert.deepEqual(result.ir.module.sagas[0], {
       name: "PlaceOrder",
       input: [{ name: "orderId", type: "uuid", optional: false }],
@@ -249,21 +285,21 @@ describe("Saga source parser", () => {
   const source = `
     import {
       Module, Entity, Column, Event, View, ACL, ACLEvent, Saga,
-      event, success, fail
+      event, success, fail, create, remove, input, literal
     } from "@lilka/vane";
 
     @Entity()
     class Order {
       id = Column({ type: "uuid", identity: true });
-      Place = Event();
-      Cancel = Event();
+      Place = Event({ operation: create({ id: literal("placed") }) });
+      Cancel = Event({ input: { id: "uuid" }, operation: remove(input("id")) });
     }
 
     @Entity()
     class Payment {
       id = Column({ type: "uuid", identity: true });
-      Capture = Event();
-      Refund = Event();
+      Capture = Event({ operation: create({ id: literal("captured") }) });
+      Refund = Event({ input: { id: "uuid" }, operation: remove(input("id")) });
     }
 
     @View({
