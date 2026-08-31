@@ -273,9 +273,16 @@ describe("phase one completion gate", () => {
         @Module({ entities: [] }) export class Core {}
       `,
     };
-    for (const importStatement of [
-      "",
-      'import type { Core } from "./core.vane.js";',
+    for (const { importStatement, identifier } of [
+      { importStatement: "", identifier: "Core" },
+      {
+        importStatement: 'import type { Core } from "./core.vane.js";',
+        identifier: "Core",
+      },
+      {
+        importStatement: 'import Platform from "./core.vane.js";',
+        identifier: "Platform",
+      },
     ]) {
       const result = compileProjectSources([
         core,
@@ -284,7 +291,7 @@ describe("phase one completion gate", () => {
           sourceText: `
             import { Module } from "@lilka/vane";
             ${importStatement}
-            @Module({ imports: [Core], entities: [] }) class Application {}
+            @Module({ imports: [${identifier}], entities: [] }) class Application {}
           `,
         },
       ]);
@@ -296,6 +303,28 @@ describe("phase one completion gate", () => {
             code === "VANE_PARSE_MODULE_IMPORT_BINDING" &&
             location?.fileName === "application.vane.ts",
         ),
+      );
+    }
+  });
+
+  it("rejects type-only imports of the Vane DSL", () => {
+    for (const dslImport of [
+      'import type { Module } from "@lilka/vane";',
+      'import { type Module } from "@lilka/vane";',
+    ]) {
+      const result = compileProjectSources([
+        {
+          fileName: "type-only.vane.ts",
+          sourceText: `
+            ${dslImport}
+            @Module({ entities: [] }) class TypeOnly {}
+          `,
+        },
+      ]);
+      assert.equal(result.success, false);
+      if (result.success) continue;
+      assert.ok(
+        result.diagnostics.some(({ code }) => code === "VANE_PARSE_IMPORT"),
       );
     }
   });

@@ -207,12 +207,6 @@ function collectSemanticBindings(
     ) {
       continue;
     }
-    if (statement.importClause.name) {
-      bindings.set(
-        statement.importClause.name.text,
-        statement.importClause.name.text,
-      );
-    }
     const namedBindings = statement.importClause.namedBindings;
     if (!namedBindings || !ts.isNamedImports(namedBindings)) continue;
     for (const element of namedBindings.elements) {
@@ -329,7 +323,11 @@ function collectDslBindings(
     }
 
     const clause = statement.importClause;
-    if (!clause?.namedBindings || !ts.isNamedImports(clause.namedBindings)) {
+    if (
+      !clause?.namedBindings ||
+      clause.isTypeOnly ||
+      !ts.isNamedImports(clause.namedBindings)
+    ) {
       diagnostics.push({
         code: "VANE_PARSE_IMPORT",
         path: ["source", "imports"],
@@ -341,6 +339,7 @@ function collectDslBindings(
     }
 
     for (const element of clause.namedBindings.elements) {
+      if (element.isTypeOnly) continue;
       const importedName = (element.propertyName ?? element.name).text;
       if (DSL_SYMBOLS.has(importedName)) {
         bindings.set(element.name.text, importedName);
