@@ -1847,6 +1847,7 @@ function toSemanticEntity(entity: EntityDeclaration): SemanticEntity {
 }
 
 function canonicalizeJsonValue(value: JsonValue): JsonValue {
+  if (typeof value === "number" && Object.is(value, -0)) return 0;
   if (Array.isArray(value)) return value.map(canonicalizeJsonValue);
   if (value && typeof value === "object") {
     return Object.fromEntries(

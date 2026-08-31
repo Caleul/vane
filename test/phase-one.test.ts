@@ -7,6 +7,7 @@ import {
   compileProjectSources,
   compileSemanticIr,
   compileSemanticProject,
+  serializeSemanticIr,
   serializeSemanticProjectIr,
 } from "../src/index.js";
 
@@ -375,6 +376,34 @@ describe("phase one completion gate", () => {
           message.includes("sparse array"),
       ),
     );
+  });
+
+  it("normalizes negative zero to its canonical JSON representation", () => {
+    const result = compileSemanticIr({
+      name: "Configuration",
+      entities: [
+        {
+          name: "Profile",
+          columns: [
+            { name: "id", type: "uuid", identity: true },
+            {
+              name: "settings",
+              type: "json",
+              default: { scalar: -0, nested: [-0] },
+            },
+          ],
+        },
+      ],
+    });
+    assert.equal(result.success, true);
+    if (!result.success) return;
+    const memory = result.ir.module.entities[0]?.columns[1]?.default as {
+      readonly scalar: number;
+      readonly nested: readonly number[];
+    };
+    assert.equal(Object.is(memory.scalar, 0), true);
+    assert.equal(Object.is(memory.nested[0], 0), true);
+    assert.deepEqual(JSON.parse(serializeSemanticIr(result.ir)), result.ir);
   });
 
   it("preserves special JSON object keys as data properties", () => {
