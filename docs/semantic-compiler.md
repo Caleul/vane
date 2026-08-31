@@ -24,7 +24,9 @@ import {
   Module,
   Rule,
   column,
+  create,
   gt,
+  input,
   optional,
 } from "@lilka/vane";
 
@@ -34,11 +36,23 @@ class Subscription {
 
   startDate = Column({ type: "date" });
   endDate = Column({ type: "date" });
+  couponCode = Column({ type: "string", nullable: true });
 
   @Rule({ expression: gt(column("endDate"), column("startDate")) })
   EndsAfterStart() {}
 
-  CreateSubscription = Event({ input: { startDate: "date", couponCode: optional("string") } });
+  CreateSubscription = Event({
+    input: {
+      startDate: "date",
+      endDate: "date",
+      couponCode: optional("string"),
+    },
+    operation: create({
+      startDate: input("startDate"),
+      endDate: input("endDate"),
+      couponCode: input("couponCode"),
+    }),
+  });
 }
 
 @Module({ entities: [Subscription] })
@@ -50,6 +64,13 @@ executes the user's source. Declaration configuration must therefore consist of
 inline objects and arrays, literal values, class identifiers, and recognized
 helper calls. Variables, spreads, shorthand properties, computed properties,
 and arbitrary function calls are rejected with source locations.
+
+An Entity Event declares its owner mutation in the same static grammar. The
+closed operations are `create`, `update`, `remove` (serialized as `delete`) and
+`upsert`. Their value expressions may read declared inputs, literals and current
+owner Columns; `add` and `subtract` provide atomic integer/decimal changes. The
+operation cannot target another Entity, execute I/O or call an arbitrary
+handler. This keeps instruction, execution and persisted change as one Event.
 
 Column constraints include nullability, uniqueness, identity, reference,
 generation, string length, numeric bounds, and static defaults. Contradictions

@@ -12,7 +12,10 @@ import {
   type EntityColumnReferenceDeclaration,
   type EntityDeclaration,
   type EntityEventDeclaration,
+  type EntityEventOperationDeclaration,
   type EventInputDeclaration,
+  type EventOperationAssignmentDeclaration,
+  type EventOperationValueDeclaration,
   type JsonValue,
   type ModuleDeclaration,
   type RuleDeclaration,
@@ -46,6 +49,12 @@ const DSL_SYMBOLS = new Set([
   "Column",
   "Rule",
   "Event",
+  "create",
+  "update",
+  "remove",
+  "upsert",
+  "add",
+  "subtract",
   "View",
   "column",
   "literal",
@@ -2679,27 +2688,205 @@ function parseEvent(
   const call =
     initializer?.symbol === "Event" ? initializer.expression : undefined;
   if (!name || !call) return undefined;
-  if (call.arguments.length > 1) {
-    requireArgumentCount(context, call, 1, path, "Event");
-    return undefined;
-  }
+  if (!requireArgumentCount(context, call, 1, path, "Event")) return undefined;
   const semanticPath = ["module", "entities", entityName, "events", name];
   recordLocation(context, semanticPath, node);
   recordLocation(context, [...semanticPath, "name"], node.name);
-  if (call.arguments.length === 0) return { name, input: [] };
   const options = decoratorObject(context, call, path, "Event");
   if (!options) return undefined;
-  rejectUnknownOptions(context, options, new Set(["input"]), path);
+  rejectUnknownOptions(context, options, new Set(["input", "operation"]), path);
   const inputExpression = options.get("input");
-  if (!inputExpression) return { name, input: [] };
-  recordLocation(context, [...semanticPath, "input"], inputExpression);
-  const inputs = parseTypedInputs(
+  const operationExpression = options.get("operation");
+  if (!operationExpression) {
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_EVENT_OPERATION",
+        [...path, "operation"],
+        `Entity Event ${entityName}.${name} must declare one persistent operation.`,
+        "Declare operation: create(...), update(...), remove(...), or upsert(...).",
+        call,
+      ),
+    );
+    return undefined;
+  }
+  const inputs = inputExpression
+    ? parseTypedInputs(
+        context,
+        inputExpression,
+        [...path, "input"],
+        "Event input",
+      )
+    : [];
+  if (inputExpression) {
+    recordLocation(context, [...semanticPath, "input"], inputExpression);
+  }
+  recordLocation(context, [...semanticPath, "operation"], operationExpression);
+  const operation = parseEventOperation(context, operationExpression, [
+    ...path,
+    "operation",
+  ]);
+  return inputs && operation ? { name, input: inputs, operation } : undefined;
+}
+
+function parseEventOperation(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): EntityEventOperationDeclaration | undefined {
+  const call = dslCall(context, node);
+  if (
+    !call ||
+    !["create", "update", "remove", "upsert"].includes(call.symbol)
+  ) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        path,
+        "Entity Event operation",
+        node,
+        "Use create(values), update(identity, values), remove(identity), or upsert(identity, values).",
+      ),
+    );
+    return undefined;
+  }
+
+  if (call.symbol === "create") {
+    if (!requireArgumentCount(context, call.expression, 1, path, "create"))
+      return undefined;
+    const values = parseEventOperationAssignments(
+      context,
+      call.expression.arguments[0],
+      [...path, "values"],
+    );
+    return values ? { kind: "create", values } : undefined;
+  }
+
+  if (call.symbol === "remove") {
+    if (!requireArgumentCount(context, call.expression, 1, path, "remove"))
+      return undefined;
+    const identity = parseEventOperationValue(
+      context,
+      call.expression.arguments[0],
+      [...path, "identity"],
+    );
+    return identity ? { kind: "delete", identity } : undefined;
+  }
+
+  if (!requireArgumentCount(context, call.expression, 2, path, call.symbol))
+    return undefined;
+  const identity = parseEventOperationValue(
     context,
-    inputExpression,
-    [...path, "input"],
-    "Event input",
+    call.expression.arguments[0],
+    [...path, "identity"],
   );
-  return inputs ? { name, input: inputs } : undefined;
+  const values = parseEventOperationAssignments(
+    context,
+    call.expression.arguments[1],
+    [...path, "values"],
+  );
+  if (!identity || !values) return undefined;
+  return {
+    kind: call.symbol as "update" | "upsert",
+    identity,
+    values,
+  };
+}
+
+function parseEventOperationAssignments(
+  context: ParserContext,
+  node: ts.Expression | undefined,
+  path: readonly string[],
+): readonly EventOperationAssignmentDeclaration[] | undefined {
+  if (!node) return undefined;
+  const object = staticObject(
+    context,
+    node,
+    path,
+    "Entity Event operation values",
+  );
+  if (!object) return undefined;
+  const assignments: EventOperationAssignmentDeclaration[] = [];
+  for (const [column, valueNode] of object) {
+    const value = parseEventOperationValue(context, valueNode, [
+      ...path,
+      column,
+    ]);
+    if (value) assignments.push({ column, value });
+  }
+  return assignments.length === object.size ? assignments : undefined;
+}
+
+function parseEventOperationValue(
+  context: ParserContext,
+  node: ts.Expression | undefined,
+  path: readonly string[],
+): EventOperationValueDeclaration | undefined {
+  if (!node) return undefined;
+  const call = dslCall(context, node);
+  if (
+    !call ||
+    !["input", "literal", "column", "add", "subtract"].includes(call.symbol)
+  ) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        path,
+        "Entity Event operation value",
+        node,
+        "Use input, literal, column, add, or subtract.",
+      ),
+    );
+    return undefined;
+  }
+
+  if (call.symbol === "add" || call.symbol === "subtract") {
+    if (!requireArgumentCount(context, call.expression, 2, path, call.symbol))
+      return undefined;
+    const left = parseEventOperationValue(
+      context,
+      call.expression.arguments[0],
+      [...path, "left"],
+    );
+    const right = parseEventOperationValue(
+      context,
+      call.expression.arguments[1],
+      [...path, "right"],
+    );
+    return left && right
+      ? {
+          kind: "arithmetic",
+          operator: call.symbol,
+          left,
+          right,
+        }
+      : undefined;
+  }
+
+  if (!requireArgumentCount(context, call.expression, 1, path, call.symbol))
+    return undefined;
+  const argument = call.expression.arguments[0];
+  if (call.symbol === "literal" && argument) {
+    const literal = parseLiteral(argument);
+    if (literal.matched) return { kind: "literal", value: literal.value };
+  } else if (argument && ts.isStringLiteral(argument)) {
+    return call.symbol === "input"
+      ? { kind: "input", input: argument.text }
+      : { kind: "column", column: argument.text };
+  }
+
+  context.diagnostics.push(
+    staticDiagnostic(
+      context,
+      path,
+      `${call.symbol} argument`,
+      argument ?? node,
+      call.symbol === "literal"
+        ? "Pass null, a boolean, a finite number, or a string."
+        : `Pass a string literal to ${call.symbol}(...).`,
+    ),
+  );
+  return undefined;
 }
 
 function parseAntiCorruptionLayerEvent(

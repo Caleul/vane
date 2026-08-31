@@ -2,6 +2,7 @@ import type {
   AntiCorruptionLayerEventResultDeclaration,
   ColumnReferenceDeclaration,
   ColumnType,
+  EntityEventOperationDeclaration,
   EventReferenceDeclaration,
   JsonValue,
   RuleExpressionDeclaration,
@@ -12,8 +13,8 @@ import type {
   ViewRelationDeclaration,
 } from "./declaration.js";
 
-export const SEMANTIC_IR_VERSION = 5 as const;
-export const SEMANTIC_PROJECT_IR_VERSION = 1 as const;
+export const SEMANTIC_IR_VERSION = 6 as const;
+export const SEMANTIC_PROJECT_IR_VERSION = 2 as const;
 
 export interface SemanticColumn {
   readonly name: string;
@@ -55,6 +56,7 @@ export interface SemanticEntityEvent {
     readonly required: true;
   };
   readonly input: readonly SemanticEventInput[];
+  readonly operation: EntityEventOperationDeclaration;
   readonly publicResult: {
     readonly success: "viewOnly";
     readonly fail: {

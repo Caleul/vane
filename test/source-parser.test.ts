@@ -13,8 +13,10 @@ import {
   Column,
   Rule,
   Event,
+  create,
   column,
   gt,
+  input,
   optional,
 } from "@lilka/vane";
 
@@ -35,6 +37,10 @@ class Subscription {
       endDate: "date",
       couponCode: optional("string"),
     },
+    operation: create({
+      startDate: input("startDate"),
+      endDate: input("endDate"),
+    }),
   });
 }
 
@@ -88,6 +94,19 @@ describe("parseModuleSource", () => {
                 { name: "endDate", type: "date" },
                 { name: "couponCode", type: "string", optional: true },
               ],
+              operation: {
+                kind: "create",
+                values: [
+                  {
+                    column: "startDate",
+                    value: { kind: "input", input: "startDate" },
+                  },
+                  {
+                    column: "endDate",
+                    value: { kind: "input", input: "endDate" },
+                  },
+                ],
+              },
             },
           ],
         },

@@ -8,8 +8,10 @@ import {
   Rule,
   Saga,
   View,
+  add,
   and,
   column,
+  create,
   desc,
   eq,
   event,
@@ -24,7 +26,11 @@ import {
   or,
   reference,
   relation,
+  remove,
+  subtract,
   success,
+  update,
+  upsert,
 } from "../src/index.js";
 import type {
   RuleExpressionDeclaration,
@@ -58,9 +64,30 @@ class Order {
 
   discount = Column({ type: "decimal", minimum: 0, default: 0 });
 
-  Place = Event({ input: { customerId: "uuid", coupon: optional("string") } });
+  Place = Event({
+    input: { customerId: "uuid", coupon: optional("string") },
+    operation: create({ customerId: input("customerId") }),
+  });
 
-  Cancel = Event();
+  Cancel = Event({
+    input: { id: "uuid" },
+    operation: remove(input("id")),
+  });
+
+  ChangeTotal = Event({
+    input: { id: "uuid", amount: "decimal" },
+    operation: update(input("id"), {
+      total: add(column("total"), input("amount")),
+      discount: subtract(column("discount"), literal(1)),
+    }),
+  });
+
+  Materialize = Event({
+    input: { id: "uuid", customerId: "uuid" },
+    operation: upsert(input("id"), {
+      customerId: input("customerId"),
+    }),
+  });
 
   formatForLogs() {}
 }
@@ -89,9 +116,9 @@ class InvalidEventMemberKind {
 }
 
 class NonPublicEventMembers {
-  static StaticPlace = Event();
-  private PrivatePlace = Event();
-  PublicPlace = Event();
+  static StaticPlace = Event({ operation: create({}) });
+  private PrivatePlace = Event({ operation: create({}) });
+  PublicPlace = Event({ operation: create({}) });
 }
 
 const uuidColumn = Column({ type: "uuid" });
@@ -103,6 +130,12 @@ eventRef(NonPublicEventMembers, "PublicPlace");
 
 // @ts-expect-error ACL Events must declare result interpretations.
 ACLEvent({ input: { amount: "decimal" } });
+
+// @ts-expect-error Entity Events must declare one persistent operation.
+Event({ input: { id: "uuid" } });
+
+// @ts-expect-error update requires both identity and owner assignments.
+update(input("id"));
 
 @View({
   input: { customerId: "uuid", limit: "integer" },

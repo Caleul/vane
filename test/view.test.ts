@@ -79,7 +79,7 @@ describe("View Semantic IR", () => {
 
     assert.equal(result.success, true);
     if (!result.success) return;
-    assert.equal(result.ir.version, 5);
+    assert.equal(result.ir.version, 6);
     assert.deepEqual(result.ir.module.views[0], {
       name: "OrderDetails",
       input: [

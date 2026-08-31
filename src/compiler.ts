@@ -3,6 +3,8 @@ import type {
   ColumnType,
   EntityColumnReferenceDeclaration,
   EntityDeclaration,
+  EntityEventOperationDeclaration,
+  EventOperationValueDeclaration,
   EventReferenceDeclaration,
   JsonValue,
   ModuleDeclaration,
@@ -573,7 +575,283 @@ function validateEntity(
         diagnostics,
       );
     }
+    validateEntityEventOperation(entity, event, diagnostics);
   }
+}
+
+type OperationValueType = ColumnType | "null" | "stringLiteral";
+
+function validateEntityEventOperation(
+  entity: EntityDeclaration,
+  event: NonNullable<EntityDeclaration["events"]>[number],
+  diagnostics: Diagnostic[],
+): void {
+  const path = [
+    "module",
+    "entities",
+    entity.name,
+    "events",
+    event.name,
+    "operation",
+  ];
+  const operation = event.operation;
+  const columnsByName = new Map(
+    entity.columns.map((column) => [column.name, column] as const),
+  );
+  const inputsByName = new Map(
+    (event.input ?? []).map((input) => [input.name, input] as const),
+  );
+  const identity = entity.columns.find((column) => column.identity);
+  if (!identity) return;
+
+  const validateValue = (
+    value: EventOperationValueDeclaration,
+    valuePath: readonly string[],
+    allowCurrentColumn: boolean,
+  ): OperationValueType | undefined => {
+    if (value.kind === "input") {
+      const input = inputsByName.get(value.input);
+      if (!input) {
+        diagnostics.push({
+          code: "VANE_SEM_EVENT_OPERATION_INPUT",
+          path: valuePath,
+          message: `Event ${entity.name}.${event.name} operation references unknown input ${value.input}.`,
+          correction: "Reference an input declared by the same Event.",
+        });
+        return undefined;
+      }
+      if (input.optional) {
+        diagnostics.push({
+          code: "VANE_SEM_EVENT_OPERATION_OPTIONAL",
+          path: valuePath,
+          message: `Event ${entity.name}.${event.name} operation references optional input ${value.input}, so the mutation would be undefined when it is absent.`,
+          correction:
+            "Make the input required or stop using it in the persistent operation.",
+        });
+      }
+      return input.type;
+    }
+    if (value.kind === "column") {
+      const column = columnsByName.get(value.column);
+      if (!column) {
+        diagnostics.push({
+          code: "VANE_SEM_EVENT_OPERATION_COLUMN",
+          path: valuePath,
+          message: `Event ${entity.name}.${event.name} operation references unknown owner Column ${value.column}.`,
+          correction:
+            "Reference only Columns declared by the Event owner Entity.",
+        });
+        return undefined;
+      }
+      if (!allowCurrentColumn) {
+        diagnostics.push({
+          code: "VANE_SEM_EVENT_OPERATION_CURRENT",
+          path: valuePath,
+          message: `Event ${entity.name}.${event.name} ${operation.kind} operation cannot read current Column ${value.column}.`,
+          correction:
+            "Read current owner Columns only inside update assignment expressions.",
+        });
+      }
+      return column.type;
+    }
+    if (value.kind === "literal") {
+      if (value.value === null) return "null";
+      if (typeof value.value === "boolean") return "boolean";
+      if (typeof value.value === "number") {
+        if (!Number.isFinite(value.value)) {
+          diagnostics.push({
+            code: "VANE_SEM_EVENT_OPERATION_LITERAL",
+            path: valuePath,
+            message: `Event ${entity.name}.${event.name} operation contains non-finite numeric literal ${String(value.value)}.`,
+            correction:
+              "Use a finite number so serialization preserves the operation meaning.",
+          });
+          return undefined;
+        }
+        return Number.isSafeInteger(value.value) ? "integer" : "decimal";
+      }
+      return "stringLiteral";
+    }
+
+    const left = validateValue(
+      value.left,
+      [...valuePath, "left"],
+      allowCurrentColumn,
+    );
+    const right = validateValue(
+      value.right,
+      [...valuePath, "right"],
+      allowCurrentColumn,
+    );
+    const numeric = new Set<OperationValueType>(["integer", "decimal"]);
+    if ((left && !numeric.has(left)) || (right && !numeric.has(right))) {
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_ARITHMETIC",
+        path: valuePath,
+        message: `Event ${entity.name}.${event.name} ${value.operator} requires integer or decimal operands.`,
+        correction:
+          "Use numeric inputs, literals, or owner Columns for arithmetic.",
+      });
+      return undefined;
+    }
+    return left === "decimal" || right === "decimal" ? "decimal" : "integer";
+  };
+
+  const validateIdentity = (value: EventOperationValueDeclaration): void => {
+    if (value.kind !== "input" && value.kind !== "literal") {
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_IDENTITY",
+        path: [...path, "identity"],
+        message: `Event ${entity.name}.${event.name} ${operation.kind} identity must come from an input or literal.`,
+        correction:
+          "Use a required input or literal compatible with the owner identity Column.",
+      });
+    }
+    const type = validateValue(value, [...path, "identity"], false);
+    if (type && !operationTypeCompatible(identity.type, type, false)) {
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_TYPE",
+        path: [...path, "identity"],
+        message: `Event ${entity.name}.${event.name} identity expression has type ${displayOperationValueType(type)}, but ${entity.name}.${identity.name} has type ${identity.type}.`,
+        correction:
+          "Use an identity expression compatible with the identity Column.",
+      });
+    }
+  };
+
+  if (operation.kind === "delete") {
+    validateIdentity(operation.identity);
+    return;
+  }
+  if (operation.kind === "update" || operation.kind === "upsert") {
+    validateIdentity(operation.identity);
+    if (operation.kind === "upsert" && identity.generated) {
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_GENERATED",
+        path: [...path, "identity"],
+        message: `Event ${entity.name}.${event.name} cannot upsert generated identity Column ${identity.name}.`,
+        correction:
+          "Use create for generated identities or make the upsert identity application-supplied.",
+      });
+    }
+  }
+
+  if (operation.values.length === 0 && operation.kind !== "create") {
+    diagnostics.push({
+      code: "VANE_SEM_EVENT_OPERATION_EMPTY",
+      path: [...path, "values"],
+      message: `Event ${entity.name}.${event.name} ${operation.kind} operation has no owner assignments.`,
+      correction: "Assign at least one non-identity owner Column.",
+    });
+  }
+
+  const assigned = new Set<string>();
+  for (const assignment of operation.values) {
+    const assignmentPath = [...path, "values", assignment.column];
+    if (assigned.has(assignment.column)) {
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_DUPLICATE",
+        path: assignmentPath,
+        message: `Event ${entity.name}.${event.name} assigns Column ${assignment.column} more than once.`,
+        correction: "Assign each owner Column once.",
+      });
+    }
+    assigned.add(assignment.column);
+    const column = columnsByName.get(assignment.column);
+    if (!column) {
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_COLUMN",
+        path: assignmentPath,
+        message: `Event ${entity.name}.${event.name} operation assigns unknown owner Column ${assignment.column}.`,
+        correction: "Assign only Columns declared by the Event owner Entity.",
+      });
+      validateValue(
+        assignment.value,
+        assignmentPath,
+        operation.kind === "update",
+      );
+      continue;
+    }
+    if (column.generated) {
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_GENERATED",
+        path: assignmentPath,
+        message: `Event ${entity.name}.${event.name} cannot assign generated Column ${assignment.column}.`,
+        correction: "Omit generated Columns from the persistent operation.",
+      });
+    }
+    if (
+      (operation.kind === "update" || operation.kind === "upsert") &&
+      column.identity
+    ) {
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_IDENTITY",
+        path: assignmentPath,
+        message: `Event ${entity.name}.${event.name} cannot assign owner identity Column ${assignment.column}.`,
+        correction: "Pass identity as the operation identity argument only.",
+      });
+    }
+    const valueType = validateValue(
+      assignment.value,
+      assignmentPath,
+      operation.kind === "update",
+    );
+    if (
+      valueType &&
+      !operationTypeCompatible(column.type, valueType, column.nullable ?? false)
+    ) {
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_TYPE",
+        path: assignmentPath,
+        message: `Event ${entity.name}.${event.name} assignment for ${assignment.column} has type ${displayOperationValueType(valueType)}, but the Column has type ${column.type}${column.nullable ? " or null" : ""}.`,
+        correction: "Assign an expression compatible with the target Column.",
+      });
+    }
+  }
+
+  if (operation.kind === "create" || operation.kind === "upsert") {
+    for (const column of entity.columns) {
+      const suppliedByUpsertIdentity =
+        operation.kind === "upsert" && column.identity;
+      if (
+        assigned.has(column.name) ||
+        suppliedByUpsertIdentity ||
+        column.generated ||
+        column.default !== undefined ||
+        column.nullable
+      ) {
+        continue;
+      }
+      diagnostics.push({
+        code: "VANE_SEM_EVENT_OPERATION_REQUIRED",
+        path: [...path, "values", column.name],
+        message: `Event ${entity.name}.${event.name} ${operation.kind} operation does not supply required Column ${column.name}.`,
+        correction:
+          "Assign the required Column or declare a valid default/generation policy.",
+      });
+    }
+  }
+}
+
+function operationTypeCompatible(
+  target: ColumnType,
+  source: OperationValueType,
+  nullable: boolean,
+): boolean {
+  if (source === "null") return nullable;
+  if (target === source) return true;
+  if (target === "decimal" && source === "integer") return true;
+  return (
+    source === "stringLiteral" &&
+    (target === "string" ||
+      target === "date" ||
+      target === "datetime" ||
+      target === "uuid")
+  );
+}
+
+function displayOperationValueType(type: OperationValueType): string {
+  return type === "stringLiteral" ? "string literal" : type;
 }
 
 function validateColumnConstraints(
@@ -1866,6 +2144,7 @@ function toSemanticEntity(entity: EntityDeclaration): SemanticEntity {
             optional: input.optional ?? false,
           }))
           .sort((left, right) => compare(left.name, right.name)),
+        operation: canonicalizeEventOperation(event.operation),
         publicResult: {
           success: "viewOnly" as const,
           fail: {
@@ -1876,6 +2155,51 @@ function toSemanticEntity(entity: EntityDeclaration): SemanticEntity {
         },
       }))
       .sort((left, right) => compare(left.identity, right.identity)),
+  };
+}
+
+function canonicalizeEventOperation(
+  operation: EntityEventOperationDeclaration,
+): EntityEventOperationDeclaration {
+  if (operation.kind === "delete") {
+    return {
+      kind: "delete",
+      identity: canonicalizeEventOperationValue(operation.identity),
+    };
+  }
+  const values = operation.values
+    .map((assignment) => ({
+      column: assignment.column,
+      value: canonicalizeEventOperationValue(assignment.value),
+    }))
+    .sort((left, right) => compare(left.column, right.column));
+  if (operation.kind === "create") return { kind: "create", values };
+  return {
+    kind: operation.kind,
+    identity: canonicalizeEventOperationValue(operation.identity),
+    values,
+  };
+}
+
+function canonicalizeEventOperationValue(
+  value: EventOperationValueDeclaration,
+): EventOperationValueDeclaration {
+  if (value.kind === "input") return { kind: "input", input: value.input };
+  if (value.kind === "column") return { kind: "column", column: value.column };
+  if (value.kind === "literal") {
+    return {
+      kind: "literal",
+      value:
+        typeof value.value === "number"
+          ? canonicalizeNumber(value.value)
+          : value.value,
+    };
+  }
+  return {
+    kind: "arithmetic",
+    operator: value.operator,
+    left: canonicalizeEventOperationValue(value.left),
+    right: canonicalizeEventOperationValue(value.right),
   };
 }
 

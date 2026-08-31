@@ -1,5 +1,6 @@
 import type {
   ColumnType,
+  EventOperationValueDeclaration,
   JsonValue,
   RuleExpressionDeclaration,
   RuleValueDeclaration,
@@ -74,13 +75,17 @@ export interface RuleOptions {
   readonly expression: RuleExpressionDeclaration;
 }
 
-export interface EntityEventOptions {
+export interface EventInputOptions {
   readonly input?: Readonly<Record<string, TypedField>>;
+}
+
+export interface EntityEventOptions extends EventInputOptions {
+  readonly operation: EntityEventOperationToken;
 }
 
 export type EventOptions = EntityEventOptions;
 
-export interface ACLEventOptions extends EntityEventOptions {
+export interface ACLEventOptions extends EventInputOptions {
   readonly results: Readonly<Record<string, EventResultToken>>;
 }
 
@@ -88,6 +93,23 @@ export interface EventResultToken {
   readonly outcome: "success" | "fail";
   readonly data: Readonly<Record<string, TypedField>>;
 }
+
+export type EventOperationValueToken = EventOperationValueDeclaration;
+
+export type EntityEventOperationToken =
+  | {
+      readonly kind: "create";
+      readonly values: Readonly<Record<string, EventOperationValueToken>>;
+    }
+  | {
+      readonly kind: "update" | "upsert";
+      readonly identity: EventOperationValueToken;
+      readonly values: Readonly<Record<string, EventOperationValueToken>>;
+    }
+  | {
+      readonly kind: "delete";
+      readonly identity: EventOperationValueToken;
+    };
 
 export interface ViewOptions {
   readonly input: Readonly<Record<string, TypedField>>;
@@ -140,7 +162,7 @@ export function Column<const Type extends ColumnType>(
 export function Rule(_options: RuleOptions): MethodDecorator {
   return methodDecorator;
 }
-export function Event(_options: EntityEventOptions = {}): EventMember {
+export function Event(_options: EntityEventOptions): EventMember {
   return {} as EventMember;
 }
 export function ACLEvent(_options: ACLEventOptions): EventMember {
@@ -188,12 +210,16 @@ export function event<T>(
 export function optional(type: ColumnType): OptionalField {
   return { kind: "optional", type };
 }
-export function column(name: string): RuleValueDeclaration {
+export function column(
+  name: string,
+): RuleValueDeclaration & EventOperationValueDeclaration {
   return { kind: "column", column: name };
 }
 export function input(
   name: string,
-): ViewValueDeclaration & ViewPaginationValueDeclaration {
+): ViewValueDeclaration &
+  ViewPaginationValueDeclaration &
+  EventOperationValueDeclaration {
   return { kind: "input", input: name };
 }
 type LiteralDeclaration = {
@@ -202,8 +228,56 @@ type LiteralDeclaration = {
 };
 export function literal(
   value: boolean | number | string | null,
-): LiteralDeclaration {
+): LiteralDeclaration & EventOperationValueDeclaration {
   return { kind: "literal", value };
+}
+
+export function create(
+  values: Readonly<Record<string, EventOperationValueToken>>,
+): EntityEventOperationToken {
+  return { kind: "create", values };
+}
+
+export function update(
+  identity: EventOperationValueToken,
+  values: Readonly<Record<string, EventOperationValueToken>>,
+): EntityEventOperationToken {
+  return { kind: "update", identity, values };
+}
+
+export function remove(
+  identity: EventOperationValueToken,
+): EntityEventOperationToken {
+  return { kind: "delete", identity };
+}
+
+export function upsert(
+  identity: EventOperationValueToken,
+  values: Readonly<Record<string, EventOperationValueToken>>,
+): EntityEventOperationToken {
+  return { kind: "upsert", identity, values };
+}
+
+function arithmetic(
+  operator: "add" | "subtract",
+  left: EventOperationValueToken,
+  right: EventOperationValueToken,
+): EventOperationValueToken {
+  return { kind: "arithmetic", operator, left, right };
+}
+
+export function add(
+  left: EventOperationValueToken,
+  right: EventOperationValueToken,
+): EventOperationValueToken {
+  return arithmetic("add", left, right);
+}
+
+export function subtract(
+  left: EventOperationValueToken,
+  right: EventOperationValueToken,
+): EventOperationValueToken {
+  return arithmetic("subtract", left, right);
 }
 
 type Comparable = RuleValueDeclaration | ViewValueDeclaration;
