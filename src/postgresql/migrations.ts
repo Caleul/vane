@@ -830,7 +830,7 @@ function renderCreateIndex(
     semanticId: `${table.semanticId}:${index.semanticId}`,
     classification,
     sql: statement(
-      `CREATE ${index.unique ? "UNIQUE " : ""}INDEX ${qualified(namespace, index.name)} ON ${qualified(namespace, table.name)} (${columns})${index.where === null ? "" : ` WHERE ${index.where}`}`,
+      `CREATE ${index.unique ? "UNIQUE " : ""}INDEX ${quotePostgreSqlIdentifier(index.name)} ON ${qualified(namespace, table.name)} (${columns})${index.where === null ? "" : ` WHERE ${index.where}`}`,
     ),
   };
 }

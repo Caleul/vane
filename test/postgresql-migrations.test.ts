@@ -276,6 +276,13 @@ describe("PostgreSQL migration planning", () => {
         "dropColumn",
       ],
     );
+    const createIndex = plan.steps.find(({ kind }) => kind === "createIndex");
+    assert.ok(createIndex);
+    assert.match(
+      createIndex.sql,
+      /^CREATE INDEX "ix_sales_order_note" ON "public"\."sales__order"/u,
+    );
+    assert.doesNotMatch(createIndex.sql, /"public"\."ix_sales_order_note"/u);
   });
 
   it("rejects invalid rename maps instead of guessing", () => {
