@@ -35,9 +35,9 @@ export type EventName<T> = Extract<
 
 type ColumnName<T> = Exclude<MemberName<T>, MethodName<T> | EventName<T>>;
 
-export type EventMemberDecorator = (
-  target: object,
-  propertyKey: string | symbol,
+export type EventMemberDecorator = <T extends object>(
+  target: T,
+  propertyKey: EventName<T>,
   descriptor?: never,
 ) => void;
 

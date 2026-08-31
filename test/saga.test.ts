@@ -249,7 +249,7 @@ describe("Saga source parser", () => {
   const source = `
     import {
       Module, Entity, Column, Event, View, ACL, ACLEvent, Saga,
-      event, success, fail
+      event, success, fail, type EventMember
     } from "@lilka/vane";
 
     @Entity()

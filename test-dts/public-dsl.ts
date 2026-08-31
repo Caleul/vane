@@ -95,6 +95,12 @@ class InvalidEventMemberKind {
   Place() {}
 }
 
+class InvalidEventMemberType {
+  // @ts-expect-error Event decorators require an EventMember-typed property.
+  @Event()
+  Place!: string;
+}
+
 // @ts-expect-error ACL Events must declare result interpretations.
 ACLEvent({ input: { amount: "decimal" } });
 

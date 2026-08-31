@@ -13,6 +13,7 @@ import {
   Column,
   Rule,
   Event,
+  type EventMember as SemanticEvent,
   column,
   gt,
   optional,
@@ -39,7 +40,7 @@ class Subscription {
       couponCode: optional("string"),
     },
   })
-  CreateSubscription!: EventMember;
+  CreateSubscription!: SemanticEvent;
 }
 
 @Module({ entities: [Subscription] })

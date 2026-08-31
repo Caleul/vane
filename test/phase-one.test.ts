@@ -675,7 +675,10 @@ describe("phase one completion gate", () => {
         {
           fileName: "saga.vane.ts",
           sourceText: `
-            import { Module, Entity, Column, Event, View, Saga, event, field } from "@lilka/vane";
+            import {
+              Module, Entity, Column, Event, View, Saga, event, field,
+              type EventMember
+            } from "@lilka/vane";
             @Entity() class Order {
               @Column({ type: "uuid", identity: true }) id!: string;
               @Event() Place!: EventMember;
@@ -1038,7 +1041,7 @@ describe("phase one completion gate", () => {
         sourceText: `
           import {
             Module, Entity, Column, Event, View, Saga,
-            field, reference, relation, event, eventRef
+            field, reference, relation, event, eventRef, type EventMember
           } from "@lilka/vane";
           @Entity() class Customer {
             @Column({ type: "uuid", identity: true }) id!: string;

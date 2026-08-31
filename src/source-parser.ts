@@ -111,6 +111,7 @@ export type ProjectSourceCompilationResult =
 interface ParserContext {
   readonly sourceFile: ts.SourceFile;
   readonly bindings: ReadonlyMap<string, string>;
+  readonly eventMemberTypeBindings: ReadonlySet<string>;
   readonly semanticBindings: ReadonlyMap<string, string>;
   readonly semanticImportBindings: ReadonlyMap<string, SemanticImportBinding>;
   readonly usedSemanticImports: Map<string, (readonly SemanticClassKind[])[]>;
@@ -181,12 +182,14 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   appendRuntimeBindingDiagnostics(sourceFile, diagnostics);
 
   const bindings = collectDslBindings(sourceFile, diagnostics);
+  const eventMemberTypeBindings = collectEventMemberTypeBindings(sourceFile);
   const classes = sourceFile.statements.filter(ts.isClassDeclaration);
   const semanticImportBindings = collectSemanticImportBindings(sourceFile);
   const localSemanticClassKinds = new Map<string, Set<SemanticClassKind>>();
   const context: ParserContext = {
     sourceFile,
     bindings,
+    eventMemberTypeBindings,
     semanticBindings: new Map(
       [...semanticImportBindings].map(([localName, binding]) => [
         localName,
@@ -737,6 +740,29 @@ function collectDslBindings(
   return bindings;
 }
 
+function collectEventMemberTypeBindings(
+  sourceFile: ts.SourceFile,
+): ReadonlySet<string> {
+  const bindings = new Set<string>();
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isImportDeclaration(statement) ||
+      !ts.isStringLiteral(statement.moduleSpecifier) ||
+      statement.moduleSpecifier.text !== VANE_MODULE
+    ) {
+      continue;
+    }
+    const namedBindings = statement.importClause?.namedBindings;
+    if (!namedBindings || !ts.isNamedImports(namedBindings)) continue;
+    for (const element of namedBindings.elements) {
+      if ((element.propertyName ?? element.name).text === "EventMember") {
+        bindings.add(element.name.text);
+      }
+    }
+  }
+  return bindings;
+}
+
 function parseModuleClass(
   context: ParserContext,
   node: ts.ClassDeclaration,
@@ -1079,8 +1105,10 @@ function parseEntityClass(
       memberDecorator === "Event" &&
       ts.isPropertyDeclaration(member)
     ) {
-      const event = parseEvent(context, name, member);
-      if (event) events.push(event);
+      if (requireEventMemberType(context, member, ["entity", name, "events"])) {
+        const event = parseEvent(context, name, member);
+        if (event) events.push(event);
+      }
     } else if (memberDecorator) {
       context.diagnostics.push(
         createDiagnostic(
@@ -1128,8 +1156,16 @@ function parseAntiCorruptionLayerClass(
       decorators[0] === "ACLEvent" &&
       ts.isPropertyDeclaration(member)
     ) {
-      const event = parseAntiCorruptionLayerEvent(context, name, member);
-      if (event) events.push(event);
+      if (
+        requireEventMemberType(context, member, [
+          "antiCorruptionLayer",
+          name,
+          "events",
+        ])
+      ) {
+        const event = parseAntiCorruptionLayerEvent(context, name, member);
+        if (event) events.push(event);
+      }
       continue;
     }
     context.diagnostics.push(
@@ -1145,6 +1181,34 @@ function parseAntiCorruptionLayerClass(
   }
 
   return { name, events };
+}
+
+function requireEventMemberType(
+  context: ParserContext,
+  node: ts.PropertyDeclaration,
+  path: readonly string[],
+): boolean {
+  const type = node.type;
+  if (
+    type &&
+    ts.isTypeReferenceNode(type) &&
+    ts.isIdentifier(type.typeName) &&
+    type.typeArguments === undefined &&
+    context.eventMemberTypeBindings.has(type.typeName.text)
+  ) {
+    return true;
+  }
+  context.diagnostics.push(
+    createDiagnostic(
+      context,
+      "VANE_PARSE_EVENT_MEMBER_TYPE",
+      [...path, staticPropertyName(node.name) ?? "unknown", "type"],
+      "A semantic Event property must use the EventMember type imported from @lilka/vane.",
+      "Import EventMember with a named type specifier and annotate the property as EventMember.",
+      type ?? node.name,
+    ),
+  );
+  return false;
 }
 
 function parseSagaClass(
