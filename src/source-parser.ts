@@ -2054,9 +2054,7 @@ function parseReference(
       ? hasRuntimeClassBinding(context, entityNode.text, ["entity"])
         ? semanticName(context, entityNode.text, ["entity"])
         : undefined
-      : entityNode && ts.isStringLiteral(entityNode)
-        ? entityNode.text
-        : undefined;
+      : undefined;
   const column =
     columnNode && ts.isStringLiteral(columnNode) ? columnNode.text : undefined;
   if (!entity || !column) {

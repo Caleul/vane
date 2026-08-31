@@ -456,6 +456,45 @@ describe("phase one completion gate", () => {
     }
   });
 
+  it("rejects string-form Entity references without a class binding", () => {
+    const result = compileProjectSources([
+      {
+        fileName: "core.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() export class Customer {
+            @Column({ type: "uuid", identity: true }) id!: string;
+          }
+          @Module({ entities: [Customer] }) export class Core {}
+        `,
+      },
+      {
+        fileName: "application.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          import { Core } from "./core.vane.js";
+          @Entity() class Order {
+            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({
+              type: "uuid",
+              references: { entity: "Customer", column: "id" },
+            }) customerId!: string;
+          }
+          @Module({ imports: [Core], entities: [Order] }) class Application {}
+        `,
+      },
+    ]);
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, location }) =>
+          code === "VANE_PARSE_REFERENCE" &&
+          location?.fileName === "application.vane.ts",
+      ),
+    );
+  });
+
   it("rejects surplus arguments in typed and legacy Saga event calls", () => {
     for (const eventCall of [
       'event(Order, "Place", {}, "extra")',
