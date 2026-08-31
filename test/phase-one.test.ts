@@ -586,6 +586,63 @@ describe("phase one completion gate", () => {
     );
   });
 
+  it("rejects runtime namespaces that collide with semantic imports", () => {
+    const result = compileProjectSources([
+      {
+        fileName: "core.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() export class Customer {
+            id = Column({ type: "uuid", identity: true });
+          }
+          @Module({ entities: [Customer] }) export class Core {}
+        `,
+      },
+      {
+        fileName: "sales.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column, reference } from "@lilka/vane";
+          import { Core, Customer } from "./core.vane.js";
+          namespace Customer { export const label = "local"; }
+          @Entity() class Order {
+            id = Column({ type: "uuid", identity: true });
+            customerId = Column({
+              type: "uuid", references: reference(Customer, "id")
+            });
+          }
+          @Module({ imports: [Core], entities: [Order] }) class Sales {}
+        `,
+      },
+    ]);
+
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, path, location }) =>
+          code === "VANE_PARSE_IMPORT" &&
+          path.at(-1) === "Customer" &&
+          location?.fileName === "sales.vane.ts",
+      ),
+    );
+  });
+
+  it("preserves legal class and namespace declaration merging", () => {
+    const result = compileModuleSource({
+      fileName: "merged-namespace.vane.ts",
+      sourceText: `
+        import { Module, Entity, Column } from "@lilka/vane";
+        @Entity() class Customer {
+          id = Column({ type: "uuid", identity: true });
+        }
+        namespace Customer { export const label = "customer"; }
+        @Module({ entities: [Customer] }) class Core {}
+      `,
+    });
+
+    assert.equal(result.success, true);
+  });
+
   it("rejects referenced local semantic classes omitted from Module", () => {
     const result = compileProjectSources([
       {
@@ -1086,6 +1143,66 @@ describe("phase one completion gate", () => {
     assert.equal(expression?.kind, "column");
     if (expression?.kind === "column") {
       assert.equal(expression.entity, "Customer");
+    }
+  });
+
+  it("remaps only occurrences originating from an imported binding", () => {
+    const result = compileProjectSources([
+      {
+        fileName: "core.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() class Foo {
+            id = Column({ type: "uuid", identity: true });
+          }
+          @Module({ entities: [Foo] }) export class Core {}
+          export { Foo as Customer };
+        `,
+      },
+      {
+        fileName: "sales.vane.ts",
+        sourceText: `
+          import {
+            Module, Entity, Column, View, field, reference
+          } from "@lilka/vane";
+          import { Core, Customer as External } from "./core.vane.js";
+          @Entity() class Customer {
+            id = Column({ type: "string", identity: true });
+          }
+          @Entity() class Order {
+            id = Column({ type: "uuid", identity: true });
+            externalId = Column({
+              type: "uuid", references: reference(External, "id")
+            });
+          }
+          @View({
+            input: {},
+            output: { id: field(Customer, "id") },
+            query: { root: Customer },
+          }) class LocalCustomerView {}
+          @Module({
+            imports: [Core], entities: [Customer, Order],
+            views: [LocalCustomerView]
+          }) class Sales {}
+        `,
+      },
+    ]);
+
+    assert.equal(result.success, true);
+    if (!result.success) return;
+    const sales = result.ir.modules[1];
+    assert.equal(
+      sales?.entities
+        .find(({ name }) => name === "Order")
+        ?.columns.find(({ name }) => name === "externalId")?.references?.entity,
+      "Foo",
+    );
+    assert.equal(sales?.views[0]?.query.root, "Customer");
+    const expression = sales?.views[0]?.output[0]?.expression;
+    if (expression?.kind === "column") {
+      assert.equal(expression.entity, "Customer");
+    } else {
+      assert.fail("Expected a Column projection.");
     }
   });
 

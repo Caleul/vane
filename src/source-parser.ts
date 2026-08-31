@@ -137,6 +137,10 @@ interface SemanticImportUse extends SemanticImportBinding {
   readonly expectations: readonly (readonly SemanticClassKind[])[];
 }
 
+function semanticImportReferenceName(binding: SemanticImportBinding): string {
+  return `@vane-import:${binding.localName}`;
+}
+
 type SemanticClassKind = "module" | "entity" | "view" | "acl" | "saga";
 const SEMANTIC_CLASS_DECORATORS = [
   ["Module", "module"],
@@ -151,9 +155,10 @@ export function parseModuleSource(
 ): ModuleSourceParseResult {
   const parsed = parseModuleSourceInternal(input);
   if (!parsed.success) return parsed;
+  const aliases = unlinkedSemanticImportAliases(parsed.semanticImportUses);
   return {
     success: true,
-    declaration: parsed.declaration,
+    declaration: remapSemanticDeclaration(parsed.declaration, aliases),
     diagnostics: [],
   };
 }
@@ -190,7 +195,7 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
     semanticBindings: new Map(
       [...semanticImportBindings].map(([localName, binding]) => [
         localName,
-        binding.semanticName,
+        semanticImportReferenceName(binding),
       ]),
     ),
     semanticImportBindings,
@@ -280,7 +285,13 @@ function appendRuntimeBindingDiagnostics(
   sourceFile: ts.SourceFile,
   diagnostics: Diagnostic[],
 ): void {
-  const localBindings = new Map<string, "function" | "value">();
+  type LocalBindingKind =
+    | "function"
+    | "class"
+    | "enum"
+    | "variable"
+    | "namespace";
+  const localBindings = new Map<string, Set<LocalBindingKind>>();
   const importBindings = new Set<string>();
   const register = (name: string, node: ts.Node): void => {
     if (!localBindings.has(name) && !importBindings.has(name)) {
@@ -299,14 +310,28 @@ function appendRuntimeBindingDiagnostics(
   const registerLocal = (
     name: string,
     node: ts.Node,
-    kind: "function" | "value",
+    kind: LocalBindingKind,
   ): void => {
     const previous = localBindings.get(name);
     if (!previous) {
-      localBindings.set(name, kind);
+      localBindings.set(name, new Set([kind]));
       return;
     }
-    if (previous === "function" && kind === "function") return;
+    const mergeableWithNamespace = new Set<LocalBindingKind>([
+      "function",
+      "class",
+      "enum",
+      "namespace",
+    ]);
+    if (
+      (kind === "function" && previous.has("function")) ||
+      (kind === "namespace" &&
+        [...previous].every((entry) => mergeableWithNamespace.has(entry))) ||
+      (previous.has("namespace") && mergeableWithNamespace.has(kind))
+    ) {
+      previous.add(kind);
+      return;
+    }
     diagnostics.push({
       code: "VANE_PARSE_BINDING",
       path: ["source", "bindings", name],
@@ -317,7 +342,7 @@ function appendRuntimeBindingDiagnostics(
   };
   const registerBindingName = (name: ts.BindingName): void => {
     if (ts.isIdentifier(name)) {
-      registerLocal(name.text, name, "value");
+      registerLocal(name.text, name, "variable");
       return;
     }
     for (const element of name.elements) {
@@ -330,11 +355,22 @@ function appendRuntimeBindingDiagnostics(
       registerLocal(statement.name.text, statement.name, "function");
       continue;
     }
+    if (ts.isClassDeclaration(statement) && statement.name) {
+      registerLocal(statement.name.text, statement.name, "class");
+      continue;
+    }
+    if (ts.isEnumDeclaration(statement)) {
+      registerLocal(statement.name.text, statement.name, "enum");
+      continue;
+    }
     if (
-      (ts.isClassDeclaration(statement) || ts.isEnumDeclaration(statement)) &&
-      statement.name
+      ts.isModuleDeclaration(statement) &&
+      ts.isIdentifier(statement.name) &&
+      !statement.modifiers?.some(
+        ({ kind }) => kind === ts.SyntaxKind.DeclareKeyword,
+      )
     ) {
-      registerLocal(statement.name.text, statement.name, "value");
+      registerLocal(statement.name.text, statement.name, "namespace");
       continue;
     }
     if (ts.isVariableStatement(statement)) {
@@ -481,13 +517,16 @@ export function compileModuleSource(
 ): ModuleSourceCompilationResult {
   const parsed = parseModuleSourceInternal(input);
   if (!parsed.success) return parsed;
-  const compiled = compileSemanticIr(parsed.declaration);
+  const aliases = unlinkedSemanticImportAliases(parsed.semanticImportUses);
+  const declaration = remapSemanticDeclaration(parsed.declaration, aliases);
+  const sourceLocations = remapSourceLocations(parsed.sourceLocations, aliases);
+  const compiled = compileSemanticIr(declaration);
   if (compiled.success) return compiled;
   return {
     success: false,
     diagnostics: compiled.diagnostics.map((diagnostic) => ({
       ...diagnostic,
-      ...locationForPath(parsed.sourceLocations, diagnostic.path),
+      ...locationForPath(sourceLocations, diagnostic.path),
     })),
   };
 }
@@ -620,6 +659,7 @@ function resolveSemanticImportAliases<
     readonly declaration: ModuleDeclaration;
     readonly semanticImportUses: readonly SemanticImportUse[];
     readonly exportedClassBindings: ReadonlyMap<string, string>;
+    readonly sourceLocations: ReadonlyMap<string, SourceLocation>;
   },
 >(sources: readonly Source[]): readonly Source[] {
   const sourcesByFileName = new Map(
@@ -637,20 +677,48 @@ function resolveSemanticImportAliases<
       const localSemanticName = target?.exportedClassBindings.get(
         binding.semanticName,
       );
-      if (!localSemanticName || conflicts.has(binding.semanticName)) continue;
-      const previous = aliases.get(binding.semanticName);
+      const referenceName = semanticImportReferenceName(binding);
+      if (!localSemanticName || conflicts.has(referenceName)) continue;
+      const previous = aliases.get(referenceName);
       if (previous && previous !== localSemanticName) {
-        aliases.delete(binding.semanticName);
-        conflicts.add(binding.semanticName);
+        aliases.delete(referenceName);
+        conflicts.add(referenceName);
       } else {
-        aliases.set(binding.semanticName, localSemanticName);
+        aliases.set(referenceName, localSemanticName);
       }
     }
     return {
       ...source,
       declaration: remapSemanticDeclaration(source.declaration, aliases),
+      sourceLocations: remapSourceLocations(source.sourceLocations, aliases),
     };
   });
+}
+
+function unlinkedSemanticImportAliases(
+  imports: readonly SemanticImportUse[],
+): ReadonlyMap<string, string> {
+  return new Map(
+    imports.map((binding) => [
+      semanticImportReferenceName(binding),
+      binding.semanticName,
+    ]),
+  );
+}
+
+function remapSourceLocations(
+  sourceLocations: ReadonlyMap<string, SourceLocation>,
+  aliases: ReadonlyMap<string, string>,
+): ReadonlyMap<string, SourceLocation> {
+  return new Map(
+    [...sourceLocations].map(([pathKey, location]) => [
+      pathKey
+        .split(".")
+        .map((segment) => aliases.get(segment) ?? segment)
+        .join("."),
+      location,
+    ]),
+  );
 }
 
 function remapSemanticDeclaration(
