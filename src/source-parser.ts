@@ -230,6 +230,11 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   if (declaration) {
     appendLocalSemanticRegistrationDiagnostics(context, declaration, classes);
   }
+  const exportedClassBindings = collectExportedClassBindings(
+    sourceFile,
+    classes,
+    diagnostics,
+  );
 
   if (diagnostics.length > 0 || !declaration) {
     return { success: false, diagnostics: sortDiagnostics(diagnostics) };
@@ -247,7 +252,7 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
         return binding ? [{ ...binding, expectations }] : [];
       },
     ),
-    exportedClassBindings: collectExportedClassBindings(sourceFile, classes),
+    exportedClassBindings,
   };
 }
 
@@ -461,6 +466,7 @@ function collectLocalSemanticClassKinds(
 function collectExportedClassBindings(
   sourceFile: ts.SourceFile,
   classes: readonly ts.ClassDeclaration[],
+  diagnostics: Diagnostic[],
 ): ReadonlyMap<string, string> {
   const classNames = new Set(
     classes.flatMap((candidate) =>
@@ -468,6 +474,24 @@ function collectExportedClassBindings(
     ),
   );
   const exported = new Map<string, string>();
+  const registerExport = (
+    exportedName: string,
+    localName: string,
+    node: ts.Node,
+  ): void => {
+    const previous = exported.get(exportedName);
+    if (previous !== undefined) {
+      diagnostics.push({
+        code: "VANE_PARSE_EXPORT",
+        path: ["source", "exports", exportedName],
+        message: `Runtime export ${exportedName} is declared more than once (${previous} and ${localName}).`,
+        correction: "Give every exported runtime class a unique exported name.",
+        location: locationOf(sourceFile, node),
+      });
+      return;
+    }
+    exported.set(exportedName, localName);
+  };
   for (const candidate of classes) {
     if (
       candidate.name &&
@@ -478,7 +502,7 @@ function collectExportedClassBindings(
         (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
       )
     ) {
-      exported.set(candidate.name.text, candidate.name.text);
+      registerExport(candidate.name.text, candidate.name.text, candidate.name);
     }
   }
   for (const statement of sourceFile.statements) {
@@ -495,7 +519,7 @@ function collectExportedClassBindings(
       if (element.isTypeOnly) continue;
       const localName = (element.propertyName ?? element.name).text;
       if (classNames.has(localName)) {
-        exported.set(element.name.text, localName);
+        registerExport(element.name.text, localName, element);
       }
     }
   }
@@ -545,6 +569,14 @@ export function compileProjectSources(
     (result): result is Extract<typeof result, { readonly success: true }> =>
       result.success,
   );
+  const duplicateSourceDiagnostics =
+    duplicateNormalizedSourceDiagnostics(successful);
+  if (duplicateSourceDiagnostics.length > 0) {
+    return {
+      success: false,
+      diagnostics: sortDiagnostics(duplicateSourceDiagnostics),
+    };
+  }
   const duplicateModuleDiagnostics: Diagnostic[] = [];
   const seenModuleNames = new Set<string>();
   for (const source of successful) {
@@ -594,6 +626,32 @@ export function compileProjectSources(
         : diagnostic;
     }),
   };
+}
+
+function duplicateNormalizedSourceDiagnostics(
+  sources: readonly {
+    readonly fileName: string;
+    readonly sourceLocations: ReadonlyMap<string, SourceLocation>;
+  }[],
+): readonly Diagnostic[] {
+  const byFileName = new Map<string, typeof sources>();
+  for (const source of sources) {
+    const normalized = normalizeSourceFileName(source.fileName);
+    const matches = byFileName.get(normalized) ?? [];
+    byFileName.set(normalized, [...matches, source]);
+  }
+  return [...byFileName].flatMap(([normalized, matches]) =>
+    matches.length < 2
+      ? []
+      : matches.map((source) => ({
+          code: "VANE_PARSE_SOURCE_FILE",
+          path: ["project", "sources", normalized],
+          message: `Project source file ${source.fileName} duplicates normalized path ${normalized}.`,
+          correction:
+            "Supply each normalized source filename exactly once per compilation.",
+          ...locationForPath(source.sourceLocations, ["module", "name"]),
+        })),
+  );
 }
 
 function validateSemanticImportSources(

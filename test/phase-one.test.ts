@@ -181,6 +181,37 @@ describe("phase one completion gate", () => {
     assert.equal(result.diagnostics[0]?.code, "VANE_SEM_PROJECT_EMPTY");
   });
 
+  it("rejects duplicate normalized source filenames independent of order", () => {
+    const inputs = [
+      {
+        fileName: "./core.vane.ts",
+        sourceText: `
+          import { Module } from "@lilka/vane";
+          @Module({ entities: [] }) class Core {}
+        `,
+      },
+      {
+        fileName: "src/../core.vane.ts",
+        sourceText: `
+          import { Module } from "@lilka/vane";
+          @Module({ entities: [] }) class OtherCore {}
+        `,
+      },
+    ];
+
+    for (const ordered of [inputs, [...inputs].reverse()]) {
+      const result = compileProjectSources(ordered);
+      assert.equal(result.success, false);
+      if (result.success) continue;
+      assert.equal(
+        result.diagnostics.filter(
+          ({ code }) => code === "VANE_PARSE_SOURCE_FILE",
+        ).length,
+        2,
+      );
+    }
+  });
+
   it("locates every duplicate Module occurrence in its own source", () => {
     const result = compileProjectSources([
       {
@@ -1143,6 +1174,37 @@ describe("phase one completion gate", () => {
     assert.equal(expression?.kind, "column");
     if (expression?.kind === "column") {
       assert.equal(expression.entity, "Customer");
+    }
+  });
+
+  it("rejects colliding exported class aliases", () => {
+    for (const exportBlock of [
+      "export { Foo as Customer, Bar as Customer };",
+      "export class Customer {} export { Foo as Customer };",
+    ]) {
+      const result = compileModuleSource({
+        fileName: "duplicate-export.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() class Foo {
+            id = Column({ type: "uuid", identity: true });
+          }
+          @Entity() class Bar {
+            id = Column({ type: "uuid", identity: true });
+          }
+          @Module({ entities: [Foo, Bar] }) class Core {}
+          ${exportBlock}
+        `,
+      });
+
+      assert.equal(result.success, false);
+      if (result.success) continue;
+      assert.ok(
+        result.diagnostics.some(
+          ({ code, path }) =>
+            code === "VANE_PARSE_EXPORT" && path.at(-1) === "Customer",
+        ),
+      );
     }
   });
 
