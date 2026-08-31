@@ -4,6 +4,7 @@ import {
   type EntityDeclaration,
   type JsonValue,
   type ModuleDeclaration,
+  compileModuleSource,
   compileProjectSources,
   compileSemanticIr,
   compileSemanticProject,
@@ -530,6 +531,31 @@ describe("phase one completion gate", () => {
           code === "VANE_PARSE_IMPORT" &&
           path.at(-1) === "Customer" &&
           location?.fileName === "application.vane.ts",
+      ),
+    );
+  });
+
+  it("rejects duplicate local aliases from the Vane DSL", () => {
+    const result = compileModuleSource({
+      fileName: "duplicate-dsl.vane.ts",
+      sourceText: `
+        import {
+          Module, Entity as Concept, Entity as Concept, Column
+        } from "@lilka/vane";
+        @Concept() class Customer {
+          @Column({ type: "uuid", identity: true }) id!: string;
+        }
+        @Module({ entities: [Customer] }) class Core {}
+      `,
+    });
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, path, location }) =>
+          code === "VANE_PARSE_IMPORT" &&
+          path.at(-1) === "Concept" &&
+          location?.fileName === "duplicate-dsl.vane.ts",
       ),
     );
   });
