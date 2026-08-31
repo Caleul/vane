@@ -421,5 +421,27 @@ describe("Anti-Corruption Layer source parser", () => {
         ),
       );
     }
+
+    const staticResult = parseModuleSource({
+      fileName: "static-event.vane.ts",
+      sourceText: `
+        import {
+          Module, Entity, Event, type EventMember
+        } from "@lilka/vane";
+        @Entity()
+        class Order {
+          @Event() static Place: EventMember;
+        }
+        @Module({ entities: [Order] }) class Sales {}
+      `,
+    });
+    assert.equal(staticResult.success, false);
+    if (!staticResult.success) {
+      assert.ok(
+        staticResult.diagnostics.some(
+          ({ code }) => code === "VANE_PARSE_EVENT_MEMBER_DECLARATION",
+        ),
+      );
+    }
   });
 });

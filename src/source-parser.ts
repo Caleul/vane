@@ -760,7 +760,49 @@ function collectEventMemberTypeBindings(
       }
     }
   }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const statement of sourceFile.statements) {
+      const derivedName = ts.isTypeAliasDeclaration(statement)
+        ? isEventMemberTypeNode(statement.type, bindings)
+          ? statement.name.text
+          : undefined
+        : ts.isInterfaceDeclaration(statement) &&
+            (statement.heritageClauses ?? []).some((clause) =>
+              clause.types.some(
+                (type) =>
+                  ts.isIdentifier(type.expression) &&
+                  bindings.has(type.expression.text),
+              ),
+            )
+          ? statement.name.text
+          : undefined;
+      if (derivedName && !bindings.has(derivedName)) {
+        bindings.add(derivedName);
+        changed = true;
+      }
+    }
+  }
   return bindings;
+}
+
+function isEventMemberTypeNode(
+  node: ts.TypeNode,
+  bindings: ReadonlySet<string>,
+): boolean {
+  if (ts.isParenthesizedTypeNode(node)) {
+    return isEventMemberTypeNode(node.type, bindings);
+  }
+  if (ts.isIntersectionTypeNode(node)) {
+    return node.types.some((type) => isEventMemberTypeNode(type, bindings));
+  }
+  return (
+    ts.isTypeReferenceNode(node) &&
+    ts.isIdentifier(node.typeName) &&
+    node.typeArguments === undefined &&
+    bindings.has(node.typeName.text)
+  );
 }
 
 function parseModuleClass(
@@ -1188,14 +1230,27 @@ function requireEventMemberType(
   node: ts.PropertyDeclaration,
   path: readonly string[],
 ): boolean {
+  const forbiddenModifier = node.modifiers?.find(
+    ({ kind }) =>
+      kind === ts.SyntaxKind.StaticKeyword ||
+      kind === ts.SyntaxKind.PrivateKeyword ||
+      kind === ts.SyntaxKind.ProtectedKeyword,
+  );
+  if (forbiddenModifier || node.questionToken) {
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_EVENT_MEMBER_DECLARATION",
+        [...path, staticPropertyName(node.name) ?? "unknown"],
+        "A semantic Event must be a required public instance property.",
+        "Remove static, private, protected, or optional modifiers from the EventMember property.",
+        forbiddenModifier ?? node.questionToken ?? node.name,
+      ),
+    );
+    return false;
+  }
   const type = node.type;
-  if (
-    type &&
-    ts.isTypeReferenceNode(type) &&
-    ts.isIdentifier(type.typeName) &&
-    type.typeArguments === undefined &&
-    context.eventMemberTypeBindings.has(type.typeName.text)
-  ) {
+  if (type && isEventMemberTypeNode(type, context.eventMemberTypeBindings)) {
     return true;
   }
   context.diagnostics.push(

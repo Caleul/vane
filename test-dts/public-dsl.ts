@@ -101,6 +101,20 @@ class InvalidEventMemberType {
   Place!: string;
 }
 
+class InvalidEventMemberDeclarations {
+  // @ts-expect-error Static Event members cannot be referenced through the instance owner.
+  @Event()
+  static StaticPlace: EventMember;
+
+  // @ts-expect-error Private Event members are absent from the public owner contract.
+  @Event()
+  private PrivatePlace!: EventMember;
+
+  // @ts-expect-error Optional Event members are not guaranteed semantic declarations.
+  @Event()
+  MaybePlace?: EventMember;
+}
+
 // @ts-expect-error ACL Events must declare result interpretations.
 ACLEvent({ input: { amount: "decimal" } });
 

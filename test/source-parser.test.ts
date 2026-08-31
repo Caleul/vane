@@ -13,11 +13,13 @@ import {
   Column,
   Rule,
   Event,
-  type EventMember as SemanticEvent,
+  type EventMember as ImportedEventMember,
   column,
   gt,
   optional,
 } from "@lilka/vane";
+
+type SemanticEvent = ImportedEventMember & {};
 
 @Entity()
 class Subscription {

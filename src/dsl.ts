@@ -36,7 +36,7 @@ export type EventName<T> = Extract<
 type ColumnName<T> = Exclude<MemberName<T>, MethodName<T> | EventName<T>>;
 
 export type EventMemberDecorator = <T extends object>(
-  target: T,
+  target: T & (T extends VaneClass ? never : unknown),
   propertyKey: EventName<T>,
   descriptor?: never,
 ) => void;
