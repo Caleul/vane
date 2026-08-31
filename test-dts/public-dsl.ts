@@ -2,6 +2,7 @@ import {
   ACL,
   ACLEvent,
   Column,
+  type ColumnMember,
   Entity,
   Event,
   Module,
@@ -35,31 +36,33 @@ import type {
 @Entity()
 class Customer {
   @Column({ type: "uuid", identity: true, generated: "uuid" })
-  id!: string;
+  id!: ColumnMember<string>;
 
   @Column({ type: "string", minLength: 1, maxLength: 120 })
-  name!: string;
+  name!: ColumnMember<string>;
 }
 
 @Entity()
 class Order {
+  cacheKey!: string;
+
   @Column({ type: "uuid", identity: true, generated: "uuid" })
-  id!: string;
+  id!: ColumnMember<string>;
 
   @Column({ type: "uuid", references: reference(Customer, "id") })
-  customerId!: string;
+  customerId!: ColumnMember<string>;
 
   @Column({ type: "decimal", minimum: 0, default: 0 })
-  total!: number;
+  total!: ColumnMember<number>;
 
   @Column({ type: "json", default: { source: "web", flags: ["new"] } })
-  metadata!: unknown;
+  metadata!: ColumnMember<unknown>;
 
   @Rule({ expression: gt(column("total"), column("discount")) })
   PositiveTotal() {}
 
   @Column({ type: "decimal", minimum: 0, default: 0 })
-  discount!: number;
+  discount!: ColumnMember<number>;
 
   @Event({ input: { customerId: "uuid", coupon: optional("string") } })
   Place!: EventMember;
@@ -168,6 +171,8 @@ void Application;
 
 // @ts-expect-error Entity members are checked by field().
 field(Customer, "missing");
+// @ts-expect-error Undecorated properties are not semantic Columns.
+field(Order, "cacheKey");
 // @ts-expect-error Event members are not Columns.
 field(Order, "Place");
 // @ts-expect-error Event members are not Column references.

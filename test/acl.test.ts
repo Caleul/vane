@@ -222,13 +222,13 @@ describe("Anti-Corruption Layer source parser", () => {
       fileName: "payments.vane.ts",
       sourceText: `
         import {
-          Module, Entity, Column, ACL, ACLEvent, optional, success, fail,
+          Module, Entity, Column, type ColumnMember, ACL, ACLEvent, optional, success, fail,
           type EventMember
         } from "@lilka/vane";
 
         @Entity()
         class Payment {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
         }
 
         @ACL()
@@ -281,13 +281,13 @@ describe("Anti-Corruption Layer source parser", () => {
       fileName: "leaky-acl.vane.ts",
       sourceText: `
         import {
-          Module, Entity, Column, ACL, ACLEvent, success, fail,
+          Module, Entity, Column, type ColumnMember, ACL, ACLEvent, success, fail,
           type EventMember
         }
           from "@lilka/vane";
         @Entity()
         class Payment {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
         }
         @ACL()
         class PaymentGateway {
@@ -324,13 +324,13 @@ describe("Anti-Corruption Layer source parser", () => {
       fileName: "dynamic-acl.vane.ts",
       sourceText: `
         import {
-          Module, Entity, Column, ACL, ACLEvent, type EventMember
+          Module, Entity, Column, type ColumnMember, ACL, ACLEvent, type EventMember
         }
           from "@lilka/vane";
         const approved = loadResult();
         @Entity()
         class Payment {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
         }
         @ACL()
         class PaymentGateway {

@@ -235,9 +235,9 @@ describe("phase one completion gate", () => {
       {
         fileName: "core.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() class Broken {
-            @Column({ type: "string" }) value!: string;
+            @Column({ type: "string" }) value!: ColumnMember<string>;
           }
           @Module({ entities: [Broken] }) export class Core {}
         `,
@@ -334,9 +334,9 @@ describe("phase one completion gate", () => {
     const core = {
       fileName: "core.vane.ts",
       sourceText: `
-        import { Module, Entity, Column } from "@lilka/vane";
+        import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
         @Entity() export class Customer {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
         }
         @Module({ entities: [Customer] }) export class Core {}
       `,
@@ -350,12 +350,12 @@ describe("phase one completion gate", () => {
         {
           fileName: "sales.vane.ts",
           sourceText: `
-            import { Module, Entity, Column, reference } from "@lilka/vane";
+            import { Module, Entity, Column, type ColumnMember, reference } from "@lilka/vane";
             import { Core } from "./core.vane.js";
             ${customerImport}
             @Entity() class Order {
-              @Column({ type: "uuid", identity: true }) id!: string;
-              @Column({ type: "uuid", references: reference(Customer, "id") }) customerId!: string;
+              @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+              @Column({ type: "uuid", references: reference(Customer, "id") }) customerId!: ColumnMember<string>;
             }
             @Module({ imports: [Core], entities: [Order] }) class Sales {}
           `,
@@ -376,9 +376,9 @@ describe("phase one completion gate", () => {
       {
         fileName: "core.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() export class Customer {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
           }
           @Module({ entities: [Customer] }) export class Core {}
         `,
@@ -386,9 +386,9 @@ describe("phase one completion gate", () => {
       {
         fileName: "unrelated.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() export class Customer {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
           }
           @Module({ entities: [Customer] }) export class Unrelated {}
         `,
@@ -431,7 +431,7 @@ describe("phase one completion gate", () => {
     for (const localDeclaration of [
       "class Core {}",
       `@Entity() class Core {
-        @Column({ type: "uuid", identity: true }) id!: string;
+        @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
       }`,
     ]) {
       const result = compileProjectSources([
@@ -439,7 +439,7 @@ describe("phase one completion gate", () => {
         {
           fileName: "application.vane.ts",
           sourceText: `
-            import { Module, Entity, Column } from "@lilka/vane";
+            import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
             ${localDeclaration}
             @Module({ imports: [Core], entities: [] }) class Application {}
           `,
@@ -462,9 +462,9 @@ describe("phase one completion gate", () => {
       {
         fileName: "core.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() export class Customer {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
           }
           @Module({ entities: [Customer] }) export class Core {}
         `,
@@ -472,14 +472,14 @@ describe("phase one completion gate", () => {
       {
         fileName: "application.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           import { Core } from "./core.vane.js";
           @Entity() class Order {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
             @Column({
               type: "uuid",
               references: { entity: "Customer", column: "id" },
-            }) customerId!: string;
+            }) customerId!: ColumnMember<string>;
           }
           @Module({ imports: [Core], entities: [Order] }) class Application {}
         `,
@@ -501,9 +501,9 @@ describe("phase one completion gate", () => {
       {
         fileName: "core.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() export class Customer {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
           }
           @Module({ entities: [Customer] }) export class Core {}
         `,
@@ -511,13 +511,13 @@ describe("phase one completion gate", () => {
       {
         fileName: "application.vane.ts",
         sourceText: `
-          import { Module, Entity, Column, reference } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember, reference } from "@lilka/vane";
           import { Core, Customer } from "./core.vane.js";
           import { Customer } from "./core.vane.js";
           @Entity() class Order {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
             @Column({ type: "uuid", references: reference(Customer, "id") })
-            customerId!: string;
+            customerId!: ColumnMember<string>;
           }
           @Module({ imports: [Core], entities: [Order] }) class Application {}
         `,
@@ -540,10 +540,9 @@ describe("phase one completion gate", () => {
       fileName: "duplicate-dsl.vane.ts",
       sourceText: `
         import {
-          Module, Entity as Concept, Entity as Concept, Column
-        } from "@lilka/vane";
+          Module, Entity as Concept, Entity as Concept, Column, type ColumnMember } from "@lilka/vane";
         @Concept() class Customer {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
         }
         @Module({ entities: [Customer] }) class Core {}
       `,
@@ -564,12 +563,12 @@ describe("phase one completion gate", () => {
     const result = compileModuleSource({
       fileName: "duplicate-class.vane.ts",
       sourceText: `
-        import { Module, Entity, Column } from "@lilka/vane";
+        import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
         @Entity() class Customer {
-          @Column({ type: "uuid", identity: true }) firstId!: string;
+          @Column({ type: "uuid", identity: true }) firstId!: ColumnMember<string>;
         }
         @Entity() class Customer {
-          @Column({ type: "uuid", identity: true }) secondId!: string;
+          @Column({ type: "uuid", identity: true }) secondId!: ColumnMember<string>;
         }
         @Module({ entities: [Customer] }) class Core {}
       `,
@@ -591,9 +590,9 @@ describe("phase one completion gate", () => {
       {
         fileName: "core.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() export class Customer {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
           }
           @Module({ entities: [Customer] }) export class Core {}
         `,
@@ -601,10 +600,10 @@ describe("phase one completion gate", () => {
       {
         fileName: "application.vane.ts",
         sourceText: `
-          import { Module, Entity, Column, View, field } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember, View, field } from "@lilka/vane";
           import { Core } from "./core.vane.js";
           @Entity() class Customer {
-            @Column({ type: "string", identity: true }) id!: string;
+            @Column({ type: "string", identity: true }) id!: ColumnMember<string>;
           }
           @View({
             input: {},
@@ -633,9 +632,9 @@ describe("phase one completion gate", () => {
       {
         fileName: "core.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() class Customer {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
           }
           @Module({ entities: [Customer] }) export class Core {}
           export type { Customer };
@@ -644,12 +643,12 @@ describe("phase one completion gate", () => {
       {
         fileName: "application.vane.ts",
         sourceText: `
-          import { Module, Entity, Column, reference } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember, reference } from "@lilka/vane";
           import { Core, Customer } from "./core.vane.js";
           @Entity() class Order {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
             @Column({ type: "uuid", references: reference(Customer, "id") })
-            customerId!: string;
+            customerId!: ColumnMember<string>;
           }
           @Module({ imports: [Core], entities: [Order] }) class Application {}
         `,
@@ -676,11 +675,11 @@ describe("phase one completion gate", () => {
           fileName: "saga.vane.ts",
           sourceText: `
             import {
-              Module, Entity, Column, Event, View, Saga, event, field,
+              Module, Entity, Column, type ColumnMember, Event, View, Saga, event, field,
               type EventMember
             } from "@lilka/vane";
             @Entity() class Order {
-              @Column({ type: "uuid", identity: true }) id!: string;
+              @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
               @Event() Place!: EventMember;
             }
             @View({
@@ -773,10 +772,10 @@ describe("phase one completion gate", () => {
       {
         fileName: "configuration.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() class Profile {
-            @Column({ type: "uuid", identity: true }) id!: string;
-            @Column({ type: "json", default: { nested: 1e400 } }) settings!: unknown;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+            @Column({ type: "json", default: { nested: 1e400 } }) settings!: ColumnMember<unknown>;
           }
           @Module({ entities: [Profile] }) class Configuration {}
         `,
@@ -959,13 +958,13 @@ describe("phase one completion gate", () => {
       {
         fileName: "configuration.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() class Profile {
-            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
             @Column({
               type: "json",
               default: { "__proto__": { enabled: true }, 200: "ok" },
-            }) settings!: unknown;
+            }) settings!: ColumnMember<unknown>;
           }
           @Module({ entities: [Profile] }) class Configuration {}
         `,
@@ -1004,10 +1003,10 @@ describe("phase one completion gate", () => {
       {
         fileName: "core.vane.ts",
         sourceText: `
-          import { Module, Entity, Column } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
           @Entity() export class Customer {
-            @Column({ type: "uuid", identity: true }) id!: string;
-            @Column({ type: "json", default: { source: "test", flags: ["safe"] } }) metadata!: unknown;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+            @Column({ type: "json", default: { source: "test", flags: ["safe"] } }) metadata!: ColumnMember<unknown>;
           }
           @Module({ entities: [Customer] }) export class Core {}
           throw new Error("must not execute");
@@ -1016,11 +1015,11 @@ describe("phase one completion gate", () => {
       {
         fileName: "sales.vane.ts",
         sourceText: `
-          import { Module, Entity, Column, reference } from "@lilka/vane";
+          import { Module, Entity, Column, type ColumnMember, reference } from "@lilka/vane";
           import { Core as Foundation, Customer as Client } from "./core.vane.js";
           @Entity() class Order {
-            @Column({ type: "uuid", identity: true }) id!: string;
-            @Column({ type: "uuid", references: reference(Client, "id") }) customerId!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+            @Column({ type: "uuid", references: reference(Client, "id") }) customerId!: ColumnMember<string>;
           }
           @Module({ imports: [Foundation], entities: [Order] }) class Sales {}
         `,
@@ -1040,16 +1039,16 @@ describe("phase one completion gate", () => {
         fileName: "commerce.vane.ts",
         sourceText: `
           import {
-            Module, Entity, Column, Event, View, Saga,
+            Module, Entity, Column, type ColumnMember, Event, View, Saga,
             field, reference, relation, event, eventRef, type EventMember
           } from "@lilka/vane";
           @Entity() class Customer {
-            @Column({ type: "uuid", identity: true }) id!: string;
-            @Column({ type: "string", minLength: 1, maxLength: 120 }) name!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+            @Column({ type: "string", minLength: 1, maxLength: 120 }) name!: ColumnMember<string>;
           }
           @Entity() class Order {
-            @Column({ type: "uuid", identity: true }) id!: string;
-            @Column({ type: "uuid", references: reference(Customer, "id") }) customerId!: string;
+            @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+            @Column({ type: "uuid", references: reference(Customer, "id") }) customerId!: ColumnMember<string>;
             @Event() Place!: EventMember;
             @Event() Cancel!: EventMember;
           }

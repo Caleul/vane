@@ -248,20 +248,20 @@ describe("Saga Semantic IR", () => {
 describe("Saga source parser", () => {
   const source = `
     import {
-      Module, Entity, Column, Event, View, ACL, ACLEvent, Saga,
+      Module, Entity, Column, type ColumnMember, Event, View, ACL, ACLEvent, Saga,
       event, success, fail, type EventMember
     } from "@lilka/vane";
 
     @Entity()
     class Order {
-      @Column({ type: "uuid", identity: true }) id!: string;
+      @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
       @Event() Place!: EventMember;
       @Event() Cancel!: EventMember;
     }
 
     @Entity()
     class Payment {
-      @Column({ type: "uuid", identity: true }) id!: string;
+      @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
       @Event() Capture!: EventMember;
       @Event() Refund!: EventMember;
     }

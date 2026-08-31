@@ -26,16 +26,17 @@ import {
   column,
   gt,
   optional,
+  type ColumnMember,
   type EventMember,
 } from "@lilka/vane";
 
 @Entity()
 class Subscription {
   @Column({ type: "uuid", identity: true, generated: "uuid" })
-  id!: string;
+  id!: ColumnMember<string>;
 
-  @Column({ type: "date" }) startDate!: Date;
-  @Column({ type: "date" }) endDate!: Date;
+  @Column({ type: "date" }) startDate!: ColumnMember<Date>;
+  @Column({ type: "date" }) endDate!: ColumnMember<Date>;
 
   @Rule({ expression: gt(column("endDate"), column("startDate")) })
   EndsAfterStart() {}
@@ -66,7 +67,7 @@ helpers that check member names against the referenced class instead:
 
 ```ts
 @Column({ type: "uuid", references: reference(Customer, "id") })
-customerId!: string;
+customerId!: ColumnMember<string>;
 
 field(Order, "customerId");
 eventRef(Order, "Cancel");

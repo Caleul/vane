@@ -10,7 +10,7 @@ const validSource = `
 import {
   Module,
   Entity,
-  Column,
+  Column, type ColumnMember,
   Rule,
   Event,
   type EventMember as ImportedEventMember,
@@ -19,18 +19,20 @@ import {
   optional,
 } from "@lilka/vane";
 
-type SemanticEvent = ImportedEventMember & {};
+type SemanticEvent<Payload = never> = ImportedEventMember & {
+  readonly payload?: Payload;
+};
 
 @Entity()
 class Subscription {
   @Column({ type: "uuid", identity: true, generated: "uuid" })
-  id!: string;
+  id!: ColumnMember<string>;
 
   @Column({ type: "date" })
-  startDate!: Date;
+  startDate!: ColumnMember<Date>;
 
   @Column({ type: "date" })
-  endDate!: Date;
+  endDate!: ColumnMember<Date>;
 
   @Rule({ expression: gt(column("endDate"), column("startDate")) })
   EndsAfterStart() {}
@@ -42,7 +44,7 @@ class Subscription {
       couponCode: optional("string"),
     },
   })
-  CreateSubscription!: SemanticEvent;
+  CreateSubscription!: SemanticEvent<string>;
 }
 
 @Module({ entities: [Subscription] })
@@ -115,10 +117,13 @@ describe("parseModuleSource", () => {
     const result = parseModuleSource({
       fileName: "alias.vane.ts",
       sourceText: `
-        import { Module as M, Entity as E, Column as C } from "@lilka/vane";
+        import {
+          Module as M, Entity as E, Column as C,
+          type ColumnMember as SemanticColumn
+        } from "@lilka/vane";
         @E()
         class Customer {
-          @C({ type: "uuid", identity: true }) id!: string;
+          @C({ type: "uuid", identity: true }) id!: SemanticColumn<string>;
         }
         @M({ entities: [Customer] })
         class CRM {}
@@ -131,23 +136,53 @@ describe("parseModuleSource", () => {
     assert.equal(result.declaration.entities[0]?.name, "Customer");
   });
 
+  it("requires public instance ColumnMember declarations", () => {
+    const result = parseModuleSource({
+      fileName: "invalid-columns.vane.ts",
+      sourceText: `
+        import {
+          Module, Entity, Column, type ColumnMember
+        } from "@lilka/vane";
+        @Entity()
+        class Customer {
+          @Column({ type: "uuid", identity: true }) id!: string;
+          @Column({ type: "string" }) static cache!: ColumnMember<string>;
+        }
+        @Module({ entities: [Customer] }) class CRM {}
+      `,
+    });
+
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code }) => code === "VANE_PARSE_COLUMN_MEMBER_TYPE",
+      ),
+    );
+    assert.ok(
+      result.diagnostics.some(
+        ({ code }) => code === "VANE_PARSE_COLUMN_MEMBER_DECLARATION",
+      ),
+    );
+  });
+
   it("parses static Entity references and composed Rule expressions", () => {
     const result = parseModuleSource({
       fileName: "orders.vane.ts",
       sourceText: `
         import {
-          Module, Entity, Column, Rule, column, literal, eq, gte, and, not
+          Module, Entity, Column, type ColumnMember, Rule, column, literal, eq, gte, and, not
         } from "@lilka/vane";
         @Entity()
         class Customer {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
         }
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: string;
-          @Column({ type: "uuid", references: Customer.id }) customerId!: string;
-          @Column({ type: "decimal" }) minimum!: number;
-          @Column({ type: "decimal" }) total!: number;
+          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+          @Column({ type: "uuid", references: Customer.id }) customerId!: ColumnMember<string>;
+          @Column({ type: "decimal" }) minimum!: ColumnMember<number>;
+          @Column({ type: "decimal" }) total!: ColumnMember<number>;
           @Rule({
             expression: and(
               gte(column("total"), column("minimum")),
@@ -176,11 +211,11 @@ describe("parseModuleSource", () => {
     const result = parseModuleSource({
       fileName: "dynamic.vane.ts",
       sourceText: `
-        import { Module, Entity, Column } from "@lilka/vane";
+        import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
         const columnOptions = { type: "uuid", identity: true };
         @Entity()
         class Customer {
-          @Column(columnOptions) id!: string;
+          @Column(columnOptions) id!: ColumnMember<string>;
         }
         @Module({ entities: [Customer] })
         class CRM {}
@@ -219,10 +254,10 @@ describe("parseModuleSource", () => {
     const result = parseModuleSource({
       fileName: "wrong-targets.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, Rule, Event, column, eq } from "@lilka/vane";
+        import { Module, Entity, Column, type ColumnMember, Rule, Event, column, eq } from "@lilka/vane";
         @Entity()
         class Customer {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
           @Event() BadEvent() {}
           @Column({ type: "string" }) BadColumn() {}
           @Rule({ expression: eq(column("id"), column("id")) }) BadRule!: unknown;
@@ -284,11 +319,11 @@ describe("compileModuleSource", () => {
     const result = compileModuleSource({
       fileName: "rule.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, Rule, column, literal, gt } from "@lilka/vane";
+        import { Module, Entity, Column, type ColumnMember, Rule, column, literal, gt } from "@lilka/vane";
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: string;
-          @Column({ type: "decimal" }) total!: number;
+          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+          @Column({ type: "decimal" }) total!: ColumnMember<number>;
           @Rule({ expression: gt(column("total"), literal(0)) }) PositiveTotal() {}
         }
         @Module({ entities: [Order] }) class Sales {}

@@ -43,6 +43,8 @@ export {
   sum,
   type AggregateToken,
   type ACLEventOptions,
+  type ColumnMember,
+  type ColumnMemberDecorator,
   type ColumnOptions,
   type ColumnToken,
   type EventOptions,

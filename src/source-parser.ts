@@ -111,7 +111,8 @@ export type ProjectSourceCompilationResult =
 interface ParserContext {
   readonly sourceFile: ts.SourceFile;
   readonly bindings: ReadonlyMap<string, string>;
-  readonly eventMemberTypeBindings: ReadonlySet<string>;
+  readonly columnMemberTypeBindings: SemanticMemberTypeBindings;
+  readonly eventMemberTypeBindings: SemanticMemberTypeBindings;
   readonly semanticBindings: ReadonlyMap<string, string>;
   readonly semanticImportBindings: ReadonlyMap<string, SemanticImportBinding>;
   readonly usedSemanticImports: Map<string, (readonly SemanticClassKind[])[]>;
@@ -126,6 +127,16 @@ interface ParserContext {
   readonly diagnostics: Diagnostic[];
   readonly sourceLocations: Map<string, SourceLocation>;
 }
+
+interface SemanticMemberTypeBinding {
+  readonly minimumTypeArguments: number;
+  readonly maximumTypeArguments: number;
+}
+
+type SemanticMemberTypeBindings = ReadonlyMap<
+  string,
+  SemanticMemberTypeBinding
+>;
 
 interface SemanticImportBinding {
   readonly localName: string;
@@ -182,13 +193,23 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   appendRuntimeBindingDiagnostics(sourceFile, diagnostics);
 
   const bindings = collectDslBindings(sourceFile, diagnostics);
-  const eventMemberTypeBindings = collectEventMemberTypeBindings(sourceFile);
+  const columnMemberTypeBindings = collectSemanticMemberTypeBindings(
+    sourceFile,
+    "ColumnMember",
+    { minimumTypeArguments: 0, maximumTypeArguments: 1 },
+  );
+  const eventMemberTypeBindings = collectSemanticMemberTypeBindings(
+    sourceFile,
+    "EventMember",
+    { minimumTypeArguments: 0, maximumTypeArguments: 0 },
+  );
   const classes = sourceFile.statements.filter(ts.isClassDeclaration);
   const semanticImportBindings = collectSemanticImportBindings(sourceFile);
   const localSemanticClassKinds = new Map<string, Set<SemanticClassKind>>();
   const context: ParserContext = {
     sourceFile,
     bindings,
+    columnMemberTypeBindings,
     eventMemberTypeBindings,
     semanticBindings: new Map(
       [...semanticImportBindings].map(([localName, binding]) => [
@@ -740,10 +761,12 @@ function collectDslBindings(
   return bindings;
 }
 
-function collectEventMemberTypeBindings(
+function collectSemanticMemberTypeBindings(
   sourceFile: ts.SourceFile,
-): ReadonlySet<string> {
-  const bindings = new Set<string>();
+  exportedName: "ColumnMember" | "EventMember",
+  exportedBinding: SemanticMemberTypeBinding,
+): SemanticMemberTypeBindings {
+  const bindings = new Map<string, SemanticMemberTypeBinding>();
   for (const statement of sourceFile.statements) {
     if (
       !ts.isImportDeclaration(statement) ||
@@ -755,8 +778,8 @@ function collectEventMemberTypeBindings(
     const namedBindings = statement.importClause?.namedBindings;
     if (!namedBindings || !ts.isNamedImports(namedBindings)) continue;
     for (const element of namedBindings.elements) {
-      if ((element.propertyName ?? element.name).text === "EventMember") {
-        bindings.add(element.name.text);
+      if ((element.propertyName ?? element.name).text === exportedName) {
+        bindings.set(element.name.text, exportedBinding);
       }
     }
   }
@@ -764,22 +787,20 @@ function collectEventMemberTypeBindings(
   while (changed) {
     changed = false;
     for (const statement of sourceFile.statements) {
-      const derivedName = ts.isTypeAliasDeclaration(statement)
-        ? isEventMemberTypeNode(statement.type, bindings)
-          ? statement.name.text
+      const derived = ts.isTypeAliasDeclaration(statement)
+        ? isSemanticMemberTypeNode(statement.type, bindings)
+          ? { name: statement.name.text, ...typeParameterRange(statement) }
           : undefined
         : ts.isInterfaceDeclaration(statement) &&
             (statement.heritageClauses ?? []).some((clause) =>
-              clause.types.some(
-                (type) =>
-                  ts.isIdentifier(type.expression) &&
-                  bindings.has(type.expression.text),
+              clause.types.some((type) =>
+                isSemanticMemberHeritageType(type, bindings),
               ),
             )
-          ? statement.name.text
+          ? { name: statement.name.text, ...typeParameterRange(statement) }
           : undefined;
-      if (derivedName && !bindings.has(derivedName)) {
-        bindings.add(derivedName);
+      if (derived && !bindings.has(derived.name)) {
+        bindings.set(derived.name, derived);
         changed = true;
       }
     }
@@ -787,21 +808,59 @@ function collectEventMemberTypeBindings(
   return bindings;
 }
 
-function isEventMemberTypeNode(
+function typeParameterRange(
+  node: ts.TypeAliasDeclaration | ts.InterfaceDeclaration,
+): SemanticMemberTypeBinding {
+  const parameters = node.typeParameters ?? [];
+  return {
+    minimumTypeArguments: parameters.filter(
+      (parameter) => parameter.default === undefined,
+    ).length,
+    maximumTypeArguments: parameters.length,
+  };
+}
+
+function acceptsSemanticMemberTypeArguments(
+  binding: SemanticMemberTypeBinding | undefined,
+  count: number,
+): boolean {
+  return (
+    binding !== undefined &&
+    count >= binding.minimumTypeArguments &&
+    count <= binding.maximumTypeArguments
+  );
+}
+
+function isSemanticMemberHeritageType(
+  node: ts.ExpressionWithTypeArguments,
+  bindings: SemanticMemberTypeBindings,
+): boolean {
+  return (
+    ts.isIdentifier(node.expression) &&
+    acceptsSemanticMemberTypeArguments(
+      bindings.get(node.expression.text),
+      node.typeArguments?.length ?? 0,
+    )
+  );
+}
+
+function isSemanticMemberTypeNode(
   node: ts.TypeNode,
-  bindings: ReadonlySet<string>,
+  bindings: SemanticMemberTypeBindings,
 ): boolean {
   if (ts.isParenthesizedTypeNode(node)) {
-    return isEventMemberTypeNode(node.type, bindings);
+    return isSemanticMemberTypeNode(node.type, bindings);
   }
   if (ts.isIntersectionTypeNode(node)) {
-    return node.types.some((type) => isEventMemberTypeNode(type, bindings));
+    return node.types.some((type) => isSemanticMemberTypeNode(type, bindings));
   }
   return (
     ts.isTypeReferenceNode(node) &&
     ts.isIdentifier(node.typeName) &&
-    node.typeArguments === undefined &&
-    bindings.has(node.typeName.text)
+    acceptsSemanticMemberTypeArguments(
+      bindings.get(node.typeName.text),
+      node.typeArguments?.length ?? 0,
+    )
   );
 }
 
@@ -1138,8 +1197,18 @@ function parseEntityClass(
 
     const memberDecorator = memberDecorators[0];
     if (memberDecorator === "Column" && ts.isPropertyDeclaration(member)) {
-      const column = parseColumn(context, name, member);
-      if (column) columns.push(column);
+      if (
+        requireSemanticMemberType(
+          context,
+          member,
+          ["entity", name, "columns"],
+          "Column",
+          context.columnMemberTypeBindings,
+        )
+      ) {
+        const column = parseColumn(context, name, member);
+        if (column) columns.push(column);
+      }
     } else if (memberDecorator === "Rule" && ts.isMethodDeclaration(member)) {
       const rule = parseRule(context, name, member);
       if (rule) rules.push(rule);
@@ -1147,7 +1216,15 @@ function parseEntityClass(
       memberDecorator === "Event" &&
       ts.isPropertyDeclaration(member)
     ) {
-      if (requireEventMemberType(context, member, ["entity", name, "events"])) {
+      if (
+        requireSemanticMemberType(
+          context,
+          member,
+          ["entity", name, "events"],
+          "Event",
+          context.eventMemberTypeBindings,
+        )
+      ) {
         const event = parseEvent(context, name, member);
         if (event) events.push(event);
       }
@@ -1199,11 +1276,13 @@ function parseAntiCorruptionLayerClass(
       ts.isPropertyDeclaration(member)
     ) {
       if (
-        requireEventMemberType(context, member, [
-          "antiCorruptionLayer",
-          name,
-          "events",
-        ])
+        requireSemanticMemberType(
+          context,
+          member,
+          ["antiCorruptionLayer", name, "events"],
+          "Event",
+          context.eventMemberTypeBindings,
+        )
       ) {
         const event = parseAntiCorruptionLayerEvent(context, name, member);
         if (event) events.push(event);
@@ -1225,10 +1304,12 @@ function parseAntiCorruptionLayerClass(
   return { name, events };
 }
 
-function requireEventMemberType(
+function requireSemanticMemberType(
   context: ParserContext,
   node: ts.PropertyDeclaration,
   path: readonly string[],
+  kind: "Column" | "Event",
+  bindings: SemanticMemberTypeBindings,
 ): boolean {
   const forbiddenModifier = node.modifiers?.find(
     ({ kind }) =>
@@ -1240,26 +1321,26 @@ function requireEventMemberType(
     context.diagnostics.push(
       createDiagnostic(
         context,
-        "VANE_PARSE_EVENT_MEMBER_DECLARATION",
+        `VANE_PARSE_${kind.toUpperCase()}_MEMBER_DECLARATION`,
         [...path, staticPropertyName(node.name) ?? "unknown"],
-        "A semantic Event must be a required public instance property.",
-        "Remove static, private, protected, or optional modifiers from the EventMember property.",
+        `A semantic ${kind} must be a required public instance property.`,
+        `Remove static, private, protected, or optional modifiers from the ${kind}Member property.`,
         forbiddenModifier ?? node.questionToken ?? node.name,
       ),
     );
     return false;
   }
   const type = node.type;
-  if (type && isEventMemberTypeNode(type, context.eventMemberTypeBindings)) {
+  if (type && isSemanticMemberTypeNode(type, bindings)) {
     return true;
   }
   context.diagnostics.push(
     createDiagnostic(
       context,
-      "VANE_PARSE_EVENT_MEMBER_TYPE",
+      `VANE_PARSE_${kind.toUpperCase()}_MEMBER_TYPE`,
       [...path, staticPropertyName(node.name) ?? "unknown", "type"],
-      "A semantic Event property must use the EventMember type imported from @lilka/vane.",
-      "Import EventMember with a named type specifier and annotate the property as EventMember.",
+      `A semantic ${kind} property must use the ${kind}Member type imported from @lilka/vane.`,
+      `Import ${kind}Member with a named type specifier and annotate the property as ${kind}Member.`,
       type ?? node.name,
     ),
   );

@@ -10,21 +10,25 @@ import type {
 } from "./declaration.js";
 
 export type VaneClass<T = object> = abstract new (...args: never[]) => T;
-type MemberName<T> = Extract<keyof T, string>;
-type MethodName<T> = Extract<
-  {
-    [Name in keyof T]-?: T[Name] extends (...args: never[]) => unknown
-      ? Name
-      : never;
-  }[keyof T],
-  string
->;
 type TypedField = ColumnType | OptionalField;
 declare const eventMemberBrand: unique symbol;
+declare const columnMemberBrand: unique symbol;
+
+export interface ColumnMember<Value = unknown> {
+  readonly [columnMemberBrand]: "column";
+  readonly value?: Value;
+}
 
 export interface EventMember {
   readonly [eventMemberBrand]: "event";
 }
+
+type ColumnName<T> = Extract<
+  {
+    [Name in keyof T]-?: T[Name] extends ColumnMember ? Name : never;
+  }[keyof T],
+  string
+>;
 
 export type EventName<T> = Extract<
   {
@@ -33,7 +37,11 @@ export type EventName<T> = Extract<
   string
 >;
 
-type ColumnName<T> = Exclude<MemberName<T>, MethodName<T> | EventName<T>>;
+export type ColumnMemberDecorator = <T extends object>(
+  target: T & (T extends VaneClass ? never : unknown),
+  propertyKey: ColumnName<T>,
+  descriptor?: never,
+) => void;
 
 export type EventMemberDecorator = <T extends object>(
   target: T & (T extends VaneClass ? never : unknown),
@@ -137,8 +145,8 @@ export interface SagaOptions {
 }
 
 const classDecorator: ClassDecorator = () => undefined;
-const propertyDecorator: PropertyDecorator = () => undefined;
 const methodDecorator: MethodDecorator = () => undefined;
+const columnMemberDecorator: ColumnMemberDecorator = () => undefined;
 const eventMemberDecorator: EventMemberDecorator = () => undefined;
 
 export function Module(_options: ModuleOptions): ClassDecorator {
@@ -150,8 +158,8 @@ export function Entity(): ClassDecorator {
 export function ACL(): ClassDecorator {
   return classDecorator;
 }
-export function Column(_options: ColumnOptions): PropertyDecorator {
-  return propertyDecorator;
+export function Column(_options: ColumnOptions): ColumnMemberDecorator {
+  return columnMemberDecorator;
 }
 export function Rule(_options: RuleOptions): MethodDecorator {
   return methodDecorator;
