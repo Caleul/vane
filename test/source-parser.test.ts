@@ -152,6 +152,45 @@ describe("parseModuleSource", () => {
     );
   });
 
+  it("rejects legacy decorators combined with member factories", () => {
+    const result = parseModuleSource({
+      fileName: "hybrid-members.vane.ts",
+      sourceText: `
+        import {
+          Module, Entity, ACL, Column, Event, ACLEvent, success, fail
+        } from "@lilka/vane";
+        @Entity()
+        class Order {
+          @Column({ type: "uuid" })
+          id = Column({ type: "uuid", identity: true });
+
+          @Event()
+          Place = Event();
+        }
+        @ACL()
+        class PaymentGateway {
+          @ACLEvent({ results: { ok: success({}), no: fail({}) } })
+          Authorize = ACLEvent({
+            results: { ok: success({}), no: fail({}) }
+          });
+        }
+        @Module({
+          entities: [Order], antiCorruptionLayers: [PaymentGateway]
+        })
+        class Sales {}
+      `,
+    });
+
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.equal(
+      result.diagnostics.filter(
+        ({ code }) => code === "VANE_PARSE_MEMBER_DECLARATION",
+      ).length,
+      3,
+    );
+  });
+
   it("parses static Entity references and composed Rule expressions", () => {
     const result = parseModuleSource({
       fileName: "orders.vane.ts",

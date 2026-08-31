@@ -1182,6 +1182,17 @@ function requireSemanticInitializerDeclaration(
   node: ts.PropertyDeclaration,
   path: readonly string[],
 ): boolean {
+  const forbiddenDecorator = decoratorsOf(node).find((decorator) => {
+    const expression = decorator.expression;
+    if (
+      !ts.isCallExpression(expression) ||
+      !ts.isIdentifier(expression.expression)
+    ) {
+      return false;
+    }
+    const symbol = context.bindings.get(expression.expression.text);
+    return symbol === "Column" || symbol === "Event" || symbol === "ACLEvent";
+  });
   const forbiddenModifier = node.modifiers?.find(
     ({ kind }) =>
       kind === ts.SyntaxKind.StaticKeyword ||
@@ -1189,6 +1200,7 @@ function requireSemanticInitializerDeclaration(
       kind === ts.SyntaxKind.ProtectedKeyword,
   );
   if (
+    forbiddenDecorator ||
     forbiddenModifier ||
     node.questionToken ||
     node.exclamationToken ||
@@ -1199,9 +1211,10 @@ function requireSemanticInitializerDeclaration(
         context,
         "VANE_PARSE_MEMBER_DECLARATION",
         [...path, staticPropertyName(node.name) ?? "unknown"],
-        "A semantic member initializer must be an inferred, required public instance property.",
-        "Remove static, private, protected, optional, definite-assignment, and explicit type annotations from the property.",
-        forbiddenModifier ??
+        "A semantic member initializer must be inferred, undecorated, required, public, and on an instance property.",
+        "Remove DSL member decorators, static, private, protected, optional, definite-assignment, and explicit type annotations from the property.",
+        forbiddenDecorator ??
+          forbiddenModifier ??
           node.questionToken ??
           node.exclamationToken ??
           node.type ??
