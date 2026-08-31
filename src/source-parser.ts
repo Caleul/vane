@@ -194,14 +194,23 @@ function collectSemanticBindings(
   for (const statement of sourceFile.statements) {
     if (
       !ts.isImportDeclaration(statement) ||
-      !statement.importClause?.namedBindings ||
-      !ts.isNamedImports(statement.importClause.namedBindings) ||
+      !statement.importClause ||
+      statement.importClause.isTypeOnly ||
       (ts.isStringLiteral(statement.moduleSpecifier) &&
         statement.moduleSpecifier.text === VANE_MODULE)
     ) {
       continue;
     }
-    for (const element of statement.importClause.namedBindings.elements) {
+    if (statement.importClause.name) {
+      bindings.set(
+        statement.importClause.name.text,
+        statement.importClause.name.text,
+      );
+    }
+    const namedBindings = statement.importClause.namedBindings;
+    if (!namedBindings || !ts.isNamedImports(namedBindings)) continue;
+    for (const element of namedBindings.elements) {
+      if (element.isTypeOnly) continue;
       bindings.set(
         element.name.text,
         (element.propertyName ?? element.name).text,
@@ -341,12 +350,18 @@ function parseModuleClass(
     );
   }
   const importsExpression = options?.get("imports");
+  const localClassNames = new Set(
+    classes.flatMap((candidate) =>
+      candidate.name ? [candidate.name.text] : [],
+    ),
+  );
   const imports = importsExpression
     ? parseStaticIdentifierArray(
         context,
         importsExpression,
         ["module", "imports"],
         "Module imports",
+        localClassNames,
       )
     : [];
   if (importsExpression && !imports) return undefined;
@@ -1528,6 +1543,7 @@ function parseStaticIdentifierArray(
   node: ts.Expression,
   path: readonly string[],
   subject: string,
+  localClassNames: ReadonlySet<string>,
 ): readonly string[] | undefined {
   if (
     !ts.isArrayLiteralExpression(node) ||
@@ -1544,9 +1560,30 @@ function parseStaticIdentifierArray(
     );
     return undefined;
   }
-  return node.elements.map((element) =>
-    semanticName(context, (element as ts.Identifier).text),
-  );
+  const names: string[] = [];
+  let hasUnboundIdentifier = false;
+  for (const element of node.elements) {
+    const identifier = element as ts.Identifier;
+    if (
+      !localClassNames.has(identifier.text) &&
+      !context.semanticBindings.has(identifier.text)
+    ) {
+      hasUnboundIdentifier = true;
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_MODULE_IMPORT_BINDING",
+          [...path, identifier.text],
+          `Module import identifier ${identifier.text} is not bound to a runtime class value in this source file.`,
+          "Declare the class locally or import it with a non-type import.",
+          identifier,
+        ),
+      );
+      continue;
+    }
+    names.push(semanticName(context, identifier.text));
+  }
+  return hasUnboundIdentifier ? undefined : names;
 }
 
 function parseColumn(

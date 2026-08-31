@@ -237,6 +237,41 @@ describe("phase one completion gate", () => {
     ]);
   });
 
+  it("rejects unbound and type-only Module import identifiers", () => {
+    const core = {
+      fileName: "core.vane.ts",
+      sourceText: `
+        import { Module } from "@lilka/vane";
+        @Module({ entities: [] }) export class Core {}
+      `,
+    };
+    for (const importStatement of [
+      "",
+      'import type { Core } from "./core.vane.js";',
+    ]) {
+      const result = compileProjectSources([
+        core,
+        {
+          fileName: "application.vane.ts",
+          sourceText: `
+            import { Module } from "@lilka/vane";
+            ${importStatement}
+            @Module({ imports: [Core], entities: [] }) class Application {}
+          `,
+        },
+      ]);
+      assert.equal(result.success, false);
+      if (result.success) continue;
+      assert.ok(
+        result.diagnostics.some(
+          ({ code, location }) =>
+            code === "VANE_PARSE_MODULE_IMPORT_BINDING" &&
+            location?.fileName === "application.vane.ts",
+        ),
+      );
+    }
+  });
+
   it("canonicalizes nested JSON defaults independently of object key order", () => {
     const first = compileSemanticIr({
       name: "Configuration",
@@ -585,6 +620,51 @@ describe("phase one completion gate", () => {
         ({ code }) => code === "VANE_SEM_VIEW_RELATION_REFERENCE",
       ),
     );
+  });
+
+  it("strips undeclared fields from View relation endpoints", () => {
+    const from = {
+      entity: "Order",
+      column: "customerId",
+      undeclared: "must-not-enter-ir",
+    } as const;
+    const to = {
+      entity: "Customer",
+      column: "id",
+      undeclared: "must-not-enter-ir",
+    } as const;
+    const result = compileSemanticIr({
+      name: "Commerce",
+      entities: [customer, order],
+      views: [
+        {
+          name: "OrderCustomer",
+          input: [],
+          output: [
+            {
+              name: "customerName",
+              expression: {
+                kind: "column",
+                entity: "Customer",
+                column: "name",
+              },
+            },
+          ],
+          query: {
+            root: "Order",
+            relations: [{ name: "customer", from, to }],
+          },
+        },
+      ],
+    });
+    assert.equal(result.success, true);
+    if (!result.success) return;
+    const relation = result.ir.module.views[0]?.query.relations[0];
+    assert.deepEqual(relation?.from, {
+      entity: "Order",
+      column: "customerId",
+    });
+    assert.deepEqual(relation?.to, { entity: "Customer", column: "id" });
   });
 
   it("rejects multiple relation paths to the same Entity identity", () => {

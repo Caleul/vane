@@ -1673,8 +1673,11 @@ function toSemanticView(
       relations: (view.query.relations ?? [])
         .map((relation) => ({
           name: relation.name,
-          from: { ...relation.from },
-          to: { ...relation.to },
+          from: {
+            entity: relation.from.entity,
+            column: relation.from.column,
+          },
+          to: { entity: relation.to.entity, column: relation.to.column },
         }))
         .sort((left, right) => compare(left.name, right.name)),
       where: view.query.where
