@@ -287,6 +287,36 @@ describe("phase one completion gate", () => {
     );
   });
 
+  it("preserves special JSON object keys as data properties", () => {
+    const result = compileProjectSources([
+      {
+        fileName: "configuration.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() class Profile {
+            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({
+              type: "json",
+              default: { "__proto__": { enabled: true } },
+            }) settings!: unknown;
+          }
+          @Module({ entities: [Profile] }) class Configuration {}
+        `,
+      },
+    ]);
+    assert.equal(result.success, true);
+    if (!result.success) return;
+    const defaultValue = result.ir.modules[0]?.entities[0]?.columns[1]?.default;
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(defaultValue, "__proto__"),
+      true,
+    );
+    assert.match(
+      serializeSemanticProjectIr(result.ir),
+      /"__proto__": \{\n\s+"enabled": true/,
+    );
+  });
+
   it("requires project context when a single Module declares imports", () => {
     const result = compileSemanticIr({
       name: "Sales",

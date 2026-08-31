@@ -1659,7 +1659,7 @@ function parseJsonValue(
   if (ts.isObjectLiteralExpression(node)) {
     const object = staticObject(context, node, path, "JSON default");
     if (!object) return { matched: false };
-    const value: Record<string, JsonValue> = {};
+    const value = Object.create(null) as Record<string, JsonValue>;
     for (const [name, expression] of object) {
       const nested = parseJsonValue(context, expression, [...path, name]);
       if (!nested.matched) return nested;
