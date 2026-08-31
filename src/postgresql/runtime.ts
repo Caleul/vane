@@ -7,7 +7,11 @@ import type {
 import type { SemanticEntity, SemanticEntityEvent } from "../semantic-ir.js";
 import { type EventEnvelope, assertValidEventEnvelope } from "./envelope.js";
 import { quotePostgreSqlIdentifier } from "./identifiers.js";
-import type { PostgreSqlStorageIr, PostgreSqlTable } from "./storage-ir.js";
+import type {
+  PostgreSqlColumn,
+  PostgreSqlStorageIr,
+  PostgreSqlTable,
+} from "./storage-ir.js";
 
 export interface PostgreSqlQueryResult<
   Row extends object = Record<string, unknown>,
@@ -463,18 +467,23 @@ interface BuiltSql {
 
 function buildMutationSql(input: MutationSqlInput): BuiltSql {
   const values: unknown[] = [];
-  const valueSql = (value: EventOperationValueDeclaration): string =>
-    compileOperationValue(value, input, values);
+  const valueSql = (
+    value: EventOperationValueDeclaration,
+    type: PostgreSqlColumn["type"],
+  ): string => compileOperationValue(value, input, values, type);
   const revision = quotePostgreSqlIdentifier(input.revision);
   const updatedAtAssignment = input.updatedAt
     ? `, ${quotePostgreSqlIdentifier(input.updatedAt)} = transaction_timestamp()`
     : "";
 
   if (input.operation.kind === "create") {
-    const assignments = input.operation.values.map((assignment) => ({
-      column: operationColumn(input, assignment.column),
-      value: valueSql(assignment.value),
-    }));
+    const assignments = input.operation.values.map((assignment) => {
+      const column = operationColumnDefinition(input, assignment.column);
+      return {
+        column: column.name,
+        value: valueSql(assignment.value, column.type),
+      };
+    });
     const columns = [
       ...assignments.map(({ column }) => quotePostgreSqlIdentifier(column)),
       revision,
@@ -488,7 +497,14 @@ function buildMutationSql(input: MutationSqlInput): BuiltSql {
     };
   }
 
-  const identitySql = valueSql(input.operation.identity);
+  const identityColumn = input.table.columns.find(
+    (column) => column.name === input.identity,
+  );
+  if (!identityColumn)
+    throw new EventRuntimeConfigurationError(
+      `Storage table ${JSON.stringify(input.table.semanticId)} has no physical identity Column ${JSON.stringify(input.identity)}.`,
+    );
+  const identitySql = valueSql(input.operation.identity, identityColumn.type);
   const identity = quotePostgreSqlIdentifier(input.identity);
 
   if (input.operation.kind === "delete") {
@@ -500,10 +516,13 @@ function buildMutationSql(input: MutationSqlInput): BuiltSql {
     };
   }
 
-  const assignments = input.operation.values.map((assignment) => ({
-    column: operationColumn(input, assignment.column),
-    value: valueSql(assignment.value),
-  }));
+  const assignments = input.operation.values.map((assignment) => {
+    const column = operationColumnDefinition(input, assignment.column);
+    return {
+      column: column.name,
+      value: valueSql(assignment.value, column.type),
+    };
+  });
 
   if (input.operation.kind === "update") {
     return {
@@ -550,6 +569,7 @@ function compileOperationValue(
   value: EventOperationValueDeclaration,
   input: MutationSqlInput,
   parameters: unknown[],
+  expectedType: PostgreSqlColumn["type"],
 ): string {
   if (value.kind === "input") {
     if (!Object.hasOwn(input.payload, value.input)) {
@@ -558,17 +578,27 @@ function compileOperationValue(
       );
     }
     parameters.push(input.payload[value.input]);
-    return `$${parameters.length}`;
+    return `$${parameters.length}::${expectedType}`;
   }
   if (value.kind === "literal") {
     parameters.push(value.value);
-    return `$${parameters.length}`;
+    return `$${parameters.length}::${expectedType}`;
   }
   if (value.kind === "column") {
     return quotePostgreSqlIdentifier(operationColumn(input, value.column));
   }
-  const left = compileOperationValue(value.left, input, parameters);
-  const right = compileOperationValue(value.right, input, parameters);
+  const left = compileOperationValue(
+    value.left,
+    input,
+    parameters,
+    expectedType,
+  );
+  const right = compileOperationValue(
+    value.right,
+    input,
+    parameters,
+    expectedType,
+  );
   const operator = value.operator === "add" ? "+" : "-";
   return `(${left} ${operator} ${right})`;
 }
@@ -577,7 +607,22 @@ function operationColumn(
   input: MutationSqlInput,
   semanticName: string,
 ): string {
-  return physicalColumn(input.table, `${input.tableId}.${semanticName}`);
+  return operationColumnDefinition(input, semanticName).name;
+}
+
+function operationColumnDefinition(
+  input: MutationSqlInput,
+  semanticName: string,
+): PostgreSqlColumn {
+  const semanticId = `${input.tableId}.${semanticName}`;
+  const column = input.table.columns.find(
+    (candidate) => candidate.semanticId === semanticId,
+  );
+  if (!column)
+    throw new EventRuntimeConfigurationError(
+      `Storage table ${JSON.stringify(input.table.semanticId)} has no Column ${JSON.stringify(semanticId)}.`,
+    );
+  return column;
 }
 
 function requiredTechnicalTable(

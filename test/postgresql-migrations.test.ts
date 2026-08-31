@@ -285,6 +285,40 @@ describe("PostgreSQL migration planning", () => {
     assert.doesNotMatch(createIndex.sql, /"public"\."ix_sales_order_note"/u);
   });
 
+  it("drops an existing default before adding identity generation", () => {
+    const counter: PostgreSqlColumn = {
+      semanticId: "Sales.Order.counter",
+      name: "counter",
+      type: "bigint",
+      nullable: false,
+      defaultSql: "7::bigint",
+      generated: null,
+      technical: false,
+    };
+    const previous = {
+      ...orderTable,
+      columns: [...orderTable.columns, counter],
+    };
+    const next = {
+      ...previous,
+      columns: [
+        ...orderTable.columns,
+        { ...counter, defaultSql: null, generated: "identity" as const },
+      ],
+    };
+    const plan = createPostgreSqlMigrationPlan({
+      previous: storage([previous]),
+      next: storage([next]),
+    });
+
+    assert.deepEqual(
+      plan.steps.map(({ kind }) => kind),
+      ["alterColumnGeneration"],
+    );
+    const sql = plan.steps[0]?.sql ?? "";
+    assert.ok(sql.indexOf("DROP DEFAULT") < sql.indexOf("ADD GENERATED"));
+  });
+
   it("rejects invalid rename maps instead of guessing", () => {
     assert.throws(
       () =>

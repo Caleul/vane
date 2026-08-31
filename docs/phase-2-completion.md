@@ -18,9 +18,9 @@ documented in [`postgresql.md`](postgresql.md).
 | Deterministic DDL | FR-PG-001–002 | Complete | stable dependency ordering and byte-identical renderer output; unit permutations plus real schema application in integration gate |
 | Snapshot, diff and renames | FR-PG-002–004 | Complete | content-addressed plans over previous/next Storage IR; exact rename map; no heuristic rename; physical swap/cycle rejection; table/Column/constraint/index diffs |
 | Migration safety | FR-PG-004 | Complete | safe/unsafe/destructive classification; approval bound to plan hash and classification; stale or mismatched approval rejected |
-| Migration application | FR-PG-002–004 | Complete | one reserved PostgreSQL connection for DDL/history/commit; namespace advisory lock; monotonic history order; concurrent replay, divergence and rollback tests |
+| Migration application | FR-PG-002–004 | Complete | one reserved PostgreSQL connection for DDL/history/commit; namespace advisory lock; monotonic history order; default-to-identity dependency ordering; concurrent replay, divergence and rollback tests |
 | Canonical Event envelope | FR-SAGA-003, FR-PG-005–006 | Complete | immutable causal envelope, canonical JSON and SHA-256 fingerprint; forged/non-JSON/invalid identifiers rejected |
-| Entity Event executor | FR-EVT-003–008, FR-RUN-001–003 | Complete | create/update/delete/upsert SQL derived from Operation IR; mailbox claim, owner mutation, revision, outbox and receipt transaction |
+| Entity Event executor | FR-EVT-003–008, FR-RUN-001–003 | Complete | create/update/delete/upsert SQL derived from Operation IR; typed parameter and literal casts make parameter-only arithmetic executable; mailbox claim, owner mutation, revision, outbox and receipt transaction |
 | Equal-value writes | FR-EVT-007–008 | Complete | every accepted update executes SQL and increments `__vane_revision`, including equal values |
 | Safe terminal failure | FR-EVT-003–004, FR-RUL-003–004 | Complete | typed payload, Rule and constraint failures are safe, persisted and deduplicated; the mailbox preserves the serialized envelope even when its payload is not valid PostgreSQL JSONB; savepoint removes invalid mutation; SQL details are not public |
 | Infrastructure rollback | FR-PG-005, FR-RUN-004–005 | Complete | infrastructure errors roll back owner, mailbox and outbox and remain retryable with the same event occurrence |
@@ -57,7 +57,7 @@ npm run verify
 ```
 
 It runs Biome, TypeScript, public type fixtures, package build and the complete
-139-test unit suite. Phase 2 adds semantic-operation, materializer, migrations, envelope,
+140-test unit suite. Phase 2 adds semantic-operation, materializer, migrations, envelope,
 runtime, module-lifecycle and outbox suites while retaining every phase-1
 regression.
 

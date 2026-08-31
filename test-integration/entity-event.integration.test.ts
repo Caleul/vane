@@ -208,6 +208,7 @@ describe("PostgreSQL Entity Event runtime", () => {
       const fixture = await runtimeFixture(pool, schema);
       const create = event(fixture.entity, "Create");
       const reserve = event(fixture.entity, "Reserve");
+      const setAvailable = event(fixture.entity, "SetAvailableFromParts");
       await fixture.runtime.execute({
         module: "Inventory",
         entity: fixture.entity,
@@ -220,6 +221,18 @@ describe("PostgreSQL Entity Event runtime", () => {
       );
       const ownerId = row.rows[0]?.id;
       assert.ok(ownerId);
+
+      const parameterArithmetic = await fixture.runtime.execute({
+        module: "Inventory",
+        entity: fixture.entity,
+        event: setAvailable,
+        envelope: envelope(setAvailable.identity, {
+          base: 2,
+          delta: 3,
+          id: ownerId,
+        }),
+      });
+      assert.equal(parameterArithmetic.kind, "success");
 
       const failedEnvelope = envelope(reserve.identity, {
         amount: 5,
@@ -247,11 +260,11 @@ describe("PostgreSQL Entity Event runtime", () => {
       const after = await pool.query<{ reserved: string; revision: string }>(
         `SELECT reserved::text, __vane_revision::text AS revision FROM ${owner}`,
       );
-      assert.deepEqual(after.rows[0], { reserved: "1", revision: "1" });
+      assert.deepEqual(after.rows[0], { reserved: "1", revision: "2" });
       const outboxCount = await pool.query<{ count: string }>(
         `SELECT count(*)::text AS count FROM ${technicalRelation(schema, fixture.storage, "vane.infrastructure.outbox")}`,
       );
-      assert.equal(outboxCount.rows[0]?.count, "1");
+      assert.equal(outboxCount.rows[0]?.count, "2");
     });
   });
 

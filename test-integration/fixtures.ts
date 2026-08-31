@@ -196,6 +196,29 @@ export function phaseTwoProject(): SemanticProjectIr {
                   ],
                 },
               ),
+              event(
+                "SetAvailableFromParts",
+                [
+                  requiredInput("base", "integer"),
+                  requiredInput("delta", "integer"),
+                  requiredInput("id", "uuid"),
+                ],
+                {
+                  kind: "update",
+                  identity: { kind: "input", input: "id" },
+                  values: [
+                    {
+                      column: "available",
+                      value: {
+                        kind: "arithmetic",
+                        operator: "add",
+                        left: { kind: "input", input: "base" },
+                        right: { kind: "input", input: "delta" },
+                      },
+                    },
+                  ],
+                },
+              ),
             ],
           },
         ],

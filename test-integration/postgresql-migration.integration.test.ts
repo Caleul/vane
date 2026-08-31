@@ -85,6 +85,30 @@ function withNullableNote(snapshot: PostgreSqlStorageIr): PostgreSqlStorageIr {
   };
 }
 
+function withAvailableColumn(
+  snapshot: PostgreSqlStorageIr,
+  changes: {
+    readonly defaultSql: string | null;
+    readonly generated: "identity" | null;
+  },
+): PostgreSqlStorageIr {
+  return {
+    ...snapshot,
+    tables: snapshot.tables.map((table) =>
+      table.semanticId !== "Inventory.StockItem"
+        ? table
+        : {
+            ...table,
+            columns: table.columns.map((column) =>
+              column.semanticId !== "Inventory.StockItem.available"
+                ? column
+                : { ...column, ...changes },
+            ),
+          },
+    ),
+  };
+}
+
 describe("PostgreSQL migrations", () => {
   it("applies a deterministic initial plan once and records immutable history", async () => {
     await withTestDatabase("migration_apply", async ({ pool, schema }) => {
@@ -192,6 +216,61 @@ describe("PostgreSQL migrations", () => {
         [schema],
       );
       assert.equal(defaultState.rows[0]?.column_default, null);
+    });
+  });
+
+  it("drops a default before converting the Column to identity", async () => {
+    await withTestDatabase("migration_identity", async ({ pool, schema }) => {
+      const initial = storage(schema);
+      await applyPostgreSqlMigrationPlan(
+        database(pool),
+        createPostgreSqlMigrationPlan({ previous: null, next: initial }),
+      );
+      const defaulted = withAvailableColumn(initial, {
+        defaultSql: "7::bigint",
+        generated: null,
+      });
+      const defaultPlan = createPostgreSqlMigrationPlan({
+        previous: initial,
+        next: defaulted,
+      });
+      await applyPostgreSqlMigrationPlan(
+        database(pool),
+        defaultPlan,
+        approvePostgreSqlMigrationPlan(defaultPlan, {
+          classification: "unsafe",
+          reason:
+            "Install the starting default for the identity transition test.",
+        }),
+      );
+
+      const identity = withAvailableColumn(defaulted, {
+        defaultSql: null,
+        generated: "identity",
+      });
+      const identityPlan = createPostgreSqlMigrationPlan({
+        previous: defaulted,
+        next: identity,
+      });
+      assert.ok(
+        identityPlan.sql.indexOf("DROP DEFAULT") <
+          identityPlan.sql.indexOf("ADD GENERATED"),
+      );
+      await applyPostgreSqlMigrationPlan(
+        database(pool),
+        identityPlan,
+        approvePostgreSqlMigrationPlan(identityPlan, {
+          classification: "destructive",
+          reason: "Exercise the reviewed default-to-identity transition.",
+        }),
+      );
+
+      const installed = await pool.query<{ is_identity: string }>(
+        `SELECT is_identity FROM information_schema.columns
+         WHERE table_schema = $1 AND table_name = 'inventory__stock_item' AND column_name = 'available'`,
+        [schema],
+      );
+      assert.equal(installed.rows[0]?.is_identity, "YES");
     });
   });
 });
