@@ -270,6 +270,27 @@ export function compileProjectSources(
     (result): result is Extract<typeof result, { readonly success: true }> =>
       result.success,
   );
+  const duplicateModuleDiagnostics: Diagnostic[] = [];
+  const seenModuleNames = new Set<string>();
+  for (const source of successful) {
+    const name = source.declaration.name;
+    if (seenModuleNames.has(name)) {
+      duplicateModuleDiagnostics.push({
+        code: "VANE_SEM_DUPLICATE_NAME",
+        path: ["project", "modules", name],
+        message: `Module name ${name} is duplicated.`,
+        correction: "Give every Module a unique name within the project.",
+        ...locationForPath(source.sourceLocations, ["module", "name"]),
+      });
+    }
+    seenModuleNames.add(name);
+  }
+  if (duplicateModuleDiagnostics.length > 0) {
+    return {
+      success: false,
+      diagnostics: sortDiagnostics(duplicateModuleDiagnostics),
+    };
+  }
   const compiled = compileSemanticProject(
     successful.map(({ declaration }) => declaration),
   );

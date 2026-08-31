@@ -180,6 +180,34 @@ describe("phase one completion gate", () => {
     assert.equal(result.diagnostics[0]?.code, "VANE_SEM_PROJECT_EMPTY");
   });
 
+  it("locates every duplicate Module occurrence in its own source", () => {
+    const result = compileProjectSources([
+      {
+        fileName: "first.vane.ts",
+        sourceText: `
+          import { Module } from "@lilka/vane";
+          @Module({ entities: [] }) class Duplicate {}
+        `,
+      },
+      {
+        fileName: "second.vane.ts",
+        sourceText: `
+          import { Module } from "@lilka/vane";
+          @Module({ entities: [] }) class Duplicate {}
+        `,
+      },
+    ]);
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.deepEqual(
+      result.diagnostics.map(({ code, location }) => ({
+        code,
+        fileName: location?.fileName,
+      })),
+      [{ code: "VANE_SEM_DUPLICATE_NAME", fileName: "second.vane.ts" }],
+    );
+  });
+
   it("rejects same-named Sagas made visible by an import", () => {
     const saga = {
       name: "Process",

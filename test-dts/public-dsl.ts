@@ -23,6 +23,10 @@ import {
   relation,
   success,
 } from "../src/index.js";
+import type {
+  RuleExpressionDeclaration,
+  ViewExpressionDeclaration,
+} from "../src/index.js";
 
 @Entity()
 class Customer {
@@ -124,3 +128,14 @@ eventRef(Order, "MissingEvent");
 Column({ type: "uuid", generated: "random" });
 // @ts-expect-error Column types are a closed semantic vocabulary.
 optional("text");
+
+const viewOnlyComparison = eq(field(Order, "id"), input("id"));
+// @ts-expect-error View-only operands cannot produce a Rule expression.
+const invalidRuleExpression: RuleExpressionDeclaration = viewOnlyComparison;
+
+const ruleOnlyComparison = eq(column("total"), literal(0));
+// @ts-expect-error Rule-only operands cannot produce a View expression.
+const invalidViewExpression: ViewExpressionDeclaration = ruleOnlyComparison;
+
+void invalidRuleExpression;
+void invalidViewExpression;

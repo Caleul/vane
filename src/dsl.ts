@@ -192,51 +192,85 @@ function comparison(
   operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte",
   left: Comparable,
   right: Comparable,
-): RuleExpressionDeclaration & ViewExpressionDeclaration {
+): RuleExpressionDeclaration | ViewExpressionDeclaration {
   return {
     kind: "comparison",
     operator,
     left,
     right,
-  } as RuleExpressionDeclaration & ViewExpressionDeclaration;
+  } as RuleExpressionDeclaration | ViewExpressionDeclaration;
 }
-export const eq = (left: Comparable, right: Comparable) =>
-  comparison("eq", left, right);
-export const neq = (left: Comparable, right: Comparable) =>
-  comparison("neq", left, right);
-export const gt = (left: Comparable, right: Comparable) =>
-  comparison("gt", left, right);
-export const gte = (left: Comparable, right: Comparable) =>
-  comparison("gte", left, right);
-export const lt = (left: Comparable, right: Comparable) =>
-  comparison("lt", left, right);
-export const lte = (left: Comparable, right: Comparable) =>
-  comparison("lte", left, right);
+type Comparison = (
+  left: RuleValueDeclaration,
+  right: RuleValueDeclaration,
+) => RuleExpressionDeclaration;
+interface ComparisonOverloads extends Comparison {
+  (
+    left: ViewValueDeclaration,
+    right: ViewValueDeclaration,
+  ): ViewExpressionDeclaration;
+}
+function makeComparison(
+  operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte",
+): ComparisonOverloads {
+  return ((left: Comparable, right: Comparable) =>
+    comparison(operator, left, right)) as ComparisonOverloads;
+}
+export const eq = makeComparison("eq");
+export const neq = makeComparison("neq");
+export const gt = makeComparison("gt");
+export const gte = makeComparison("gte");
+export const lt = makeComparison("lt");
+export const lte = makeComparison("lte");
+
 export function and(
-  ...operands: readonly (RuleExpressionDeclaration &
-    ViewExpressionDeclaration)[]
-): RuleExpressionDeclaration & ViewExpressionDeclaration {
+  ...operands: readonly RuleExpressionDeclaration[]
+): RuleExpressionDeclaration;
+export function and(
+  ...operands: readonly ViewExpressionDeclaration[]
+): ViewExpressionDeclaration;
+export function and(
+  ...operands: readonly (
+    | RuleExpressionDeclaration
+    | ViewExpressionDeclaration
+  )[]
+): RuleExpressionDeclaration | ViewExpressionDeclaration {
   return {
     kind: "logical",
     operator: "and",
     operands,
-  } as RuleExpressionDeclaration & ViewExpressionDeclaration;
+  } as RuleExpressionDeclaration | ViewExpressionDeclaration;
 }
 export function or(
-  ...operands: readonly (RuleExpressionDeclaration &
-    ViewExpressionDeclaration)[]
-): RuleExpressionDeclaration & ViewExpressionDeclaration {
+  ...operands: readonly RuleExpressionDeclaration[]
+): RuleExpressionDeclaration;
+export function or(
+  ...operands: readonly ViewExpressionDeclaration[]
+): ViewExpressionDeclaration;
+export function or(
+  ...operands: readonly (
+    | RuleExpressionDeclaration
+    | ViewExpressionDeclaration
+  )[]
+): RuleExpressionDeclaration | ViewExpressionDeclaration {
   return {
     kind: "logical",
     operator: "or",
     operands,
-  } as RuleExpressionDeclaration & ViewExpressionDeclaration;
+  } as RuleExpressionDeclaration | ViewExpressionDeclaration;
 }
 export function not(
-  operand: RuleExpressionDeclaration & ViewExpressionDeclaration,
-): RuleExpressionDeclaration & ViewExpressionDeclaration {
-  return { kind: "not", operand } as RuleExpressionDeclaration &
-    ViewExpressionDeclaration;
+  operand: RuleExpressionDeclaration,
+): RuleExpressionDeclaration;
+export function not(
+  operand: ViewExpressionDeclaration,
+): ViewExpressionDeclaration;
+export function not(
+  operand: RuleExpressionDeclaration | ViewExpressionDeclaration,
+): RuleExpressionDeclaration | ViewExpressionDeclaration {
+  return { kind: "not", operand } as
+    | RuleExpressionDeclaration
+    | ViewExpressionDeclaration;
 }
 
 function aggregate(
