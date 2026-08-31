@@ -2,6 +2,7 @@ import type {
   AntiCorruptionLayerEventResultDeclaration,
   ColumnReferenceDeclaration,
   ColumnType,
+  EventReferenceDeclaration,
   RuleExpressionDeclaration,
   ViewExpressionDeclaration,
   ViewOrderDeclaration,
@@ -9,7 +10,7 @@ import type {
   ViewPaginationDeclaration,
 } from "./declaration.js";
 
-export const SEMANTIC_IR_VERSION = 3 as const;
+export const SEMANTIC_IR_VERSION = 4 as const;
 
 export interface SemanticColumn {
   readonly name: string;
@@ -77,6 +78,35 @@ export interface SemanticAntiCorruptionLayer {
   readonly events: readonly SemanticAntiCorruptionLayerEvent[];
 }
 
+export interface SemanticSagaStep {
+  readonly name: string;
+  readonly event: EventReferenceDeclaration;
+  readonly causedBy: readonly string[];
+  readonly compensateWith: EventReferenceDeclaration | null;
+}
+
+export interface SemanticSaga {
+  readonly name: string;
+  readonly input: readonly SemanticEventInput[];
+  readonly steps: readonly SemanticSagaStep[];
+  readonly terminal: {
+    readonly step: string;
+    readonly success: { readonly kind: "view"; readonly view: string };
+    readonly fail: { readonly kind: "fail" };
+  };
+  readonly guarantees: {
+    readonly causalMetadata: readonly [
+      "eventId",
+      "sagaId",
+      "causationId",
+      "correlationId",
+    ];
+    readonly durableState: true;
+    readonly intermediateResults: "internal";
+    readonly streamVisibility: "terminalOnly";
+  };
+}
+
 export interface SemanticViewInput {
   readonly name: string;
   readonly type: ColumnType;
@@ -112,6 +142,7 @@ export interface SemanticIr {
     readonly entities: readonly SemanticEntity[];
     readonly views: readonly SemanticView[];
     readonly antiCorruptionLayers: readonly SemanticAntiCorruptionLayer[];
+    readonly sagas: readonly SemanticSaga[];
   };
 }
 

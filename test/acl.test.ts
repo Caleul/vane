@@ -56,7 +56,7 @@ describe("Anti-Corruption Layer Semantic IR", () => {
 
     assert.equal(result.success, true);
     if (!result.success) return;
-    assert.equal(result.ir.version, 3);
+    assert.equal(result.ir.version, 4);
     assert.deepEqual(result.ir.module.antiCorruptionLayers[0], {
       name: "PaymentGateway",
       events: [

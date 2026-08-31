@@ -21,6 +21,8 @@ stage and are intentionally absent from this slice.
 - an Event owned by an Entity receives the stable identity `Entity.Event`;
 - an Event owned by an Anti-Corruption Layer receives the stable identity
   `ACL.Event` and interprets external results only as `success` or `fail`;
+- a Saga is a validated causal DAG of Entity/ACL Events whose branches converge
+  on one terminal step, exposing only a final View or fail;
 - a Rule references at least two Columns from its own Entity;
 - a View has typed input and output, owns its query, never persists, and is a
   public result;

@@ -83,6 +83,30 @@ export interface AntiCorruptionLayerDeclaration {
   readonly events: readonly AntiCorruptionLayerEventDeclaration[];
 }
 
+export interface EventReferenceDeclaration {
+  readonly owner: string;
+  readonly event: string;
+}
+
+export interface SagaStepDeclaration {
+  readonly name: string;
+  readonly event: EventReferenceDeclaration;
+  readonly causedBy: readonly string[];
+  readonly compensateWith?: EventReferenceDeclaration;
+}
+
+export interface SagaTerminalDeclaration {
+  readonly step: string;
+  readonly view: string;
+}
+
+export interface SagaDeclaration {
+  readonly name: string;
+  readonly input: readonly EventInputDeclaration[];
+  readonly steps: readonly SagaStepDeclaration[];
+  readonly terminal: SagaTerminalDeclaration;
+}
+
 export interface EntityDeclaration {
   readonly name: string;
   readonly columns: readonly ColumnDeclaration[];
@@ -171,4 +195,5 @@ export interface ModuleDeclaration {
   readonly entities: readonly EntityDeclaration[];
   readonly views?: readonly ViewDeclaration[];
   readonly antiCorruptionLayers?: readonly AntiCorruptionLayerDeclaration[];
+  readonly sagas?: readonly SagaDeclaration[];
 }

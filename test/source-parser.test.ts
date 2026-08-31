@@ -59,6 +59,7 @@ describe("parseModuleSource", () => {
       name: "Sales",
       views: [],
       antiCorruptionLayers: [],
+      sagas: [],
       entities: [
         {
           name: "Subscription",
