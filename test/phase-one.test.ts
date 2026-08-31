@@ -419,6 +419,43 @@ describe("phase one completion gate", () => {
     );
   });
 
+  it("rejects local classes whose semantic kind does not match their use", () => {
+    const core = {
+      fileName: "core.vane.ts",
+      sourceText: `
+        import { Module } from "@lilka/vane";
+        @Module({ entities: [] }) export class Core {}
+      `,
+    };
+    for (const localDeclaration of [
+      "class Core {}",
+      `@Entity() class Core {
+        @Column({ type: "uuid", identity: true }) id!: string;
+      }`,
+    ]) {
+      const result = compileProjectSources([
+        core,
+        {
+          fileName: "application.vane.ts",
+          sourceText: `
+            import { Module, Entity, Column } from "@lilka/vane";
+            ${localDeclaration}
+            @Module({ imports: [Core], entities: [] }) class Application {}
+          `,
+        },
+      ]);
+      assert.equal(result.success, false);
+      if (result.success) continue;
+      assert.ok(
+        result.diagnostics.some(
+          ({ code, location }) =>
+            code === "VANE_PARSE_MODULE_IMPORT_BINDING" &&
+            location?.fileName === "application.vane.ts",
+        ),
+      );
+    }
+  });
+
   it("rejects surplus arguments in typed and legacy Saga event calls", () => {
     for (const eventCall of [
       'event(Order, "Place", {}, "extra")',

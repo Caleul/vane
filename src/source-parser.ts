@@ -112,8 +112,11 @@ interface ParserContext {
   readonly bindings: ReadonlyMap<string, string>;
   readonly semanticBindings: ReadonlyMap<string, string>;
   readonly semanticImportBindings: ReadonlyMap<string, SemanticImportBinding>;
-  readonly usedSemanticImports: Set<string>;
-  readonly localClassNames: ReadonlySet<string>;
+  readonly usedSemanticImports: Map<string, (readonly SemanticClassKind[])[]>;
+  readonly localSemanticClassKinds: ReadonlyMap<
+    string,
+    ReadonlySet<SemanticClassKind>
+  >;
   readonly diagnostics: Diagnostic[];
   readonly sourceLocations: Map<string, SourceLocation>;
 }
@@ -124,6 +127,19 @@ interface SemanticImportBinding {
   readonly moduleSpecifier: string;
   readonly location: SourceLocation;
 }
+
+interface SemanticImportUse extends SemanticImportBinding {
+  readonly expectations: readonly (readonly SemanticClassKind[])[];
+}
+
+type SemanticClassKind = "module" | "entity" | "view" | "acl" | "saga";
+const SEMANTIC_CLASS_DECORATORS = [
+  ["Module", "module"],
+  ["Entity", "entity"],
+  ["View", "view"],
+  ["ACL", "acl"],
+  ["Saga", "saga"],
+] as const satisfies readonly (readonly [string, SemanticClassKind])[];
 
 export function parseModuleSource(
   input: ModuleSourceParserInput,
@@ -144,7 +160,7 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
       readonly diagnostics: readonly [];
       readonly sourceLocations: ReadonlyMap<string, SourceLocation>;
       readonly fileName: string;
-      readonly semanticImportUses: readonly SemanticImportBinding[];
+      readonly semanticImportUses: readonly SemanticImportUse[];
       readonly exportedClassNames: ReadonlySet<string>;
     }
   | { readonly success: false; readonly diagnostics: readonly Diagnostic[] } {
@@ -161,6 +177,7 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   const bindings = collectDslBindings(sourceFile, diagnostics);
   const classes = sourceFile.statements.filter(ts.isClassDeclaration);
   const semanticImportBindings = collectSemanticImportBindings(sourceFile);
+  const localSemanticClassKinds = new Map<string, Set<SemanticClassKind>>();
   const context: ParserContext = {
     sourceFile,
     bindings,
@@ -171,15 +188,12 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
       ]),
     ),
     semanticImportBindings,
-    usedSemanticImports: new Set(),
-    localClassNames: new Set(
-      classes.flatMap((candidate) =>
-        candidate.name ? [candidate.name.text] : [],
-      ),
-    ),
+    usedSemanticImports: new Map(),
+    localSemanticClassKinds,
     diagnostics,
     sourceLocations: new Map(),
   };
+  collectLocalSemanticClassKinds(context, classes, localSemanticClassKinds);
   const moduleClasses = classes.filter((node) =>
     hasDecorator(context, node, "Module"),
   );
@@ -213,9 +227,9 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
     sourceLocations: context.sourceLocations,
     fileName: input.fileName,
     semanticImportUses: [...context.usedSemanticImports].flatMap(
-      (localName) => {
+      ([localName, expectations]) => {
         const binding = context.semanticImportBindings.get(localName);
-        return binding ? [binding] : [];
+        return binding ? [{ ...binding, expectations }] : [];
       },
     ),
     exportedClassNames: collectExportedClassNames(sourceFile, classes),
@@ -252,11 +266,33 @@ function collectSemanticImportBindings(
   return bindings;
 }
 
-function semanticName(context: ParserContext, localName: string): string {
+function semanticName(
+  context: ParserContext,
+  localName: string,
+  expectedKinds: readonly SemanticClassKind[],
+): string {
   if (context.semanticImportBindings.has(localName)) {
-    context.usedSemanticImports.add(localName);
+    const expectations = context.usedSemanticImports.get(localName) ?? [];
+    expectations.push(expectedKinds);
+    context.usedSemanticImports.set(localName, expectations);
   }
   return context.semanticBindings.get(localName) ?? localName;
+}
+
+function collectLocalSemanticClassKinds(
+  context: ParserContext,
+  classes: readonly ts.ClassDeclaration[],
+  target: Map<string, Set<SemanticClassKind>>,
+): void {
+  for (const candidate of classes) {
+    if (!candidate.name) continue;
+    for (const [decorator, kind] of SEMANTIC_CLASS_DECORATORS) {
+      if (!hasDecorator(context, candidate, decorator)) continue;
+      const kinds = target.get(candidate.name.text) ?? new Set();
+      kinds.add(kind);
+      target.set(candidate.name.text, kinds);
+    }
+  }
 }
 
 function collectExportedClassNames(
@@ -304,11 +340,11 @@ function collectExportedClassNames(
 function hasRuntimeClassBinding(
   context: ParserContext,
   localName: string,
+  expectedKinds: readonly SemanticClassKind[],
 ): boolean {
-  return (
-    context.localClassNames.has(localName) ||
-    context.semanticBindings.has(localName)
-  );
+  if (context.semanticBindings.has(localName)) return true;
+  const actualKinds = context.localSemanticClassKinds.get(localName);
+  return expectedKinds.some((kind) => actualKinds?.has(kind));
 }
 
 export function compileModuleSource(
@@ -395,7 +431,7 @@ function validateSemanticImportSources(
   sources: readonly {
     readonly fileName: string;
     readonly declaration: ModuleDeclaration;
-    readonly semanticImportUses: readonly SemanticImportBinding[];
+    readonly semanticImportUses: readonly SemanticImportUse[];
     readonly exportedClassNames: ReadonlySet<string>;
   }[],
 ): readonly Diagnostic[] {
@@ -418,12 +454,14 @@ function validateSemanticImportSources(
         binding.moduleSpecifier,
         sourcesByFileName,
       );
-      const targetSemanticNames = target
-        ? semanticClassNames(target.declaration)
-        : undefined;
+      const targetKinds = target
+        ? semanticClassKinds(target.declaration, binding.semanticName)
+        : new Set<SemanticClassKind>();
       if (
         target?.exportedClassNames.has(binding.semanticName) &&
-        targetSemanticNames?.has(binding.semanticName) &&
+        binding.expectations.every((expectedKinds) =>
+          expectedKinds.some((kind) => targetKinds.has(kind)),
+        ) &&
         visibleModules.has(target.declaration.name)
       ) {
         continue;
@@ -472,16 +510,29 @@ function resolveSemanticImportSource<T>(
   return undefined;
 }
 
-function semanticClassNames(
+function semanticClassKinds(
   declaration: ModuleDeclaration,
-): ReadonlySet<string> {
-  return new Set([
-    declaration.name,
-    ...declaration.entities.map(({ name }) => name),
-    ...(declaration.views ?? []).map(({ name }) => name),
-    ...(declaration.antiCorruptionLayers ?? []).map(({ name }) => name),
-    ...(declaration.sagas ?? []).map(({ name }) => name),
-  ]);
+  name: string,
+): ReadonlySet<SemanticClassKind> {
+  const kinds = new Set<SemanticClassKind>();
+  if (declaration.name === name) kinds.add("module");
+  if (declaration.entities.some((candidate) => candidate.name === name)) {
+    kinds.add("entity");
+  }
+  if (declaration.views?.some((candidate) => candidate.name === name)) {
+    kinds.add("view");
+  }
+  if (
+    declaration.antiCorruptionLayers?.some(
+      (candidate) => candidate.name === name,
+    )
+  ) {
+    kinds.add("acl");
+  }
+  if (declaration.sagas?.some((candidate) => candidate.name === name)) {
+    kinds.add("saga");
+  }
+  return kinds;
 }
 
 function collectVisibleModuleNames(
@@ -598,7 +649,11 @@ function parseModuleClass(
       if (ts.isIdentifier(element)) {
         recordLocation(
           context,
-          ["module", "imports", semanticName(context, element.text)],
+          [
+            "module",
+            "imports",
+            semanticName(context, element.text, ["module"]),
+          ],
           element,
         );
       }
@@ -1090,10 +1145,13 @@ function parseSagaSteps(
       typedSyntax &&
       ownerOrReference &&
       ts.isIdentifier(ownerOrReference) &&
-      hasRuntimeClassBinding(context, ownerOrReference.text);
+      hasRuntimeClassBinding(context, ownerOrReference.text, ["entity", "acl"]);
     const eventReference = typedForm
       ? {
-          owner: semanticName(context, ownerOrReference.text),
+          owner: semanticName(context, ownerOrReference.text, [
+            "entity",
+            "acl",
+          ]),
           event: eventNameOrOptions.text,
         }
       : ownerOrReference
@@ -1182,7 +1240,7 @@ function parseSagaTerminal(
     !ts.isStringLiteral(stepExpression) ||
     !viewExpression ||
     !ts.isIdentifier(viewExpression) ||
-    !hasRuntimeClassBinding(context, viewExpression.text)
+    !hasRuntimeClassBinding(context, viewExpression.text, ["view"])
   ) {
     context.diagnostics.push(
       createDiagnostic(
@@ -1198,7 +1256,7 @@ function parseSagaTerminal(
   }
   return {
     step: stepExpression.text,
-    view: semanticName(context, viewExpression.text),
+    view: semanticName(context, viewExpression.text, ["view"]),
   };
 }
 
@@ -1348,7 +1406,7 @@ function parseViewQuery(
   if (
     !rootExpression ||
     !ts.isIdentifier(rootExpression) ||
-    !hasRuntimeClassBinding(context, rootExpression.text)
+    !hasRuntimeClassBinding(context, rootExpression.text, ["entity"])
   ) {
     context.diagnostics.push(
       createDiagnostic(
@@ -1393,7 +1451,7 @@ function parseViewQuery(
   }
   const orderBy = parsedOrderBy ?? [];
   return {
-    root: semanticName(context, rootExpression.text),
+    root: semanticName(context, rootExpression.text, ["entity"]),
     ...(relations && relations.length > 0 ? { relations } : {}),
     ...(where ? { where } : {}),
     ...(orderBy.length > 0 ? { orderBy } : {}),
@@ -1709,9 +1767,9 @@ function parseEntityColumnReference(
   return ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
     ts.isIdentifier(node.name) &&
-    hasRuntimeClassBinding(context, node.expression.text)
+    hasRuntimeClassBinding(context, node.expression.text, ["entity"])
     ? {
-        entity: semanticName(context, node.expression.text),
+        entity: semanticName(context, node.expression.text, ["entity"]),
         column: node.name.text,
       }
     : undefined;
@@ -1733,12 +1791,12 @@ function parseTypedColumnReference(
     if (
       entity &&
       ts.isIdentifier(entity) &&
-      hasRuntimeClassBinding(context, entity.text) &&
+      hasRuntimeClassBinding(context, entity.text, ["entity"]) &&
       column &&
       ts.isStringLiteral(column)
     ) {
       return {
-        entity: semanticName(context, entity.text),
+        entity: semanticName(context, entity.text, ["entity"]),
         column: column.text,
       };
     }
@@ -1754,9 +1812,9 @@ function parseEventReference(
     ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
     ts.isIdentifier(node.name) &&
-    hasRuntimeClassBinding(context, node.expression.text)
+    hasRuntimeClassBinding(context, node.expression.text, ["entity", "acl"])
       ? {
-          owner: semanticName(context, node.expression.text),
+          owner: semanticName(context, node.expression.text, ["entity", "acl"]),
           event: node.name.text,
         }
       : undefined;
@@ -1768,10 +1826,13 @@ function parseEventReference(
   const [owner, eventName] = call.expression.arguments;
   return owner &&
     ts.isIdentifier(owner) &&
-    hasRuntimeClassBinding(context, owner.text) &&
+    hasRuntimeClassBinding(context, owner.text, ["entity", "acl"]) &&
     eventName &&
     ts.isStringLiteral(eventName)
-    ? { owner: semanticName(context, owner.text), event: eventName.text }
+    ? {
+        owner: semanticName(context, owner.text, ["entity", "acl"]),
+        event: eventName.text,
+      }
     : undefined;
 }
 
@@ -1824,7 +1885,7 @@ function parseStaticIdentifierArray(
   let hasUnboundIdentifier = false;
   for (const element of node.elements) {
     const identifier = element as ts.Identifier;
-    if (!hasRuntimeClassBinding(context, identifier.text)) {
+    if (!hasRuntimeClassBinding(context, identifier.text, ["module"])) {
       hasUnboundIdentifier = true;
       context.diagnostics.push(
         createDiagnostic(
@@ -1838,7 +1899,7 @@ function parseStaticIdentifierArray(
       );
       continue;
     }
-    names.push(semanticName(context, identifier.text));
+    names.push(semanticName(context, identifier.text, ["module"]));
   }
   return hasUnboundIdentifier ? undefined : names;
 }
@@ -1975,10 +2036,10 @@ function parseReference(
     ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
     ts.isIdentifier(node.name) &&
-    hasRuntimeClassBinding(context, node.expression.text)
+    hasRuntimeClassBinding(context, node.expression.text, ["entity"])
   ) {
     return {
-      entity: semanticName(context, node.expression.text),
+      entity: semanticName(context, node.expression.text, ["entity"]),
       column: node.name.text,
     };
   }
@@ -1990,8 +2051,8 @@ function parseReference(
   const columnNode = object.get("column");
   const entity =
     entityNode && ts.isIdentifier(entityNode)
-      ? hasRuntimeClassBinding(context, entityNode.text)
-        ? semanticName(context, entityNode.text)
+      ? hasRuntimeClassBinding(context, entityNode.text, ["entity"])
+        ? semanticName(context, entityNode.text, ["entity"])
         : undefined
       : entityNode && ts.isStringLiteral(entityNode)
         ? entityNode.text

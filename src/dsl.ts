@@ -198,6 +198,14 @@ type SharedComparison = {
   readonly left: LiteralDeclaration;
   readonly right: LiteralDeclaration;
 };
+type SharedExpression =
+  | SharedComparison
+  | {
+      readonly kind: "logical";
+      readonly operator: "and" | "or";
+      readonly operands: readonly SharedExpression[];
+    }
+  | { readonly kind: "not"; readonly operand: SharedExpression };
 function comparison(
   operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte",
   left: Comparable,
@@ -236,6 +244,13 @@ export const lte = makeComparison("lte");
 
 export function and(
   ...operands: readonly [
+    SharedExpression,
+    SharedExpression,
+    ...SharedExpression[],
+  ]
+): SharedExpression;
+export function and(
+  ...operands: readonly [
     RuleExpressionDeclaration,
     RuleExpressionDeclaration,
     ...RuleExpressionDeclaration[],
@@ -262,6 +277,13 @@ export function and(
 }
 export function or(
   ...operands: readonly [
+    SharedExpression,
+    SharedExpression,
+    ...SharedExpression[],
+  ]
+): SharedExpression;
+export function or(
+  ...operands: readonly [
     RuleExpressionDeclaration,
     RuleExpressionDeclaration,
     ...RuleExpressionDeclaration[],
@@ -286,6 +308,7 @@ export function or(
     operands,
   } as RuleExpressionDeclaration | ViewExpressionDeclaration;
 }
+export function not(operand: SharedExpression): SharedExpression;
 export function not(
   operand: RuleExpressionDeclaration,
 ): RuleExpressionDeclaration;

@@ -18,6 +18,7 @@ import {
   gt,
   input,
   literal,
+  not,
   optional,
   or,
   reference,
@@ -147,6 +148,12 @@ const viewWithSharedComparison: ViewExpressionDeclaration = and(
   viewOnlyComparison,
   sharedComparison,
 );
+const sharedNegation = not(sharedComparison);
+const sharedNegationRule: RuleExpressionDeclaration = sharedNegation;
+const sharedNegationView: ViewExpressionDeclaration = sharedNegation;
+const sharedLogical = and(sharedComparison, sharedNegation);
+const sharedRuleExpression: RuleExpressionDeclaration = sharedLogical;
+const sharedViewExpression: ViewExpressionDeclaration = sharedLogical;
 
 // @ts-expect-error Logical Rule helpers require at least two operands.
 and(ruleOnlyComparison);
@@ -157,3 +164,7 @@ void invalidRuleExpression;
 void invalidViewExpression;
 void ruleWithSharedComparison;
 void viewWithSharedComparison;
+void sharedNegationRule;
+void sharedNegationView;
+void sharedRuleExpression;
+void sharedViewExpression;
