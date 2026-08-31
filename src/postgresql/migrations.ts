@@ -816,7 +816,7 @@ function renderDropConstraint(
   return {
     kind: "dropConstraint",
     semanticId: `${table.semanticId}:${constraint.semanticId}`,
-    classification: "unsafe",
+    classification: "destructive",
     sql: statement(
       `ALTER TABLE ${qualified(namespace, table.name)} DROP CONSTRAINT ${quotePostgreSqlIdentifier(constraint.name)}`,
     ),

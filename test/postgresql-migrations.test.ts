@@ -18,6 +18,7 @@ import {
 import type { PostgreSqlQueryResult } from "../src/postgresql/runtime.js";
 import type {
   PostgreSqlColumn,
+  PostgreSqlConstraint,
   PostgreSqlStorageIr,
   PostgreSqlTable,
 } from "../src/postgresql/storage-ir.js";
@@ -222,7 +223,7 @@ describe("PostgreSQL migration planning", () => {
         ],
       },
     });
-    assert.equal(withMap.classification, "unsafe");
+    assert.equal(withMap.classification, "destructive");
     assert.deepEqual(
       withMap.steps.map(({ kind }) => kind),
       ["renameTable", "renameColumn", "dropConstraint"],
@@ -283,6 +284,66 @@ describe("PostgreSQL migration planning", () => {
       /^CREATE INDEX "ix_sales_order_note" ON "public"\."sales__order"/u,
     );
     assert.doesNotMatch(createIndex.sql, /"public"\."ix_sales_order_note"/u);
+  });
+
+  it("classifies every dropped database constraint as destructive", () => {
+    const constraints: readonly PostgreSqlConstraint[] = [
+      {
+        semanticId: "Sales.Order.primaryKey",
+        name: "pk_sales_order",
+        kind: "primaryKey",
+        columns: ["id"],
+        expression: null,
+        references: null,
+      },
+      {
+        semanticId: "Sales.Order.reference.unique",
+        name: "uq_sales_order_reference",
+        kind: "unique",
+        columns: ["id"],
+        expression: null,
+        references: null,
+      },
+      {
+        semanticId: "Sales.Order.total.positive",
+        name: "ck_sales_order_total_positive",
+        kind: "check",
+        columns: [],
+        expression: '"total" > 0',
+        references: null,
+      },
+      {
+        semanticId: "Sales.Order.customer.foreignKey",
+        name: "fk_sales_order_customer",
+        kind: "foreignKey",
+        columns: ["id"],
+        expression: null,
+        references: {
+          table: "sales__customer",
+          column: "id",
+          onDelete: "NO ACTION",
+          onUpdate: "NO ACTION",
+        },
+      },
+    ];
+
+    for (const constraint of constraints) {
+      const previous = { ...orderTable, constraints: [constraint] };
+      const next = { ...previous, constraints: [] };
+      const plan = createPostgreSqlMigrationPlan({
+        previous: storage([previous]),
+        next: storage([next]),
+      });
+
+      assert.equal(plan.classification, "destructive", constraint.kind);
+      assert.equal(plan.steps.length, 1, constraint.kind);
+      assert.equal(plan.steps[0]?.kind, "dropConstraint", constraint.kind);
+      assert.equal(
+        plan.steps[0]?.classification,
+        "destructive",
+        constraint.kind,
+      );
+    }
   });
 
   it("drops an existing default before adding identity generation", () => {
