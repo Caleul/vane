@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   type EntityDeclaration,
+  type JsonValue,
   type ModuleDeclaration,
   compileProjectSources,
   compileSemanticIr,
@@ -199,6 +200,42 @@ describe("phase one completion gate", () => {
     );
   });
 
+  it("validates an imported Module's own declarations only once", () => {
+    const result = compileProjectSources([
+      {
+        fileName: "core.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() class Broken {
+            @Column({ type: "string" }) value!: string;
+          }
+          @Module({ entities: [Broken] }) class Core {}
+        `,
+      },
+      {
+        fileName: "application.vane.ts",
+        sourceText: `
+          import { Module } from "@lilka/vane";
+          import { Core } from "./core.vane.js";
+          @Module({ imports: [Core], entities: [] }) class Application {}
+        `,
+      },
+    ]);
+    assert.equal(result.success, false);
+    if (result.success) return;
+    const identityDiagnostics = result.diagnostics.filter(
+      ({ code }) => code === "VANE_SEM_ENTITY_IDENTITY",
+    );
+    assert.equal(identityDiagnostics.length, 1);
+    assert.equal(identityDiagnostics[0]?.location?.fileName, "core.vane.ts");
+    assert.deepEqual(identityDiagnostics[0]?.path.slice(0, 4), [
+      "project",
+      "modules",
+      "Core",
+      "entities",
+    ]);
+  });
+
   it("canonicalizes nested JSON defaults independently of object key order", () => {
     const first = compileSemanticIr({
       name: "Configuration",
@@ -283,6 +320,33 @@ describe("phase one completion gate", () => {
     assert.ok(
       sourceResult.diagnostics.some(
         ({ code }) => code === "VANE_SEM_COLUMN_CONSTRAINT",
+      ),
+    );
+  });
+
+  it("rejects cyclic JSON defaults with an actionable diagnostic", () => {
+    const cyclic: JsonValue[] = [];
+    cyclic.push(cyclic);
+    const result = compileSemanticIr({
+      name: "Configuration",
+      entities: [
+        {
+          name: "Profile",
+          columns: [
+            { name: "id", type: "uuid", identity: true },
+            { name: "settings", type: "json", default: cyclic },
+          ],
+        },
+      ],
+    });
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, path, message }) =>
+          code === "VANE_SEM_COLUMN_CONSTRAINT" &&
+          path.at(-1) === "0" &&
+          message.includes("cycle"),
       ),
     );
   });

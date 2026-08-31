@@ -69,6 +69,7 @@ export function compileSemanticIr(
 
 function compileSemanticIrInternal(
   declaration: ModuleDeclaration,
+  visibleDeclaration: ModuleDeclaration = declaration,
 ): SemanticCompilationResult {
   const diagnostics: Diagnostic[] = [];
 
@@ -100,7 +101,7 @@ function compileSemanticIrInternal(
   validateEventOwnerNames(declaration, diagnostics);
 
   const entitiesByName = new Map(
-    declaration.entities.map((entity) => [entity.name, entity] as const),
+    visibleDeclaration.entities.map((entity) => [entity.name, entity] as const),
   );
   for (const entity of declaration.entities) {
     validateEntity(entity, entitiesByName, diagnostics);
@@ -111,8 +112,10 @@ function compileSemanticIrInternal(
   for (const antiCorruptionLayer of declaration.antiCorruptionLayers ?? []) {
     validateAntiCorruptionLayer(antiCorruptionLayer, diagnostics);
   }
-  const eventIdentities = collectEventIdentities(declaration);
-  const viewNames = new Set((declaration.views ?? []).map(({ name }) => name));
+  const eventIdentities = collectEventIdentities(visibleDeclaration);
+  const viewNames = new Set(
+    (visibleDeclaration.views ?? []).map(({ name }) => name),
+  );
   for (const saga of declaration.sagas ?? []) {
     validateSaga(saga, eventIdentities, viewNames, diagnostics);
   }
@@ -235,7 +238,24 @@ export function compileSemanticProject(
       ),
       sagas: visible.flatMap((module) => module.sagas ?? []),
     };
-    const compiled = compileSemanticIrInternal(combined);
+    const visibilityDiagnostics: Diagnostic[] = [];
+    validateVisibleImportAmbiguities(visible, visibilityDiagnostics);
+    if (visibilityDiagnostics.length > 0) {
+      diagnostics.push(
+        ...visibilityDiagnostics.map((diagnostic) => ({
+          ...diagnostic,
+          path: [
+            "project",
+            "modules",
+            declaration.name,
+            ...diagnostic.path.slice(1),
+          ],
+        })),
+      );
+      continue;
+    }
+
+    const compiled = compileSemanticIrInternal(declaration, combined);
     if (!compiled.success) {
       diagnostics.push(
         ...compiled.diagnostics.map((diagnostic) => ({
@@ -251,23 +271,9 @@ export function compileSemanticProject(
       continue;
     }
 
-    const ownEntities = new Set(declaration.entities.map(({ name }) => name));
-    const ownViews = new Set((declaration.views ?? []).map(({ name }) => name));
-    const ownLayers = new Set(
-      (declaration.antiCorruptionLayers ?? []).map(({ name }) => name),
-    );
-    const ownSagas = new Set((declaration.sagas ?? []).map(({ name }) => name));
     modules.push({
       ...compiled.ir.module,
       imports: [...(declaration.imports ?? [])].sort(compare),
-      entities: compiled.ir.module.entities.filter(({ name }) =>
-        ownEntities.has(name),
-      ),
-      views: compiled.ir.module.views.filter(({ name }) => ownViews.has(name)),
-      antiCorruptionLayers: compiled.ir.module.antiCorruptionLayers.filter(
-        ({ name }) => ownLayers.has(name),
-      ),
-      sagas: compiled.ir.module.sagas.filter(({ name }) => ownSagas.has(name)),
     });
   }
 
@@ -283,6 +289,67 @@ export function compileSemanticProject(
       modules: modules.sort((left, right) => compare(left.name, right.name)),
     },
   };
+}
+
+function validateVisibleImportAmbiguities(
+  visible: readonly ModuleDeclaration[],
+  diagnostics: Diagnostic[],
+): void {
+  const validateAcrossModules = (
+    property: "entities" | "views" | "antiCorruptionLayers" | "sagas",
+    subject: string,
+  ): void => {
+    const modulesByConceptName = new Map<string, Set<string>>();
+    for (const module of visible) {
+      for (const concept of module[property] ?? []) {
+        const owners = modulesByConceptName.get(concept.name) ?? new Set();
+        owners.add(module.name);
+        modulesByConceptName.set(concept.name, owners);
+      }
+    }
+    for (const [name, owners] of modulesByConceptName) {
+      if (owners.size < 2) continue;
+      diagnostics.push({
+        code: "VANE_SEM_DUPLICATE_NAME",
+        path: ["module", property, name],
+        message: `${subject} name ${name} is ambiguous across visible Modules ${[...owners].sort(compare).join(", ")}.`,
+        correction: `Rename or stop importing one of the conflicting ${subject} declarations.`,
+      });
+    }
+  };
+
+  validateAcrossModules("entities", "Entity");
+  validateAcrossModules("views", "View");
+  validateAcrossModules("antiCorruptionLayers", "Anti-Corruption Layer");
+  validateAcrossModules("sagas", "Saga");
+
+  const entityOwners = new Map<string, Set<string>>();
+  const layerOwners = new Map<string, Set<string>>();
+  for (const module of visible) {
+    for (const entity of module.entities) {
+      const owners = entityOwners.get(entity.name) ?? new Set();
+      owners.add(module.name);
+      entityOwners.set(entity.name, owners);
+    }
+    for (const layer of module.antiCorruptionLayers ?? []) {
+      const owners = layerOwners.get(layer.name) ?? new Set();
+      owners.add(module.name);
+      layerOwners.set(layer.name, owners);
+    }
+  }
+  for (const [name, entities] of entityOwners) {
+    const layers = layerOwners.get(name);
+    if (!layers) continue;
+    const owners = new Set([...entities, ...layers]);
+    if (owners.size < 2) continue;
+    diagnostics.push({
+      code: "VANE_SEM_EVENT_OWNER",
+      path: ["module", "antiCorruptionLayers", name, "name"],
+      message: `Event owner name ${name} is ambiguous across visible Modules ${[...owners].sort(compare).join(", ")}.`,
+      correction:
+        "Give every visible Entity and Anti-Corruption Layer a distinct owner name.",
+    });
+  }
 }
 
 function collectVisibleModules(
@@ -648,13 +715,18 @@ function validateColumnConstraints(
     );
   }
   if (column.default !== undefined) {
-    for (const nestedPath of collectNonFiniteJsonNumberPaths(column.default)) {
+    for (const issue of collectJsonDefaultIssues(column.default)) {
       diagnostics.push({
         code: "VANE_SEM_COLUMN_CONSTRAINT",
-        path: [...path, "default", ...nestedPath],
-        message: `Column ${entityName}.${column.name} contains a non-finite number in its default value.`,
+        path: [...path, "default", ...issue.path],
+        message:
+          issue.kind === "cycle"
+            ? `Column ${entityName}.${column.name} contains a cycle in its default value.`
+            : `Column ${entityName}.${column.name} contains a non-finite number in its default value.`,
         correction:
-          "Use only finite JSON numbers so serialization preserves the default exactly.",
+          issue.kind === "cycle"
+            ? "Use an acyclic JSON value so it can be materialized and serialized deterministically."
+            : "Use only finite JSON numbers so serialization preserves the default exactly.",
       });
     }
   }
@@ -701,21 +773,33 @@ function validateColumnConstraints(
   }
 }
 
-function collectNonFiniteJsonNumberPaths(
+interface JsonDefaultIssue {
+  readonly kind: "cycle" | "nonFinite";
+  readonly path: readonly string[];
+}
+
+function collectJsonDefaultIssues(
   value: JsonValue,
   path: readonly string[] = [],
-): readonly (readonly string[])[] {
+  activeContainers: ReadonlySet<object> = new Set(),
+): readonly JsonDefaultIssue[] {
   if (typeof value === "number") {
-    return Number.isFinite(value) ? [] : [path];
-  }
-  if (Array.isArray(value)) {
-    return value.flatMap((nested, index) =>
-      collectNonFiniteJsonNumberPaths(nested, [...path, String(index)]),
-    );
+    return Number.isFinite(value) ? [] : [{ kind: "nonFinite", path }];
   }
   if (value && typeof value === "object") {
+    if (activeContainers.has(value)) return [{ kind: "cycle", path }];
+    const nestedActiveContainers = new Set(activeContainers).add(value);
+    if (Array.isArray(value)) {
+      return value.flatMap((nested, index) =>
+        collectJsonDefaultIssues(
+          nested,
+          [...path, String(index)],
+          nestedActiveContainers,
+        ),
+      );
+    }
     return Object.entries(value).flatMap(([key, nested]) =>
-      collectNonFiniteJsonNumberPaths(nested, [...path, key]),
+      collectJsonDefaultIssues(nested, [...path, key], nestedActiveContainers),
     );
   }
   return [];
