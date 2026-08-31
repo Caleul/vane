@@ -608,7 +608,7 @@ describe("phase one completion gate", () => {
             @Column({ type: "uuid", identity: true }) id!: string;
             @Column({
               type: "json",
-              default: { "__proto__": { enabled: true } },
+              default: { "__proto__": { enabled: true }, 200: "ok" },
             }) settings!: unknown;
           }
           @Module({ entities: [Profile] }) class Configuration {}
@@ -622,9 +622,13 @@ describe("phase one completion gate", () => {
       Object.prototype.hasOwnProperty.call(defaultValue, "__proto__"),
       true,
     );
+    assert.equal(
+      (defaultValue as { readonly [key: string]: unknown })["200"],
+      "ok",
+    );
     assert.match(
       serializeSemanticProjectIr(result.ir),
-      /"__proto__": \{\n\s+"enabled": true/,
+      /"200": "ok",\n\s+"__proto__": \{\n\s+"enabled": true/,
     );
   });
 

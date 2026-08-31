@@ -1734,7 +1734,7 @@ function parseJsonValue(
     return { matched: true, value: values };
   }
   if (ts.isObjectLiteralExpression(node)) {
-    const object = staticObject(context, node, path, "JSON default");
+    const object = staticObject(context, node, path, "JSON default", true);
     if (!object) return { matched: false };
     const value = Object.create(null) as Record<string, JsonValue>;
     for (const [name, expression] of object) {
@@ -2173,6 +2173,7 @@ function staticObject(
   node: ts.Expression,
   path: readonly string[],
   subject: string,
+  allowNumericPropertyNames = false,
 ): ReadonlyMap<string, ts.Expression> | undefined {
   if (!ts.isObjectLiteralExpression(node)) {
     context.diagnostics.push(
@@ -2200,7 +2201,7 @@ function staticObject(
       );
       continue;
     }
-    const name = staticPropertyName(property.name);
+    const name = staticPropertyName(property.name, allowNumericPropertyNames);
     if (!name) {
       context.diagnostics.push(
         staticDiagnostic(
@@ -2208,7 +2209,9 @@ function staticObject(
           path,
           subject,
           property.name,
-          "Use an identifier or string property name.",
+          allowNumericPropertyNames
+            ? "Use an identifier, string, or numeric property name."
+            : "Use an identifier or string property name.",
         ),
       );
       continue;
@@ -2378,9 +2381,13 @@ function memberName(
   return undefined;
 }
 
-function staticPropertyName(node: ts.PropertyName): string | undefined {
-  return ts.isIdentifier(node) || ts.isStringLiteral(node)
-    ? node.text
+function staticPropertyName(
+  node: ts.PropertyName,
+  allowNumeric = false,
+): string | undefined {
+  if (ts.isIdentifier(node) || ts.isStringLiteral(node)) return node.text;
+  return allowNumeric && ts.isNumericLiteral(node)
+    ? String(Number(node.text))
     : undefined;
 }
 
