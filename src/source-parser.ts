@@ -271,7 +271,7 @@ function appendRuntimeBindingDiagnostics(
   sourceFile: ts.SourceFile,
   diagnostics: Diagnostic[],
 ): void {
-  const localBindings = new Set<string>();
+  const localBindings = new Map<string, "function" | "value">();
   const importBindings = new Set<string>();
   const register = (name: string, node: ts.Node): void => {
     if (!localBindings.has(name) && !importBindings.has(name)) {
@@ -287,9 +287,28 @@ function appendRuntimeBindingDiagnostics(
       location: locationOf(sourceFile, node),
     });
   };
+  const registerLocal = (
+    name: string,
+    node: ts.Node,
+    kind: "function" | "value",
+  ): void => {
+    const previous = localBindings.get(name);
+    if (!previous) {
+      localBindings.set(name, kind);
+      return;
+    }
+    if (previous === "function" && kind === "function") return;
+    diagnostics.push({
+      code: "VANE_PARSE_BINDING",
+      path: ["source", "bindings", name],
+      message: `Local runtime binding ${name} is declared more than once in this source file.`,
+      correction: "Give every local runtime declaration a unique name.",
+      location: locationOf(sourceFile, node),
+    });
+  };
   const registerBindingName = (name: ts.BindingName): void => {
     if (ts.isIdentifier(name)) {
-      localBindings.add(name.text);
+      registerLocal(name.text, name, "value");
       return;
     }
     for (const element of name.elements) {
@@ -298,13 +317,15 @@ function appendRuntimeBindingDiagnostics(
   };
 
   for (const statement of sourceFile.statements) {
+    if (ts.isFunctionDeclaration(statement) && statement.name) {
+      registerLocal(statement.name.text, statement.name, "function");
+      continue;
+    }
     if (
-      (ts.isClassDeclaration(statement) ||
-        ts.isFunctionDeclaration(statement) ||
-        ts.isEnumDeclaration(statement)) &&
+      (ts.isClassDeclaration(statement) || ts.isEnumDeclaration(statement)) &&
       statement.name
     ) {
-      localBindings.add(statement.name.text);
+      registerLocal(statement.name.text, statement.name, "value");
       continue;
     }
     if (ts.isVariableStatement(statement)) {

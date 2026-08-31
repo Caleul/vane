@@ -560,6 +560,32 @@ describe("phase one completion gate", () => {
     );
   });
 
+  it("rejects duplicate local semantic class bindings", () => {
+    const result = compileModuleSource({
+      fileName: "duplicate-class.vane.ts",
+      sourceText: `
+        import { Module, Entity, Column } from "@lilka/vane";
+        @Entity() class Customer {
+          @Column({ type: "uuid", identity: true }) firstId!: string;
+        }
+        @Entity() class Customer {
+          @Column({ type: "uuid", identity: true }) secondId!: string;
+        }
+        @Module({ entities: [Customer] }) class Core {}
+      `,
+    });
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, path, location }) =>
+          code === "VANE_PARSE_BINDING" &&
+          path.at(-1) === "Customer" &&
+          location?.fileName === "duplicate-class.vane.ts",
+      ),
+    );
+  });
+
   it("rejects surplus arguments in typed and legacy Saga event calls", () => {
     for (const eventCall of [
       'event(Order, "Place", {}, "extra")',
