@@ -176,7 +176,11 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
 
   const bindings = collectDslBindings(sourceFile, diagnostics);
   const classes = sourceFile.statements.filter(ts.isClassDeclaration);
-  const semanticImportBindings = collectSemanticImportBindings(sourceFile);
+  const semanticImportBindings = collectSemanticImportBindings(
+    sourceFile,
+    diagnostics,
+    bindings,
+  );
   const localSemanticClassKinds = new Map<string, Set<SemanticClassKind>>();
   const context: ParserContext = {
     sourceFile,
@@ -238,8 +242,31 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
 
 function collectSemanticImportBindings(
   sourceFile: ts.SourceFile,
+  diagnostics: Diagnostic[],
+  dslBindings: ReadonlyMap<string, string>,
 ): ReadonlyMap<string, SemanticImportBinding> {
   const bindings = new Map<string, SemanticImportBinding>();
+  const occupiedNames = new Set([
+    ...dslBindings.keys(),
+    ...sourceFile.statements
+      .filter(ts.isClassDeclaration)
+      .flatMap((candidate) => (candidate.name ? [candidate.name.text] : [])),
+  ]);
+  const registerBinding = (name: string, node: ts.Node): boolean => {
+    if (!occupiedNames.has(name)) {
+      occupiedNames.add(name);
+      return true;
+    }
+    diagnostics.push({
+      code: "VANE_PARSE_IMPORT",
+      path: ["source", "imports", name],
+      message: `Runtime import binding ${name} conflicts with another local runtime binding in this source file.`,
+      correction:
+        "Give every runtime import a unique local name and update its semantic references.",
+      location: locationOf(sourceFile, node),
+    });
+    return false;
+  };
   for (const statement of sourceFile.statements) {
     if (
       !ts.isImportDeclaration(statement) ||
@@ -250,11 +277,22 @@ function collectSemanticImportBindings(
     ) {
       continue;
     }
+    if (statement.importClause.name) {
+      registerBinding(
+        statement.importClause.name.text,
+        statement.importClause.name,
+      );
+    }
     const namedBindings = statement.importClause.namedBindings;
-    if (!namedBindings || !ts.isNamedImports(namedBindings)) continue;
+    if (!namedBindings) continue;
+    if (ts.isNamespaceImport(namedBindings)) {
+      registerBinding(namedBindings.name.text, namedBindings.name);
+      continue;
+    }
     if (!ts.isStringLiteral(statement.moduleSpecifier)) continue;
     for (const element of namedBindings.elements) {
       if (element.isTypeOnly) continue;
+      if (!registerBinding(element.name.text, element)) continue;
       bindings.set(element.name.text, {
         localName: element.name.text,
         semanticName: (element.propertyName ?? element.name).text,
