@@ -113,6 +113,10 @@ interface ParserContext {
   readonly semanticBindings: ReadonlyMap<string, string>;
   readonly semanticImportBindings: ReadonlyMap<string, SemanticImportBinding>;
   readonly usedSemanticImports: Map<string, (readonly SemanticClassKind[])[]>;
+  readonly usedLocalSemanticClasses: Map<
+    string,
+    (readonly SemanticClassKind[])[]
+  >;
   readonly localSemanticClassKinds: ReadonlyMap<
     string,
     ReadonlySet<SemanticClassKind>
@@ -190,6 +194,7 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
     ),
     semanticImportBindings,
     usedSemanticImports: new Map(),
+    usedLocalSemanticClasses: new Map(),
     localSemanticClassKinds,
     diagnostics,
     sourceLocations: new Map(),
@@ -216,6 +221,9 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   const declaration = moduleClass
     ? parseModuleClass(context, moduleClass, classes)
     : undefined;
+  if (declaration) {
+    appendLocalSemanticRegistrationDiagnostics(context, declaration, classes);
+  }
 
   if (diagnostics.length > 0 || !declaration) {
     return { success: false, diagnostics: sortDiagnostics(diagnostics) };
@@ -358,8 +366,43 @@ function semanticName(
     const expectations = context.usedSemanticImports.get(localName) ?? [];
     expectations.push(expectedKinds);
     context.usedSemanticImports.set(localName, expectations);
+  } else if (context.localSemanticClassKinds.has(localName)) {
+    const expectations = context.usedLocalSemanticClasses.get(localName) ?? [];
+    expectations.push(expectedKinds);
+    context.usedLocalSemanticClasses.set(localName, expectations);
   }
   return context.semanticBindings.get(localName) ?? localName;
+}
+
+function appendLocalSemanticRegistrationDiagnostics(
+  context: ParserContext,
+  declaration: ModuleDeclaration,
+  classes: readonly ts.ClassDeclaration[],
+): void {
+  for (const [localName, expectations] of context.usedLocalSemanticClasses) {
+    const registeredKinds = semanticClassKinds(declaration, localName);
+    if (
+      expectations.every((expectedKinds) =>
+        expectedKinds.some((kind) => registeredKinds.has(kind)),
+      )
+    ) {
+      continue;
+    }
+    const localClass = classes.find(
+      (candidate) => candidate.name?.text === localName,
+    );
+    context.diagnostics.push({
+      code: "VANE_PARSE_SEMANTIC_REGISTRATION",
+      path: ["module", "registrations", localName],
+      message: `Local semantic class ${localName} is referenced but is not registered in the matching @Module collection.`,
+      correction:
+        "Add the class to the matching entities, views, antiCorruptionLayers, or sagas collection, or remove the reference.",
+      location: locationOf(
+        context.sourceFile,
+        localClass?.name ?? localClass ?? context.sourceFile,
+      ),
+    });
+  }
 }
 
 function collectLocalSemanticClassKinds(

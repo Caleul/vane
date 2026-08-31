@@ -11,6 +11,15 @@ import type {
 
 export type VaneClass<T = object> = abstract new (...args: never[]) => T;
 type MemberName<T> = Extract<keyof T, string>;
+type MethodName<T> = Extract<
+  {
+    [Name in keyof T]-?: T[Name] extends (...args: never[]) => unknown
+      ? Name
+      : never;
+  }[keyof T],
+  string
+>;
+type ColumnName<T> = Exclude<MemberName<T>, MethodName<T>>;
 type TypedField = ColumnType | OptionalField;
 
 export interface OptionalField {
@@ -138,7 +147,7 @@ function className<T>(value: VaneClass<T>): string {
 
 export function field<T>(
   entity: VaneClass<T>,
-  name: MemberName<T>,
+  name: ColumnName<T>,
 ): ColumnToken {
   return { kind: "column", entity: className(entity), column: name };
 }
@@ -151,14 +160,14 @@ export function relation(from: ColumnToken, to: ColumnToken): RelationToken {
 
 export function eventRef<T>(
   owner: VaneClass<T>,
-  name: MemberName<T>,
+  name: MethodName<T>,
 ): EventToken {
   return { owner: className(owner), event: name };
 }
 
 export function event<T>(
   owner: VaneClass<T>,
-  name: MemberName<T>,
+  name: MethodName<T>,
   options: SagaStepOptions = {},
 ): SagaStepToken {
   return {

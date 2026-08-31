@@ -124,8 +124,14 @@ void Application;
 
 // @ts-expect-error Entity members are checked by field().
 field(Customer, "missing");
+// @ts-expect-error Methods are Events, not Columns.
+field(Order, "Place");
+// @ts-expect-error Methods are Events, not Column references.
+reference(Order, "Cancel");
 // @ts-expect-error Event members are checked by eventRef().
 eventRef(Order, "MissingEvent");
+// @ts-expect-error Properties are Columns, not Events.
+eventRef(Order, "id");
 // @ts-expect-error Generation strategy is a closed semantic vocabulary.
 Column({ type: "uuid", generated: "random" });
 // @ts-expect-error Column types are a closed semantic vocabulary.

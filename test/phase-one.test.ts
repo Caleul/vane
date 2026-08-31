@@ -586,6 +586,48 @@ describe("phase one completion gate", () => {
     );
   });
 
+  it("rejects referenced local semantic classes omitted from Module", () => {
+    const result = compileProjectSources([
+      {
+        fileName: "core.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() export class Customer {
+            @Column({ type: "uuid", identity: true }) id!: string;
+          }
+          @Module({ entities: [Customer] }) export class Core {}
+        `,
+      },
+      {
+        fileName: "application.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column, View, field } from "@lilka/vane";
+          import { Core } from "./core.vane.js";
+          @Entity() class Customer {
+            @Column({ type: "string", identity: true }) id!: string;
+          }
+          @View({
+            input: {},
+            output: { id: field(Customer, "id") },
+            query: { root: Customer },
+          }) class CustomerView {}
+          @Module({ imports: [Core], entities: [], views: [CustomerView] })
+          class Application {}
+        `,
+      },
+    ]);
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, path, location }) =>
+          code === "VANE_PARSE_SEMANTIC_REGISTRATION" &&
+          path.at(-1) === "Customer" &&
+          location?.fileName === "application.vane.ts",
+      ),
+    );
+  });
+
   it("rejects surplus arguments in typed and legacy Saga event calls", () => {
     for (const eventCall of [
       'event(Order, "Place", {}, "extra")',
