@@ -534,6 +534,12 @@ function assertConstraints(
         foreignKey: "f",
       }[constraint.kind];
       const reference = constraint.references;
+      const installedExpression = normalizeCatalogExpression(
+        found.check_expression,
+      );
+      const expectedExpression = normalizeCatalogExpression(
+        constraint.expression,
+      );
       if (
         !found.validated ||
         found.constraint_type !== expectedType ||
@@ -545,11 +551,10 @@ function assertConstraints(
         ) ||
         (reference !== null &&
           (found.delete_action !== "a" || found.update_action !== "a")) ||
-        normalizeCatalogExpression(found.check_expression) !==
-          normalizeCatalogExpression(constraint.expression)
+        installedExpression !== expectedExpression
       )
         configuration(
-          `PostgreSQL constraint ${JSON.stringify(`${storage.provider.namespace}.${table.name}.${name}`)} does not match its compiled definition.`,
+          `PostgreSQL constraint ${JSON.stringify(`${storage.provider.namespace}.${table.name}.${name}`)} does not match its compiled definition (expected expression: ${JSON.stringify(expectedExpression)}; installed expression: ${JSON.stringify(installedExpression)}).`,
         );
     }
   }
@@ -645,7 +650,7 @@ function normalizeCatalogExpression(value: string | null): string | null {
   }
   normalized = transformUnquotedCatalogSegments(normalized, (segment) =>
     segment.replace(
-      /::(?:text|bigint|numeric|boolean|date|timestampwithtimezone|uuid|jsonb)/giu,
+      /::(?:text|bigint|integer|smallint|numeric|real|doubleprecision|boolean|date|timestampwithtimezone|uuid|jsonb)/giu,
       "",
     ),
   );

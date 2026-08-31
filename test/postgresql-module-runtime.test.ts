@@ -514,7 +514,7 @@ describe("PostgreSQL Module runtime", () => {
       else if (constraint.check_expression?.includes("> 0"))
         constraint.check_expression = `(${constraint.check_expression.replace(
           "> 0",
-          "> (0)::bigint",
+          "> (0)::integer",
         )})`;
     }
 
