@@ -447,6 +447,7 @@ function collectExportedClassNames(
   for (const statement of sourceFile.statements) {
     if (
       !ts.isExportDeclaration(statement) ||
+      statement.isTypeOnly ||
       statement.moduleSpecifier ||
       !statement.exportClause ||
       !ts.isNamedExports(statement.exportClause)
@@ -454,6 +455,7 @@ function collectExportedClassNames(
       continue;
     }
     for (const element of statement.exportClause.elements) {
+      if (element.isTypeOnly) continue;
       const localName = (element.propertyName ?? element.name).text;
       if (classNames.has(localName) && element.name.text === localName) {
         exported.add(localName);
