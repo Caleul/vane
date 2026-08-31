@@ -1,5 +1,6 @@
+import { posix as path } from "node:path";
 import ts from "typescript";
-import { compileSemanticIr } from "./compiler.js";
+import { compileSemanticIr, compileSemanticProject } from "./compiler.js";
 import {
   type AntiCorruptionLayerDeclaration,
   type AntiCorruptionLayerEventDeclaration,
@@ -12,6 +13,7 @@ import {
   type EntityDeclaration,
   type EntityEventDeclaration,
   type EventInputDeclaration,
+  type JsonValue,
   type ModuleDeclaration,
   type RuleDeclaration,
   type RuleExpressionDeclaration,
@@ -27,15 +29,18 @@ import {
   type ViewPaginationDeclaration,
   type ViewPaginationValueDeclaration,
   type ViewQueryDeclaration,
+  type ViewRelationDeclaration,
   type ViewValueDeclaration,
 } from "./declaration.js";
 import type { Diagnostic, SourceLocation } from "./diagnostic.js";
 import type { SemanticIr } from "./semantic-ir.js";
+import type { SemanticProjectIr } from "./semantic-ir.js";
 
 const VANE_MODULE = "@lilka/vane";
 const DSL_SYMBOLS = new Set([
   "Module",
   "ACL",
+  "ACLEvent",
   "Saga",
   "Entity",
   "Column",
@@ -65,6 +70,10 @@ const DSL_SYMBOLS = new Set([
   "success",
   "fail",
   "event",
+  "eventRef",
+  "field",
+  "reference",
+  "relation",
 ]);
 const COMPARISON_OPERATORS = new Set(["eq", "neq", "gt", "gte", "lt", "lte"]);
 const VIEW_AGGREGATES = new Set(["count", "sum", "avg", "min", "max"]);
@@ -91,21 +100,65 @@ export type ModuleSourceCompilationResult =
     }
   | { readonly success: false; readonly diagnostics: readonly Diagnostic[] };
 
+export type ProjectSourceCompilationResult =
+  | {
+      readonly success: true;
+      readonly ir: SemanticProjectIr;
+      readonly diagnostics: readonly [];
+    }
+  | { readonly success: false; readonly diagnostics: readonly Diagnostic[] };
+
 interface ParserContext {
   readonly sourceFile: ts.SourceFile;
   readonly bindings: ReadonlyMap<string, string>;
+  readonly semanticBindings: ReadonlyMap<string, string>;
+  readonly semanticImportBindings: ReadonlyMap<string, SemanticImportBinding>;
+  readonly usedSemanticImports: Map<string, (readonly SemanticClassKind[])[]>;
+  readonly usedLocalSemanticClasses: Map<
+    string,
+    (readonly SemanticClassKind[])[]
+  >;
+  readonly localSemanticClassKinds: ReadonlyMap<
+    string,
+    ReadonlySet<SemanticClassKind>
+  >;
   readonly diagnostics: Diagnostic[];
   readonly sourceLocations: Map<string, SourceLocation>;
 }
+
+interface SemanticImportBinding {
+  readonly localName: string;
+  readonly semanticName: string;
+  readonly moduleSpecifier: string;
+  readonly location: SourceLocation;
+}
+
+interface SemanticImportUse extends SemanticImportBinding {
+  readonly expectations: readonly (readonly SemanticClassKind[])[];
+}
+
+function semanticImportReferenceName(binding: SemanticImportBinding): string {
+  return `@vane-import:${binding.localName}`;
+}
+
+type SemanticClassKind = "module" | "entity" | "view" | "acl" | "saga";
+const SEMANTIC_CLASS_DECORATORS = [
+  ["Module", "module"],
+  ["Entity", "entity"],
+  ["View", "view"],
+  ["ACL", "acl"],
+  ["Saga", "saga"],
+] as const satisfies readonly (readonly [string, SemanticClassKind])[];
 
 export function parseModuleSource(
   input: ModuleSourceParserInput,
 ): ModuleSourceParseResult {
   const parsed = parseModuleSourceInternal(input);
   if (!parsed.success) return parsed;
+  const aliases = unlinkedSemanticImportAliases(parsed.semanticImportUses);
   return {
     success: true,
-    declaration: parsed.declaration,
+    declaration: remapSemanticDeclaration(parsed.declaration, aliases),
     diagnostics: [],
   };
 }
@@ -116,6 +169,9 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
       readonly declaration: ModuleDeclaration;
       readonly diagnostics: readonly [];
       readonly sourceLocations: ReadonlyMap<string, SourceLocation>;
+      readonly fileName: string;
+      readonly semanticImportUses: readonly SemanticImportUse[];
+      readonly exportedClassBindings: ReadonlyMap<string, string>;
     }
   | { readonly success: false; readonly diagnostics: readonly Diagnostic[] } {
   const sourceFile = ts.createSourceFile(
@@ -127,15 +183,29 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   );
   const diagnostics: Diagnostic[] = [];
   appendSyntaxDiagnostics(sourceFile, diagnostics);
+  appendRuntimeBindingDiagnostics(sourceFile, diagnostics);
 
   const bindings = collectDslBindings(sourceFile, diagnostics);
+  const classes = sourceFile.statements.filter(ts.isClassDeclaration);
+  const semanticImportBindings = collectSemanticImportBindings(sourceFile);
+  const localSemanticClassKinds = new Map<string, Set<SemanticClassKind>>();
   const context: ParserContext = {
     sourceFile,
     bindings,
+    semanticBindings: new Map(
+      [...semanticImportBindings].map(([localName, binding]) => [
+        localName,
+        semanticImportReferenceName(binding),
+      ]),
+    ),
+    semanticImportBindings,
+    usedSemanticImports: new Map(),
+    usedLocalSemanticClasses: new Map(),
+    localSemanticClassKinds,
     diagnostics,
     sourceLocations: new Map(),
   };
-  const classes = sourceFile.statements.filter(ts.isClassDeclaration);
+  collectLocalSemanticClassKinds(context, classes, localSemanticClassKinds);
   const moduleClasses = classes.filter((node) =>
     hasDecorator(context, node, "Module"),
   );
@@ -157,6 +227,14 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   const declaration = moduleClass
     ? parseModuleClass(context, moduleClass, classes)
     : undefined;
+  if (declaration) {
+    appendLocalSemanticRegistrationDiagnostics(context, declaration, classes);
+  }
+  const exportedClassBindings = collectExportedClassBindings(
+    sourceFile,
+    classes,
+    diagnostics,
+  );
 
   if (diagnostics.length > 0 || !declaration) {
     return { success: false, diagnostics: sortDiagnostics(diagnostics) };
@@ -167,7 +245,295 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
     declaration,
     diagnostics: [],
     sourceLocations: context.sourceLocations,
+    fileName: input.fileName,
+    semanticImportUses: [...context.usedSemanticImports].flatMap(
+      ([localName, expectations]) => {
+        const binding = context.semanticImportBindings.get(localName);
+        return binding ? [{ ...binding, expectations }] : [];
+      },
+    ),
+    exportedClassBindings,
   };
+}
+
+function collectSemanticImportBindings(
+  sourceFile: ts.SourceFile,
+): ReadonlyMap<string, SemanticImportBinding> {
+  const bindings = new Map<string, SemanticImportBinding>();
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isImportDeclaration(statement) ||
+      !statement.importClause ||
+      statement.importClause.isTypeOnly ||
+      (ts.isStringLiteral(statement.moduleSpecifier) &&
+        statement.moduleSpecifier.text === VANE_MODULE)
+    ) {
+      continue;
+    }
+    const namedBindings = statement.importClause.namedBindings;
+    if (!namedBindings || !ts.isNamedImports(namedBindings)) continue;
+    if (!ts.isStringLiteral(statement.moduleSpecifier)) continue;
+    for (const element of namedBindings.elements) {
+      if (element.isTypeOnly) continue;
+      bindings.set(element.name.text, {
+        localName: element.name.text,
+        semanticName: (element.propertyName ?? element.name).text,
+        moduleSpecifier: statement.moduleSpecifier.text,
+        location: locationOf(sourceFile, element),
+      });
+    }
+  }
+  return bindings;
+}
+
+function appendRuntimeBindingDiagnostics(
+  sourceFile: ts.SourceFile,
+  diagnostics: Diagnostic[],
+): void {
+  type LocalBindingKind =
+    | "function"
+    | "class"
+    | "enum"
+    | "variable"
+    | "namespace";
+  const localBindings = new Map<string, Set<LocalBindingKind>>();
+  const importBindings = new Set<string>();
+  const register = (name: string, node: ts.Node): void => {
+    if (!localBindings.has(name) && !importBindings.has(name)) {
+      importBindings.add(name);
+      return;
+    }
+    diagnostics.push({
+      code: "VANE_PARSE_IMPORT",
+      path: ["source", "imports", name],
+      message: `Runtime binding ${name} conflicts with another local runtime binding in this source file.`,
+      correction:
+        "Give every runtime import or declaration a unique local name and update its semantic references.",
+      location: locationOf(sourceFile, node),
+    });
+  };
+  const registerLocal = (
+    name: string,
+    node: ts.Node,
+    kind: LocalBindingKind,
+  ): void => {
+    const previous = localBindings.get(name);
+    if (!previous) {
+      localBindings.set(name, new Set([kind]));
+      return;
+    }
+    const mergeableWithNamespace = new Set<LocalBindingKind>([
+      "function",
+      "class",
+      "enum",
+      "namespace",
+    ]);
+    if (
+      (kind === "function" && previous.has("function")) ||
+      (kind === "namespace" &&
+        [...previous].every((entry) => mergeableWithNamespace.has(entry))) ||
+      (previous.has("namespace") && mergeableWithNamespace.has(kind))
+    ) {
+      previous.add(kind);
+      return;
+    }
+    diagnostics.push({
+      code: "VANE_PARSE_BINDING",
+      path: ["source", "bindings", name],
+      message: `Local runtime binding ${name} is declared more than once in this source file.`,
+      correction: "Give every local runtime declaration a unique name.",
+      location: locationOf(sourceFile, node),
+    });
+  };
+  const registerBindingName = (name: ts.BindingName): void => {
+    if (ts.isIdentifier(name)) {
+      registerLocal(name.text, name, "variable");
+      return;
+    }
+    for (const element of name.elements) {
+      if (!ts.isOmittedExpression(element)) registerBindingName(element.name);
+    }
+  };
+
+  for (const statement of sourceFile.statements) {
+    if (ts.isFunctionDeclaration(statement) && statement.name) {
+      registerLocal(statement.name.text, statement.name, "function");
+      continue;
+    }
+    if (ts.isClassDeclaration(statement) && statement.name) {
+      registerLocal(statement.name.text, statement.name, "class");
+      continue;
+    }
+    if (ts.isEnumDeclaration(statement)) {
+      registerLocal(statement.name.text, statement.name, "enum");
+      continue;
+    }
+    if (
+      ts.isModuleDeclaration(statement) &&
+      ts.isIdentifier(statement.name) &&
+      !statement.modifiers?.some(
+        ({ kind }) => kind === ts.SyntaxKind.DeclareKeyword,
+      )
+    ) {
+      registerLocal(statement.name.text, statement.name, "namespace");
+      continue;
+    }
+    if (ts.isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        registerBindingName(declaration.name);
+      }
+    }
+  }
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement)) continue;
+    const clause = statement.importClause;
+    if (!clause || clause.isTypeOnly) continue;
+    if (clause.name) register(clause.name.text, clause.name);
+    if (clause.namedBindings && ts.isNamespaceImport(clause.namedBindings)) {
+      register(clause.namedBindings.name.text, clause.namedBindings.name);
+    } else if (clause.namedBindings) {
+      for (const element of clause.namedBindings.elements) {
+        if (!element.isTypeOnly) register(element.name.text, element.name);
+      }
+    }
+  }
+}
+
+function semanticName(
+  context: ParserContext,
+  localName: string,
+  expectedKinds: readonly SemanticClassKind[],
+): string {
+  if (context.semanticImportBindings.has(localName)) {
+    const expectations = context.usedSemanticImports.get(localName) ?? [];
+    expectations.push(expectedKinds);
+    context.usedSemanticImports.set(localName, expectations);
+  } else if (context.localSemanticClassKinds.has(localName)) {
+    const expectations = context.usedLocalSemanticClasses.get(localName) ?? [];
+    expectations.push(expectedKinds);
+    context.usedLocalSemanticClasses.set(localName, expectations);
+  }
+  return context.semanticBindings.get(localName) ?? localName;
+}
+
+function appendLocalSemanticRegistrationDiagnostics(
+  context: ParserContext,
+  declaration: ModuleDeclaration,
+  classes: readonly ts.ClassDeclaration[],
+): void {
+  for (const [localName, expectations] of context.usedLocalSemanticClasses) {
+    const registeredKinds = semanticClassKinds(declaration, localName);
+    if (
+      expectations.every((expectedKinds) =>
+        expectedKinds.some((kind) => registeredKinds.has(kind)),
+      )
+    ) {
+      continue;
+    }
+    const localClass = classes.find(
+      (candidate) => candidate.name?.text === localName,
+    );
+    context.diagnostics.push({
+      code: "VANE_PARSE_SEMANTIC_REGISTRATION",
+      path: ["module", "registrations", localName],
+      message: `Local semantic class ${localName} is referenced but is not registered in the matching @Module collection.`,
+      correction:
+        "Add the class to the matching entities, views, antiCorruptionLayers, or sagas collection, or remove the reference.",
+      location: locationOf(
+        context.sourceFile,
+        localClass?.name ?? localClass ?? context.sourceFile,
+      ),
+    });
+  }
+}
+
+function collectLocalSemanticClassKinds(
+  context: ParserContext,
+  classes: readonly ts.ClassDeclaration[],
+  target: Map<string, Set<SemanticClassKind>>,
+): void {
+  for (const candidate of classes) {
+    if (!candidate.name) continue;
+    for (const [decorator, kind] of SEMANTIC_CLASS_DECORATORS) {
+      if (!hasDecorator(context, candidate, decorator)) continue;
+      const kinds = target.get(candidate.name.text) ?? new Set();
+      kinds.add(kind);
+      target.set(candidate.name.text, kinds);
+    }
+  }
+}
+
+function collectExportedClassBindings(
+  sourceFile: ts.SourceFile,
+  classes: readonly ts.ClassDeclaration[],
+  diagnostics: Diagnostic[],
+): ReadonlyMap<string, string> {
+  const classNames = new Set(
+    classes.flatMap((candidate) =>
+      candidate.name ? [candidate.name.text] : [],
+    ),
+  );
+  const exported = new Map<string, string>();
+  const registerExport = (
+    exportedName: string,
+    localName: string,
+    node: ts.Node,
+  ): void => {
+    const previous = exported.get(exportedName);
+    if (previous !== undefined) {
+      diagnostics.push({
+        code: "VANE_PARSE_EXPORT",
+        path: ["source", "exports", exportedName],
+        message: `Runtime export ${exportedName} is declared more than once (${previous} and ${localName}).`,
+        correction: "Give every exported runtime class a unique exported name.",
+        location: locationOf(sourceFile, node),
+      });
+      return;
+    }
+    exported.set(exportedName, localName);
+  };
+  for (const candidate of classes) {
+    if (
+      candidate.name &&
+      candidate.modifiers?.some(
+        (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+      ) &&
+      !candidate.modifiers.some(
+        (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
+      )
+    ) {
+      registerExport(candidate.name.text, candidate.name.text, candidate.name);
+    }
+  }
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isExportDeclaration(statement) ||
+      statement.isTypeOnly ||
+      statement.moduleSpecifier ||
+      !statement.exportClause ||
+      !ts.isNamedExports(statement.exportClause)
+    ) {
+      continue;
+    }
+    for (const element of statement.exportClause.elements) {
+      if (element.isTypeOnly) continue;
+      const localName = (element.propertyName ?? element.name).text;
+      if (classNames.has(localName)) {
+        registerExport(element.name.text, localName, element);
+      }
+    }
+  }
+  return exported;
+}
+
+function hasRuntimeClassBinding(
+  context: ParserContext,
+  localName: string,
+  expectedKinds: readonly SemanticClassKind[],
+): boolean {
+  if (context.semanticBindings.has(localName)) return true;
+  const actualKinds = context.localSemanticClassKinds.get(localName);
+  return expectedKinds.some((kind) => actualKinds?.has(kind));
 }
 
 export function compileModuleSource(
@@ -175,15 +541,347 @@ export function compileModuleSource(
 ): ModuleSourceCompilationResult {
   const parsed = parseModuleSourceInternal(input);
   if (!parsed.success) return parsed;
-  const compiled = compileSemanticIr(parsed.declaration);
+  const aliases = unlinkedSemanticImportAliases(parsed.semanticImportUses);
+  const declaration = remapSemanticDeclaration(parsed.declaration, aliases);
+  const sourceLocations = remapSourceLocations(parsed.sourceLocations, aliases);
+  const compiled = compileSemanticIr(declaration);
   if (compiled.success) return compiled;
   return {
     success: false,
     diagnostics: compiled.diagnostics.map((diagnostic) => ({
       ...diagnostic,
-      ...locationForPath(parsed.sourceLocations, diagnostic.path),
+      ...locationForPath(sourceLocations, diagnostic.path),
     })),
   };
+}
+
+export function compileProjectSources(
+  inputs: readonly ModuleSourceParserInput[],
+): ProjectSourceCompilationResult {
+  const parsed = inputs.map(parseModuleSourceInternal);
+  const parseDiagnostics = parsed.flatMap((result) =>
+    result.success ? [] : result.diagnostics,
+  );
+  if (parseDiagnostics.length > 0) {
+    return { success: false, diagnostics: sortDiagnostics(parseDiagnostics) };
+  }
+  const successful = parsed.filter(
+    (result): result is Extract<typeof result, { readonly success: true }> =>
+      result.success,
+  );
+  const duplicateSourceDiagnostics =
+    duplicateNormalizedSourceDiagnostics(successful);
+  if (duplicateSourceDiagnostics.length > 0) {
+    return {
+      success: false,
+      diagnostics: sortDiagnostics(duplicateSourceDiagnostics),
+    };
+  }
+  const duplicateModuleDiagnostics: Diagnostic[] = [];
+  const seenModuleNames = new Set<string>();
+  for (const source of successful) {
+    const name = source.declaration.name;
+    if (seenModuleNames.has(name)) {
+      duplicateModuleDiagnostics.push({
+        code: "VANE_SEM_DUPLICATE_NAME",
+        path: ["project", "modules", name],
+        message: `Module name ${name} is duplicated.`,
+        correction: "Give every Module a unique name within the project.",
+        ...locationForPath(source.sourceLocations, ["module", "name"]),
+      });
+    }
+    seenModuleNames.add(name);
+  }
+  if (duplicateModuleDiagnostics.length > 0) {
+    return {
+      success: false,
+      diagnostics: sortDiagnostics(duplicateModuleDiagnostics),
+    };
+  }
+  const resolved = resolveSemanticImportAliases(successful);
+  const semanticImportDiagnostics = validateSemanticImportSources(resolved);
+  if (semanticImportDiagnostics.length > 0) {
+    return {
+      success: false,
+      diagnostics: sortDiagnostics(semanticImportDiagnostics),
+    };
+  }
+  const compiled = compileSemanticProject(
+    resolved.map(({ declaration }) => declaration),
+  );
+  if (compiled.success) return compiled;
+  return {
+    success: false,
+    diagnostics: compiled.diagnostics.map((diagnostic) => {
+      const moduleName = diagnostic.path[2];
+      const source = resolved.find(
+        ({ declaration }) => declaration.name === moduleName,
+      );
+      const localPath = ["module", ...diagnostic.path.slice(3)];
+      return source
+        ? {
+            ...diagnostic,
+            ...locationForPath(source.sourceLocations, localPath),
+          }
+        : diagnostic;
+    }),
+  };
+}
+
+function duplicateNormalizedSourceDiagnostics(
+  sources: readonly {
+    readonly fileName: string;
+    readonly sourceLocations: ReadonlyMap<string, SourceLocation>;
+  }[],
+): readonly Diagnostic[] {
+  const byFileName = new Map<string, typeof sources>();
+  for (const source of sources) {
+    const normalized = normalizeSourceFileName(source.fileName);
+    const matches = byFileName.get(normalized) ?? [];
+    byFileName.set(normalized, [...matches, source]);
+  }
+  return [...byFileName].flatMap(([normalized, matches]) =>
+    matches.length < 2
+      ? []
+      : matches.map((source) => ({
+          code: "VANE_PARSE_SOURCE_FILE",
+          path: ["project", "sources", normalized],
+          message: `Project source file ${source.fileName} duplicates normalized path ${normalized}.`,
+          correction:
+            "Supply each normalized source filename exactly once per compilation.",
+          ...locationForPath(source.sourceLocations, ["module", "name"]),
+        })),
+  );
+}
+
+function validateSemanticImportSources(
+  sources: readonly {
+    readonly fileName: string;
+    readonly declaration: ModuleDeclaration;
+    readonly semanticImportUses: readonly SemanticImportUse[];
+    readonly exportedClassBindings: ReadonlyMap<string, string>;
+  }[],
+): readonly Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+  const sourcesByFileName = new Map(
+    sources.map((source) => [normalizeSourceFileName(source.fileName), source]),
+  );
+  const modulesByName = new Map(
+    sources.map((source) => [source.declaration.name, source]),
+  );
+
+  for (const source of sources) {
+    const visibleModules = collectVisibleModuleNames(
+      source.declaration.name,
+      modulesByName,
+    );
+    for (const binding of source.semanticImportUses) {
+      const target = resolveSemanticImportSource(
+        source.fileName,
+        binding.moduleSpecifier,
+        sourcesByFileName,
+      );
+      const targetSemanticName = target?.exportedClassBindings.get(
+        binding.semanticName,
+      );
+      const targetKinds =
+        target && targetSemanticName
+          ? semanticClassKinds(target.declaration, targetSemanticName)
+          : new Set<SemanticClassKind>();
+      if (
+        target &&
+        targetSemanticName &&
+        binding.expectations.every((expectedKinds) =>
+          expectedKinds.some((kind) => targetKinds.has(kind)),
+        ) &&
+        visibleModules.has(target.declaration.name)
+      ) {
+        continue;
+      }
+      diagnostics.push({
+        code: "VANE_PARSE_SEMANTIC_IMPORT_SOURCE",
+        path: ["module", "imports", binding.semanticName],
+        message: `Semantic class ${binding.localName} does not resolve to an exported ${binding.semanticName} declaration from a visible supplied Module source.`,
+        correction:
+          "Import the class from the source that exports its semantic declaration, and include that source's Module in @Module imports.",
+        location: binding.location,
+      });
+    }
+  }
+  return diagnostics;
+}
+
+function resolveSemanticImportAliases<
+  Source extends {
+    readonly fileName: string;
+    readonly declaration: ModuleDeclaration;
+    readonly semanticImportUses: readonly SemanticImportUse[];
+    readonly exportedClassBindings: ReadonlyMap<string, string>;
+    readonly sourceLocations: ReadonlyMap<string, SourceLocation>;
+  },
+>(sources: readonly Source[]): readonly Source[] {
+  const sourcesByFileName = new Map(
+    sources.map((source) => [normalizeSourceFileName(source.fileName), source]),
+  );
+  return sources.map((source) => {
+    const aliases = new Map<string, string>();
+    const conflicts = new Set<string>();
+    for (const binding of source.semanticImportUses) {
+      const target = resolveSemanticImportSource(
+        source.fileName,
+        binding.moduleSpecifier,
+        sourcesByFileName,
+      );
+      const localSemanticName = target?.exportedClassBindings.get(
+        binding.semanticName,
+      );
+      const referenceName = semanticImportReferenceName(binding);
+      if (!localSemanticName || conflicts.has(referenceName)) continue;
+      const previous = aliases.get(referenceName);
+      if (previous && previous !== localSemanticName) {
+        aliases.delete(referenceName);
+        conflicts.add(referenceName);
+      } else {
+        aliases.set(referenceName, localSemanticName);
+      }
+    }
+    return {
+      ...source,
+      declaration: remapSemanticDeclaration(source.declaration, aliases),
+      sourceLocations: remapSourceLocations(source.sourceLocations, aliases),
+    };
+  });
+}
+
+function unlinkedSemanticImportAliases(
+  imports: readonly SemanticImportUse[],
+): ReadonlyMap<string, string> {
+  return new Map(
+    imports.map((binding) => [
+      semanticImportReferenceName(binding),
+      binding.semanticName,
+    ]),
+  );
+}
+
+function remapSourceLocations(
+  sourceLocations: ReadonlyMap<string, SourceLocation>,
+  aliases: ReadonlyMap<string, string>,
+): ReadonlyMap<string, SourceLocation> {
+  return new Map(
+    [...sourceLocations].map(([pathKey, location]) => [
+      pathKey
+        .split(".")
+        .map((segment) => aliases.get(segment) ?? segment)
+        .join("."),
+      location,
+    ]),
+  );
+}
+
+function remapSemanticDeclaration(
+  declaration: ModuleDeclaration,
+  aliases: ReadonlyMap<string, string>,
+): ModuleDeclaration {
+  const semanticNameKeys = new Set(["entity", "owner", "root", "view"]);
+  const visit = (value: unknown, key?: string): unknown => {
+    if (typeof value === "string") {
+      return key && semanticNameKeys.has(key)
+        ? (aliases.get(value) ?? value)
+        : value;
+    }
+    if (Array.isArray(value)) {
+      return value.map((item) =>
+        key === "imports" && typeof item === "string"
+          ? (aliases.get(item) ?? item)
+          : visit(item),
+      );
+    }
+    if (!value || typeof value !== "object") return value;
+    return Object.fromEntries(
+      Object.entries(value).map(([entryKey, entryValue]) => [
+        entryKey,
+        visit(entryValue, entryKey),
+      ]),
+    );
+  };
+  return visit(declaration) as ModuleDeclaration;
+}
+
+function normalizeSourceFileName(fileName: string): string {
+  return path.normalize(fileName.replaceAll("\\", "/"));
+}
+
+function resolveSemanticImportSource<T>(
+  importerFileName: string,
+  moduleSpecifier: string,
+  sourcesByFileName: ReadonlyMap<string, T>,
+): T | undefined {
+  if (!moduleSpecifier.startsWith(".")) return undefined;
+  const resolved = path.normalize(
+    path.join(
+      path.dirname(normalizeSourceFileName(importerFileName)),
+      moduleSpecifier,
+    ),
+  );
+  const candidates = new Set([resolved]);
+  if (resolved.endsWith(".js")) candidates.add(`${resolved.slice(0, -3)}.ts`);
+  if (resolved.endsWith(".mjs")) candidates.add(`${resolved.slice(0, -4)}.mts`);
+  if (resolved.endsWith(".cjs")) candidates.add(`${resolved.slice(0, -4)}.cts`);
+  if (!path.extname(resolved)) {
+    candidates.add(`${resolved}.ts`);
+    candidates.add(path.join(resolved, "index.ts"));
+  }
+  for (const candidate of candidates) {
+    const source = sourcesByFileName.get(candidate);
+    if (source) return source;
+  }
+  return undefined;
+}
+
+function semanticClassKinds(
+  declaration: ModuleDeclaration,
+  name: string,
+): ReadonlySet<SemanticClassKind> {
+  const kinds = new Set<SemanticClassKind>();
+  if (declaration.name === name) kinds.add("module");
+  if (declaration.entities.some((candidate) => candidate.name === name)) {
+    kinds.add("entity");
+  }
+  if (declaration.views?.some((candidate) => candidate.name === name)) {
+    kinds.add("view");
+  }
+  if (
+    declaration.antiCorruptionLayers?.some(
+      (candidate) => candidate.name === name,
+    )
+  ) {
+    kinds.add("acl");
+  }
+  if (declaration.sagas?.some((candidate) => candidate.name === name)) {
+    kinds.add("saga");
+  }
+  return kinds;
+}
+
+function collectVisibleModuleNames(
+  moduleName: string,
+  modulesByName: ReadonlyMap<
+    string,
+    { readonly declaration: ModuleDeclaration }
+  >,
+): ReadonlySet<string> {
+  const visible = new Set<string>();
+  const visit = (name: string): void => {
+    if (visible.has(name)) return;
+    visible.add(name);
+    const source = modulesByName.get(name);
+    for (const importedName of source?.declaration.imports ?? []) {
+      visit(importedName);
+    }
+  };
+  visit(moduleName);
+  return visible;
 }
 
 function collectDslBindings(
@@ -202,7 +900,11 @@ function collectDslBindings(
     }
 
     const clause = statement.importClause;
-    if (!clause?.namedBindings || !ts.isNamedImports(clause.namedBindings)) {
+    if (
+      !clause?.namedBindings ||
+      clause.isTypeOnly ||
+      !ts.isNamedImports(clause.namedBindings)
+    ) {
       diagnostics.push({
         code: "VANE_PARSE_IMPORT",
         path: ["source", "imports"],
@@ -214,6 +916,7 @@ function collectDslBindings(
     }
 
     for (const element of clause.namedBindings.elements) {
+      if (element.isTypeOnly) continue;
       const importedName = (element.propertyName ?? element.name).text;
       if (DSL_SYMBOLS.has(importedName)) {
         bindings.set(element.name.text, importedName);
@@ -249,9 +952,41 @@ function parseModuleClass(
     rejectUnknownOptions(
       context,
       options,
-      new Set(["entities", "views", "antiCorruptionLayers", "sagas"]),
+      new Set([
+        "imports",
+        "entities",
+        "views",
+        "antiCorruptionLayers",
+        "sagas",
+      ]),
       ["module"],
     );
+  }
+  const importsExpression = options?.get("imports");
+  const imports = importsExpression
+    ? parseStaticIdentifierArray(
+        context,
+        importsExpression,
+        ["module", "imports"],
+        "Module imports",
+      )
+    : [];
+  if (importsExpression && !imports) return undefined;
+  if (importsExpression && ts.isArrayLiteralExpression(importsExpression)) {
+    recordLocation(context, ["module", "imports"], importsExpression);
+    for (const element of importsExpression.elements) {
+      if (ts.isIdentifier(element)) {
+        recordLocation(
+          context,
+          [
+            "module",
+            "imports",
+            semanticName(context, element.text, ["module"]),
+          ],
+          element,
+        );
+      }
+    }
   }
   const entitiesExpression = options?.get("entities");
   if (!entitiesExpression || !ts.isArrayLiteralExpression(entitiesExpression)) {
@@ -483,7 +1218,14 @@ function parseModuleClass(
     }
   }
 
-  return { name, entities, views, antiCorruptionLayers, sagas };
+  return {
+    name,
+    ...(imports && imports.length > 0 ? { imports } : {}),
+    entities,
+    views,
+    antiCorruptionLayers,
+    sagas,
+  };
 }
 
 function parseEntityClass(
@@ -508,8 +1250,8 @@ function parseEntityClass(
   const rules: RuleDeclaration[] = [];
   const events: EntityEventDeclaration[] = [];
   for (const member of node.members) {
-    const memberDecorators = ["Column", "Rule", "Event"].filter((symbol) =>
-      hasDecorator(context, member, symbol),
+    const memberDecorators = ["Column", "Rule", "Event", "ACLEvent"].filter(
+      (symbol) => hasSemanticMemberMarker(context, member, symbol),
     );
     if (memberDecorators.length === 0) continue;
     if (memberDecorators.length > 1) {
@@ -519,7 +1261,7 @@ function parseEntityClass(
           "VANE_PARSE_DECORATOR_TARGET",
           ["entity", name, "members"],
           `Entity member combines incompatible DSL decorators: ${memberDecorators.map((symbol) => `@${symbol}`).join(", ")}.`,
-          "Apply exactly one of @Column, @Rule, or @Event to each Entity member.",
+          "Use one semantic member declaration at a time: Column(...) or Event(...) in @Entity; ACLEvent(...) is reserved for @ACL classes.",
           member,
         ),
       );
@@ -527,15 +1269,39 @@ function parseEntityClass(
     }
 
     const memberDecorator = memberDecorators[0];
-    if (memberDecorator === "Column" && ts.isPropertyDeclaration(member)) {
-      const column = parseColumn(context, name, member);
-      if (column) columns.push(column);
+    if (
+      memberDecorator === "Column" &&
+      ts.isPropertyDeclaration(member) &&
+      hasDslInitializer(context, member, "Column")
+    ) {
+      if (
+        requireSemanticInitializerDeclaration(context, member, [
+          "entity",
+          name,
+          "columns",
+        ])
+      ) {
+        const column = parseColumn(context, name, member);
+        if (column) columns.push(column);
+      }
     } else if (memberDecorator === "Rule" && ts.isMethodDeclaration(member)) {
       const rule = parseRule(context, name, member);
       if (rule) rules.push(rule);
-    } else if (memberDecorator === "Event" && ts.isMethodDeclaration(member)) {
-      const event = parseEvent(context, name, member);
-      if (event) events.push(event);
+    } else if (
+      memberDecorator === "Event" &&
+      ts.isPropertyDeclaration(member) &&
+      hasDslInitializer(context, member, "Event")
+    ) {
+      if (
+        requireSemanticInitializerDeclaration(context, member, [
+          "entity",
+          name,
+          "events",
+        ])
+      ) {
+        const event = parseEvent(context, name, member);
+        if (event) events.push(event);
+      }
     } else if (memberDecorator) {
       context.diagnostics.push(
         createDiagnostic(
@@ -544,8 +1310,10 @@ function parseEntityClass(
           ["entity", name, "members"],
           `@${memberDecorator} cannot decorate this kind of Entity member.`,
           memberDecorator === "Column"
-            ? "Apply @Column to a property declaration."
-            : `Apply @${memberDecorator} to a method declaration.`,
+            ? "Declare a Column property with `name = Column(options)`."
+            : memberDecorator === "Event"
+              ? "Declare an Event property with `name = Event(options)`."
+              : `Apply @${memberDecorator} to a method declaration.`,
           member,
         ),
       );
@@ -572,17 +1340,26 @@ function parseAntiCorruptionLayerClass(
 
   const events: AntiCorruptionLayerEventDeclaration[] = [];
   for (const member of node.members) {
-    const decorators = ["Column", "Rule", "Event"].filter((symbol) =>
-      hasDecorator(context, member, symbol),
+    const decorators = ["Column", "Rule", "Event", "ACLEvent"].filter(
+      (symbol) => hasSemanticMemberMarker(context, member, symbol),
     );
     if (decorators.length === 0) continue;
     if (
       decorators.length === 1 &&
-      decorators[0] === "Event" &&
-      ts.isMethodDeclaration(member)
+      decorators[0] === "ACLEvent" &&
+      ts.isPropertyDeclaration(member) &&
+      hasDslInitializer(context, member, "ACLEvent")
     ) {
-      const event = parseAntiCorruptionLayerEvent(context, name, member);
-      if (event) events.push(event);
+      if (
+        requireSemanticInitializerDeclaration(context, member, [
+          "antiCorruptionLayer",
+          name,
+          "events",
+        ])
+      ) {
+        const event = parseAntiCorruptionLayerEvent(context, name, member);
+        if (event) events.push(event);
+      }
       continue;
     }
     context.diagnostics.push(
@@ -590,14 +1367,63 @@ function parseAntiCorruptionLayerClass(
         context,
         "VANE_PARSE_DECORATOR_TARGET",
         [...path, "members"],
-        `@ACL members may only be Event methods; found ${decorators.map((symbol) => `@${symbol}`).join(", ")}.`,
-        "Apply exactly one @Event decorator to a method declaration.",
+        `@ACL members may only be ACLEvent properties; found ${decorators.join(", ")}.`,
+        "Declare the property with `name = ACLEvent(options)`.",
         member,
       ),
     );
   }
 
   return { name, events };
+}
+
+function requireSemanticInitializerDeclaration(
+  context: ParserContext,
+  node: ts.PropertyDeclaration,
+  path: readonly string[],
+): boolean {
+  const forbiddenDecorator = decoratorsOf(node).find((decorator) => {
+    const expression = decorator.expression;
+    if (
+      !ts.isCallExpression(expression) ||
+      !ts.isIdentifier(expression.expression)
+    ) {
+      return false;
+    }
+    const symbol = context.bindings.get(expression.expression.text);
+    return symbol === "Column" || symbol === "Event" || symbol === "ACLEvent";
+  });
+  const forbiddenModifier = node.modifiers?.find(
+    ({ kind }) =>
+      kind === ts.SyntaxKind.StaticKeyword ||
+      kind === ts.SyntaxKind.PrivateKeyword ||
+      kind === ts.SyntaxKind.ProtectedKeyword,
+  );
+  if (
+    forbiddenDecorator ||
+    forbiddenModifier ||
+    node.questionToken ||
+    node.exclamationToken ||
+    node.type
+  ) {
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_MEMBER_DECLARATION",
+        [...path, staticPropertyName(node.name) ?? "unknown"],
+        "A semantic member initializer must be inferred, undecorated, required, public, and on an instance property.",
+        "Remove DSL member decorators, static, private, protected, optional, definite-assignment, and explicit type annotations from the property.",
+        forbiddenDecorator ??
+          forbiddenModifier ??
+          node.questionToken ??
+          node.exclamationToken ??
+          node.type ??
+          node.name,
+      ),
+    );
+    return false;
+  }
+  return true;
 }
 
 function parseSagaClass(
@@ -610,8 +1436,8 @@ function parseSagaClass(
   if (!name || !decorator) return undefined;
 
   for (const member of node.members) {
-    const forbidden = ["Column", "Rule", "Event"].filter((symbol) =>
-      hasDecorator(context, member, symbol),
+    const forbidden = ["Column", "Rule", "Event", "ACLEvent"].filter((symbol) =>
+      hasSemanticMemberMarker(context, member, symbol),
     );
     if (forbidden.length === 0) continue;
     context.diagnostics.push(
@@ -689,35 +1515,69 @@ function parseSagaSteps(
   for (const [name, expression] of object) {
     const stepPath = [...path, name];
     const call = dslCall(context, expression);
-    if (
-      !call ||
-      call.symbol !== "event" ||
-      (call.expression.arguments.length !== 1 &&
-        call.expression.arguments.length !== 2)
-    ) {
+    if (!call || call.symbol !== "event") {
       context.diagnostics.push(
         staticDiagnostic(
           context,
           stepPath,
           "Saga steps",
           expression,
-          "Use event(Owner.Event) or event(Owner.Event, { causedBy: [...], compensateWith: Owner.Event }).",
+          'Use event(Owner, "Event") or the legacy event(Owner.Event) form.',
         ),
       );
       continue;
     }
-    const eventExpression = call.expression.arguments[0];
-    const eventReference = eventExpression
-      ? parseEventReference(eventExpression)
-      : undefined;
+    const [ownerOrReference, eventNameOrOptions, typedOptions] =
+      call.expression.arguments;
+    const typedSyntax =
+      ownerOrReference &&
+      ts.isIdentifier(ownerOrReference) &&
+      eventNameOrOptions &&
+      ts.isStringLiteral(eventNameOrOptions);
+    const validArgumentCount = typedSyntax
+      ? call.expression.arguments.length === 2 ||
+        call.expression.arguments.length === 3
+      : call.expression.arguments.length === 1 ||
+        call.expression.arguments.length === 2;
+    if (!validArgumentCount) {
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_ARGUMENTS",
+          stepPath,
+          `${typedSyntax ? "Typed" : "Legacy"} event expects ${typedSyntax ? "two or three" : "one or two"} arguments; found ${call.expression.arguments.length}.`,
+          typedSyntax
+            ? 'Use event(Owner, "Event") or event(Owner, "Event", options).'
+            : "Use event(Owner.Event) or event(Owner.Event, options).",
+          call.expression,
+        ),
+      );
+      continue;
+    }
+    const typedForm =
+      typedSyntax &&
+      ownerOrReference &&
+      ts.isIdentifier(ownerOrReference) &&
+      hasRuntimeClassBinding(context, ownerOrReference.text, ["entity", "acl"]);
+    const eventReference = typedForm
+      ? {
+          owner: semanticName(context, ownerOrReference.text, [
+            "entity",
+            "acl",
+          ]),
+          event: eventNameOrOptions.text,
+        }
+      : ownerOrReference
+        ? parseEventReference(context, ownerOrReference)
+        : undefined;
     if (!eventReference) {
       context.diagnostics.push(
         staticDiagnostic(
           context,
           [...stepPath, "event"],
           "Saga Event references",
-          eventExpression ?? expression,
-          "Use an Owner.Event property reference.",
+          ownerOrReference ?? expression,
+          'Use an Owner.Event reference or event(Owner, "Event").',
         ),
       );
       continue;
@@ -725,7 +1585,7 @@ function parseSagaSteps(
 
     let causedBy: readonly string[] = [];
     let compensateWith: SagaStepDeclaration["compensateWith"];
-    const optionsExpression = call.expression.arguments[1];
+    const optionsExpression = typedForm ? typedOptions : eventNameOrOptions;
     if (optionsExpression) {
       const options = staticObject(
         context,
@@ -753,7 +1613,7 @@ function parseSagaSteps(
       }
       const compensationExpression = options.get("compensateWith");
       if (compensationExpression) {
-        compensateWith = parseEventReference(compensationExpression);
+        compensateWith = parseEventReference(context, compensationExpression);
         if (!compensateWith) {
           context.diagnostics.push(
             staticDiagnostic(
@@ -761,7 +1621,7 @@ function parseSagaSteps(
               [...stepPath, "compensateWith"],
               "Saga compensation Event references",
               compensationExpression,
-              "Use an Owner.Event property reference.",
+              'Use eventRef(Owner, "Event") or an Owner.Event property reference.',
             ),
           );
           continue;
@@ -792,7 +1652,8 @@ function parseSagaTerminal(
     !stepExpression ||
     !ts.isStringLiteral(stepExpression) ||
     !viewExpression ||
-    !ts.isIdentifier(viewExpression)
+    !ts.isIdentifier(viewExpression) ||
+    !hasRuntimeClassBinding(context, viewExpression.text, ["view"])
   ) {
     context.diagnostics.push(
       createDiagnostic(
@@ -806,7 +1667,10 @@ function parseSagaTerminal(
     );
     return undefined;
   }
-  return { step: stepExpression.text, view: viewExpression.text };
+  return {
+    step: stepExpression.text,
+    view: semanticName(context, viewExpression.text, ["view"]),
+  };
 }
 
 function parseViewClass(
@@ -819,8 +1683,8 @@ function parseViewClass(
   if (!name || !decorator) return undefined;
 
   for (const member of node.members) {
-    const forbidden = ["Column", "Rule", "Event"].filter((symbol) =>
-      hasDecorator(context, member, symbol),
+    const forbidden = ["Column", "Rule", "Event", "ACLEvent"].filter((symbol) =>
+      hasSemanticMemberMarker(context, member, symbol),
     );
     if (forbidden.length === 0) continue;
     context.diagnostics.push(
@@ -904,7 +1768,7 @@ function parseViewOutputExpression(
   node: ts.Expression,
   path: readonly string[],
 ): ViewOutputExpressionDeclaration | undefined {
-  const column = parseEntityColumnReference(node);
+  const column = parseTypedColumnReference(context, node);
   if (column) return { kind: "column", ...column };
 
   const call = dslCall(context, node);
@@ -913,7 +1777,9 @@ function parseViewOutputExpression(
       return undefined;
     }
     const argument = call.expression.arguments[0];
-    const value = argument ? parseEntityColumnReference(argument) : undefined;
+    const value = argument
+      ? parseTypedColumnReference(context, argument)
+      : undefined;
     if (value) {
       return {
         kind: "aggregate",
@@ -945,12 +1811,16 @@ function parseViewQuery(
   rejectUnknownOptions(
     context,
     object,
-    new Set(["root", "where", "orderBy", "pagination"]),
+    new Set(["root", "relations", "where", "orderBy", "pagination"]),
     path,
   );
 
   const rootExpression = object.get("root");
-  if (!rootExpression || !ts.isIdentifier(rootExpression)) {
+  if (
+    !rootExpression ||
+    !ts.isIdentifier(rootExpression) ||
+    !hasRuntimeClassBinding(context, rootExpression.text, ["entity"])
+  ) {
     context.diagnostics.push(
       createDiagnostic(
         context,
@@ -968,6 +1838,10 @@ function parseViewQuery(
   const where = whereExpression
     ? parseViewExpression(context, whereExpression, [...path, "where"])
     : undefined;
+  const relationsExpression = object.get("relations");
+  const relations = relationsExpression
+    ? parseViewRelations(context, relationsExpression, [...path, "relations"])
+    : [];
   const orderByExpression = object.get("orderBy");
   const parsedOrderBy = orderByExpression
     ? parseViewOrderBy(context, orderByExpression, [...path, "orderBy"])
@@ -982,6 +1856,7 @@ function parseViewQuery(
 
   if (
     (whereExpression && !where) ||
+    (relationsExpression && !relations) ||
     (orderByExpression && !parsedOrderBy) ||
     (paginationExpression && !pagination)
   ) {
@@ -989,11 +1864,62 @@ function parseViewQuery(
   }
   const orderBy = parsedOrderBy ?? [];
   return {
-    root: rootExpression.text,
+    root: semanticName(context, rootExpression.text, ["entity"]),
+    ...(relations && relations.length > 0 ? { relations } : {}),
     ...(where ? { where } : {}),
     ...(orderBy.length > 0 ? { orderBy } : {}),
     ...(pagination ? { pagination } : {}),
   };
+}
+
+function parseViewRelations(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): readonly ViewRelationDeclaration[] | undefined {
+  const object = staticObject(context, node, path, "View relations");
+  if (!object) return undefined;
+  const relations: ViewRelationDeclaration[] = [];
+  for (const [name, expression] of object) {
+    const call = dslCall(context, expression);
+    if (
+      !call ||
+      call.symbol !== "relation" ||
+      call.expression.arguments.length !== 2
+    ) {
+      context.diagnostics.push(
+        staticDiagnostic(
+          context,
+          [...path, name],
+          "View relation",
+          expression,
+          'Use relation(field(Entity, "column"), field(Related, "column")).',
+        ),
+      );
+      continue;
+    }
+    const [fromExpression, toExpression] = call.expression.arguments;
+    const from = fromExpression
+      ? parseTypedColumnReference(context, fromExpression)
+      : undefined;
+    const to = toExpression
+      ? parseTypedColumnReference(context, toExpression)
+      : undefined;
+    if (!from || !to) {
+      context.diagnostics.push(
+        staticDiagnostic(
+          context,
+          [...path, name],
+          "View relation Columns",
+          expression,
+          "Pass two static Column references to relation(...).",
+        ),
+      );
+      continue;
+    }
+    relations.push({ name, from, to });
+  }
+  return relations;
 }
 
 function parseViewExpression(
@@ -1091,7 +2017,7 @@ function parseViewValue(
   path: readonly string[],
 ): ViewValueDeclaration | undefined {
   if (!node) return undefined;
-  const column = parseEntityColumnReference(node);
+  const column = parseTypedColumnReference(context, node);
   if (column) return { kind: "column", ...column };
 
   const call = dslCall(context, node);
@@ -1171,7 +2097,9 @@ function parseViewOrderBy(
       continue;
     }
     const argument = call.expression.arguments[0];
-    const value = argument ? parseEntityColumnReference(argument) : undefined;
+    const value = argument
+      ? parseTypedColumnReference(context, argument)
+      : undefined;
     if (!value) {
       context.diagnostics.push(
         staticDiagnostic(
@@ -1246,22 +2174,78 @@ function parsePaginationValue(
 }
 
 function parseEntityColumnReference(
+  context: ParserContext,
   node: ts.Expression,
 ): EntityColumnReferenceDeclaration | undefined {
   return ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
-    ts.isIdentifier(node.name)
-    ? { entity: node.expression.text, column: node.name.text }
+    ts.isIdentifier(node.name) &&
+    hasRuntimeClassBinding(context, node.expression.text, ["entity"])
+    ? {
+        entity: semanticName(context, node.expression.text, ["entity"]),
+        column: node.name.text,
+      }
     : undefined;
 }
 
+function parseTypedColumnReference(
+  context: ParserContext,
+  node: ts.Expression,
+): EntityColumnReferenceDeclaration | undefined {
+  const legacy = parseEntityColumnReference(context, node);
+  if (legacy) return legacy;
+  const call = dslCall(context, node);
+  if (
+    call &&
+    (call.symbol === "field" || call.symbol === "reference") &&
+    call.expression.arguments.length === 2
+  ) {
+    const [entity, column] = call.expression.arguments;
+    if (
+      entity &&
+      ts.isIdentifier(entity) &&
+      hasRuntimeClassBinding(context, entity.text, ["entity"]) &&
+      column &&
+      ts.isStringLiteral(column)
+    ) {
+      return {
+        entity: semanticName(context, entity.text, ["entity"]),
+        column: column.text,
+      };
+    }
+  }
+  return undefined;
+}
+
 function parseEventReference(
+  context: ParserContext,
   node: ts.Expression,
 ): SagaStepDeclaration["event"] | undefined {
-  return ts.isPropertyAccessExpression(node) &&
+  const legacy =
+    ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
-    ts.isIdentifier(node.name)
-    ? { owner: node.expression.text, event: node.name.text }
+    ts.isIdentifier(node.name) &&
+    hasRuntimeClassBinding(context, node.expression.text, ["entity", "acl"])
+      ? {
+          owner: semanticName(context, node.expression.text, ["entity", "acl"]),
+          event: node.name.text,
+        }
+      : undefined;
+  if (legacy) return legacy;
+  const call = dslCall(context, node);
+  if (call?.symbol !== "eventRef" || call.expression.arguments.length !== 2) {
+    return undefined;
+  }
+  const [owner, eventName] = call.expression.arguments;
+  return owner &&
+    ts.isIdentifier(owner) &&
+    hasRuntimeClassBinding(context, owner.text, ["entity", "acl"]) &&
+    eventName &&
+    ts.isStringLiteral(eventName)
+    ? {
+        owner: semanticName(context, owner.text, ["entity", "acl"]),
+        event: eventName.text,
+      }
     : undefined;
 }
 
@@ -1289,6 +2273,50 @@ function parseStaticStringArray(
   return node.elements.map((element) => (element as ts.StringLiteral).text);
 }
 
+function parseStaticIdentifierArray(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+  subject: string,
+): readonly string[] | undefined {
+  if (
+    !ts.isArrayLiteralExpression(node) ||
+    node.elements.some((element) => !ts.isIdentifier(element))
+  ) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        path,
+        subject,
+        node,
+        "Use an array of static class identifiers.",
+      ),
+    );
+    return undefined;
+  }
+  const names: string[] = [];
+  let hasUnboundIdentifier = false;
+  for (const element of node.elements) {
+    const identifier = element as ts.Identifier;
+    if (!hasRuntimeClassBinding(context, identifier.text, ["module"])) {
+      hasUnboundIdentifier = true;
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_MODULE_IMPORT_BINDING",
+          [...path, identifier.text],
+          `Module import identifier ${identifier.text} is not bound to a runtime class value in this source file.`,
+          "Declare the class locally or import it with a non-type import.",
+          identifier,
+        ),
+      );
+      continue;
+    }
+    names.push(semanticName(context, identifier.text, ["module"]));
+  }
+  return hasUnboundIdentifier ? undefined : names;
+}
+
 function parseColumn(
   context: ParserContext,
   entityName: string,
@@ -1300,12 +2328,17 @@ function parseColumn(
     "columns",
   ]);
   const path = ["entity", entityName, "columns", name ?? "unknown"];
-  const decorator = oneDecorator(context, node, "Column", path);
-  if (!name || !decorator) return undefined;
+  const initializer = node.initializer
+    ? dslCall(context, node.initializer)
+    : undefined;
+  const call =
+    initializer?.symbol === "Column" ? initializer.expression : undefined;
+  if (!name || !call || !requireArgumentCount(context, call, 1, path, "Column"))
+    return undefined;
   const semanticPath = ["module", "entities", entityName, "columns", name];
   recordLocation(context, semanticPath, node);
   recordLocation(context, [...semanticPath, "type"], node);
-  const options = decoratorObject(context, decorator, path, "Column");
+  const options = decoratorObject(context, call, path, "Column");
   if (!options) return undefined;
   rejectUnknownOptions(
     context,
@@ -1316,6 +2349,11 @@ function parseColumn(
       "nullable",
       "unique",
       "generated",
+      "minLength",
+      "maxLength",
+      "minimum",
+      "maximum",
+      "default",
       "references",
     ]),
     path,
@@ -1333,6 +2371,25 @@ function parseColumn(
     new Set(["uuid", "increment"]),
     path,
   ) as "uuid" | "increment" | undefined;
+  const minLength = optionalNumber(context, options, "minLength", path);
+  const maxLength = optionalNumber(context, options, "maxLength", path);
+  const minimum = optionalNumber(context, options, "minimum", path);
+  const maximum = optionalNumber(context, options, "maximum", path);
+  const defaultExpression = options.get("default");
+  const parsedDefault = defaultExpression
+    ? parseJsonValue(context, defaultExpression, [...path, "default"])
+    : { matched: false as const };
+  if (defaultExpression && !parsedDefault.matched) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        [...path, "default"],
+        "Column default",
+        defaultExpression,
+        "Use a static JSON value: null, boolean, finite number, string, array, or object.",
+      ),
+    );
+  }
   const referencesExpression = options.get("references");
   const references = referencesExpression
     ? parseReference(context, referencesExpression, [...path, "references"])
@@ -1345,8 +2402,45 @@ function parseColumn(
     ...(nullable === undefined ? {} : { nullable }),
     ...(unique === undefined ? {} : { unique }),
     ...(generated === undefined ? {} : { generated }),
+    ...(minLength === undefined ? {} : { minLength }),
+    ...(maxLength === undefined ? {} : { maxLength }),
+    ...(minimum === undefined ? {} : { minimum }),
+    ...(maximum === undefined ? {} : { maximum }),
+    ...(parsedDefault.matched ? { default: parsedDefault.value } : {}),
     ...(references === undefined ? {} : { references }),
   };
+}
+
+function parseJsonValue(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+):
+  | { readonly matched: true; readonly value: JsonValue }
+  | { readonly matched: false } {
+  const scalar = parseLiteral(node);
+  if (scalar.matched) return scalar;
+  if (ts.isArrayLiteralExpression(node)) {
+    const values: JsonValue[] = [];
+    for (const [index, element] of node.elements.entries()) {
+      const value = parseJsonValue(context, element, [...path, String(index)]);
+      if (!value.matched) return value;
+      values.push(value.value);
+    }
+    return { matched: true, value: values };
+  }
+  if (ts.isObjectLiteralExpression(node)) {
+    const object = staticObject(context, node, path, "JSON default", true);
+    if (!object) return { matched: false };
+    const value = Object.create(null) as Record<string, JsonValue>;
+    for (const [name, expression] of object) {
+      const nested = parseJsonValue(context, expression, [...path, name]);
+      if (!nested.matched) return nested;
+      value[name] = nested.value;
+    }
+    return { matched: true, value };
+  }
+  return { matched: false };
 }
 
 function parseReference(
@@ -1354,12 +2448,18 @@ function parseReference(
   node: ts.Expression,
   path: readonly string[],
 ): ColumnReferenceDeclaration | undefined {
+  const typed = parseTypedColumnReference(context, node);
+  if (typed) return typed;
   if (
     ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
-    ts.isIdentifier(node.name)
+    ts.isIdentifier(node.name) &&
+    hasRuntimeClassBinding(context, node.expression.text, ["entity"])
   ) {
-    return { entity: node.expression.text, column: node.name.text };
+    return {
+      entity: semanticName(context, node.expression.text, ["entity"]),
+      column: node.name.text,
+    };
   }
 
   const object = staticObject(context, node, path, "Column references");
@@ -1368,9 +2468,10 @@ function parseReference(
   const entityNode = object.get("entity");
   const columnNode = object.get("column");
   const entity =
-    entityNode &&
-    (ts.isIdentifier(entityNode) || ts.isStringLiteral(entityNode))
-      ? entityNode.text
+    entityNode && ts.isIdentifier(entityNode)
+      ? hasRuntimeClassBinding(context, entityNode.text, ["entity"])
+        ? semanticName(context, entityNode.text, ["entity"])
+        : undefined
       : undefined;
   const column =
     columnNode && ts.isStringLiteral(columnNode) ? columnNode.text : undefined;
@@ -1568,17 +2669,25 @@ function parseRuleValue(
 function parseEvent(
   context: ParserContext,
   entityName: string,
-  node: ts.MethodDeclaration,
+  node: ts.PropertyDeclaration,
 ): EntityEventDeclaration | undefined {
   const name = memberName(context, node.name, ["entity", entityName, "events"]);
   const path = ["entity", entityName, "events", name ?? "unknown"];
-  const decorator = oneDecorator(context, node, "Event", path);
-  if (!name || !decorator) return undefined;
+  const initializer = node.initializer
+    ? dslCall(context, node.initializer)
+    : undefined;
+  const call =
+    initializer?.symbol === "Event" ? initializer.expression : undefined;
+  if (!name || !call) return undefined;
+  if (call.arguments.length > 1) {
+    requireArgumentCount(context, call, 1, path, "Event");
+    return undefined;
+  }
   const semanticPath = ["module", "entities", entityName, "events", name];
   recordLocation(context, semanticPath, node);
   recordLocation(context, [...semanticPath, "name"], node.name);
-  if (decorator.arguments.length === 0) return { name, input: [] };
-  const options = decoratorObject(context, decorator, path, "Event");
+  if (call.arguments.length === 0) return { name, input: [] };
+  const options = decoratorObject(context, call, path, "Event");
   if (!options) return undefined;
   rejectUnknownOptions(context, options, new Set(["input"]), path);
   const inputExpression = options.get("input");
@@ -1596,7 +2705,7 @@ function parseEvent(
 function parseAntiCorruptionLayerEvent(
   context: ParserContext,
   layerName: string,
-  node: ts.MethodDeclaration,
+  node: ts.PropertyDeclaration,
 ): AntiCorruptionLayerEventDeclaration | undefined {
   const name = memberName(context, node.name, [
     "antiCorruptionLayer",
@@ -1604,8 +2713,17 @@ function parseAntiCorruptionLayerEvent(
     "events",
   ]);
   const path = ["antiCorruptionLayer", layerName, "events", name ?? "unknown"];
-  const decorator = oneDecorator(context, node, "Event", path);
-  if (!name || !decorator) return undefined;
+  const initializer = node.initializer
+    ? dslCall(context, node.initializer)
+    : undefined;
+  const call =
+    initializer?.symbol === "ACLEvent" ? initializer.expression : undefined;
+  if (
+    !name ||
+    !call ||
+    !requireArgumentCount(context, call, 1, path, "ACLEvent")
+  )
+    return undefined;
 
   const semanticPath = [
     "module",
@@ -1616,7 +2734,7 @@ function parseAntiCorruptionLayerEvent(
   ];
   recordLocation(context, semanticPath, node);
   recordLocation(context, [...semanticPath, "name"], node.name);
-  const options = decoratorObject(context, decorator, path, "ACL Event");
+  const options = decoratorObject(context, call, path, "ACL Event");
   if (!options) return undefined;
   rejectUnknownOptions(context, options, new Set(["input", "results"]), path);
 
@@ -1630,7 +2748,7 @@ function parseAntiCorruptionLayerEvent(
         [...path, "results"],
         `ACL Event ${layerName}.${name} must declare static result interpretations.`,
         "Declare results such as { approved: success({...}), declined: fail({...}) }.",
-        decorator,
+        call,
       ),
     );
     return undefined;
@@ -1766,6 +2884,7 @@ function staticObject(
   node: ts.Expression,
   path: readonly string[],
   subject: string,
+  allowNumericPropertyNames = false,
 ): ReadonlyMap<string, ts.Expression> | undefined {
   if (!ts.isObjectLiteralExpression(node)) {
     context.diagnostics.push(
@@ -1793,7 +2912,7 @@ function staticObject(
       );
       continue;
     }
-    const name = staticPropertyName(property.name);
+    const name = staticPropertyName(property.name, allowNumericPropertyNames);
     if (!name) {
       context.diagnostics.push(
         staticDiagnostic(
@@ -1801,7 +2920,9 @@ function staticObject(
           path,
           subject,
           property.name,
-          "Use an identifier or string property name.",
+          allowNumericPropertyNames
+            ? "Use an identifier, string, or numeric property name."
+            : "Use an identifier or string property name.",
         ),
       );
       continue;
@@ -1887,6 +3008,29 @@ function optionalBoolean(
   return undefined;
 }
 
+function optionalNumber(
+  context: ParserContext,
+  options: ReadonlyMap<string, ts.Expression>,
+  property: string,
+  path: readonly string[],
+): number | undefined {
+  const node = options.get(property);
+  if (!node) return undefined;
+  const literal = parseLiteral(node);
+  if (literal.matched && typeof literal.value === "number")
+    return literal.value;
+  context.diagnostics.push(
+    staticDiagnostic(
+      context,
+      [...path, property],
+      property,
+      node,
+      "Use a finite numeric literal.",
+    ),
+  );
+  return undefined;
+}
+
 function optionalStringChoice(
   context: ParserContext,
   options: ReadonlyMap<string, ts.Expression>,
@@ -1948,9 +3092,13 @@ function memberName(
   return undefined;
 }
 
-function staticPropertyName(node: ts.PropertyName): string | undefined {
-  return ts.isIdentifier(node) || ts.isStringLiteral(node)
-    ? node.text
+function staticPropertyName(
+  node: ts.PropertyName,
+  allowNumeric = false,
+): string | undefined {
+  if (ts.isIdentifier(node) || ts.isStringLiteral(node)) return node.text;
+  return allowNumeric && ts.isNumericLiteral(node)
+    ? String(Number(node.text))
     : undefined;
 }
 
@@ -1967,6 +3115,29 @@ function hasDecorator(
       context.bindings.get(expression.expression.text) === symbol
     );
   });
+}
+
+function hasDslInitializer(
+  context: ParserContext,
+  node: ts.Node,
+  symbol: string,
+): node is ts.PropertyDeclaration {
+  return (
+    ts.isPropertyDeclaration(node) &&
+    node.initializer !== undefined &&
+    dslCall(context, node.initializer)?.symbol === symbol
+  );
+}
+
+function hasSemanticMemberMarker(
+  context: ParserContext,
+  node: ts.Node,
+  symbol: string,
+): boolean {
+  return (
+    hasDecorator(context, node, symbol) ||
+    (symbol !== "Rule" && hasDslInitializer(context, node, symbol))
+  );
 }
 
 function oneDecorator(

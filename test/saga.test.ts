@@ -83,7 +83,7 @@ describe("Saga Semantic IR", () => {
 
     assert.equal(result.success, true);
     if (!result.success) return;
-    assert.equal(result.ir.version, 4);
+    assert.equal(result.ir.version, 5);
     assert.deepEqual(result.ir.module.sagas[0], {
       name: "PlaceOrder",
       input: [{ name: "orderId", type: "uuid", optional: false }],
@@ -248,22 +248,22 @@ describe("Saga Semantic IR", () => {
 describe("Saga source parser", () => {
   const source = `
     import {
-      Module, Entity, Column, Event, View, ACL, Saga,
+      Module, Entity, Column, Event, View, ACL, ACLEvent, Saga,
       event, success, fail
     } from "@lilka/vane";
 
     @Entity()
     class Order {
-      @Column({ type: "uuid", identity: true }) id!: string;
-      @Event() Place() {}
-      @Event() Cancel() {}
+      id = Column({ type: "uuid", identity: true });
+      Place = Event();
+      Cancel = Event();
     }
 
     @Entity()
     class Payment {
-      @Column({ type: "uuid", identity: true }) id!: string;
-      @Event() Capture() {}
-      @Event() Refund() {}
+      id = Column({ type: "uuid", identity: true });
+      Capture = Event();
+      Refund = Event();
     }
 
     @View({
@@ -275,13 +275,12 @@ describe("Saga source parser", () => {
 
     @ACL()
     class PaymentGateway {
-      @Event({
+      Authorize = ACLEvent({
         results: {
           approved: success({}),
           declined: fail({}),
         },
-      })
-      Authorize() {}
+      });
     }
 
     @Saga({

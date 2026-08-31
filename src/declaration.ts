@@ -11,6 +11,14 @@ export const COLUMN_TYPES = [
 
 export type ColumnType = (typeof COLUMN_TYPES)[number];
 
+export type JsonValue =
+  | boolean
+  | number
+  | string
+  | null
+  | readonly JsonValue[]
+  | { readonly [key: string]: JsonValue };
+
 export interface ColumnReferenceDeclaration {
   readonly entity: string;
   readonly column: string;
@@ -23,6 +31,11 @@ export interface ColumnDeclaration {
   readonly nullable?: boolean;
   readonly unique?: boolean;
   readonly generated?: "uuid" | "increment";
+  readonly minLength?: number;
+  readonly maxLength?: number;
+  readonly minimum?: number;
+  readonly maximum?: number;
+  readonly default?: JsonValue;
   readonly references?: ColumnReferenceDeclaration;
 }
 
@@ -171,8 +184,15 @@ export interface ViewPaginationDeclaration {
   readonly offset?: ViewPaginationValueDeclaration;
 }
 
+export interface ViewRelationDeclaration {
+  readonly name: string;
+  readonly from: EntityColumnReferenceDeclaration;
+  readonly to: EntityColumnReferenceDeclaration;
+}
+
 export interface ViewQueryDeclaration {
   readonly root: string;
+  readonly relations?: readonly ViewRelationDeclaration[];
   readonly where?: ViewExpressionDeclaration;
   readonly orderBy?: readonly ViewOrderDeclaration[];
   readonly pagination?: ViewPaginationDeclaration;
@@ -192,6 +212,7 @@ export interface ViewDeclaration {
  */
 export interface ModuleDeclaration {
   readonly name: string;
+  readonly imports?: readonly string[];
   readonly entities: readonly EntityDeclaration[];
   readonly views?: readonly ViewDeclaration[];
   readonly antiCorruptionLayers?: readonly AntiCorruptionLayerDeclaration[];

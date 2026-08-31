@@ -56,7 +56,7 @@ describe("Anti-Corruption Layer Semantic IR", () => {
 
     assert.equal(result.success, true);
     if (!result.success) return;
-    assert.equal(result.ir.version, 4);
+    assert.equal(result.ir.version, 5);
     assert.deepEqual(result.ir.module.antiCorruptionLayers[0], {
       name: "PaymentGateway",
       events: [
@@ -101,6 +101,10 @@ describe("Anti-Corruption Layer Semantic IR", () => {
               ],
             },
           ],
+          publicResult: {
+            success: "viewOnly",
+            fail: { code: "stable", message: "safe", correlationId: true },
+          },
         },
       ],
     });
@@ -218,17 +222,17 @@ describe("Anti-Corruption Layer source parser", () => {
       fileName: "payments.vane.ts",
       sourceText: `
         import {
-          Module, Entity, Column, ACL, Event, optional, success, fail
+          Module, Entity, Column, ACL, ACLEvent, optional, success, fail
         } from "@lilka/vane";
 
         @Entity()
         class Payment {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          id = Column({ type: "uuid", identity: true });
         }
 
         @ACL()
         class PaymentGateway {
-          @Event({
+          Authorize = ACLEvent({
             input: { amount: "decimal", currency: "string" },
             results: {
               approved: success({
@@ -240,8 +244,7 @@ describe("Anti-Corruption Layer source parser", () => {
                 reason: optional("string"),
               }),
             },
-          })
-          Authorize() {}
+          });
         }
 
         @Module({
@@ -275,23 +278,24 @@ describe("Anti-Corruption Layer source parser", () => {
     const result = parseModuleSource({
       fileName: "leaky-acl.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, ACL, Event, success, fail }
+        import {
+          Module, Entity, Column, ACL, ACLEvent, success, fail
+        }
           from "@lilka/vane";
         @Entity()
         class Payment {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          id = Column({ type: "uuid", identity: true });
         }
         @ACL()
         class PaymentGateway {
-          @Event({
+          Authorize = ACLEvent({
             endpoint: "https://gateway.example",
             timeout: 5000,
             results: {
               approved: success({}),
               unavailable: fail({}),
             },
-          })
-          Authorize() {}
+          });
         }
         @Module({
           entities: [Payment],
@@ -315,16 +319,18 @@ describe("Anti-Corruption Layer source parser", () => {
     const result = parseModuleSource({
       fileName: "dynamic-acl.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, ACL, Event }
+        import {
+          Module, Entity, Column, ACL, ACLEvent
+        }
           from "@lilka/vane";
         const approved = loadResult();
         @Entity()
         class Payment {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          id = Column({ type: "uuid", identity: true });
         }
         @ACL()
         class PaymentGateway {
-          @Event({ results: { approved } }) Authorize() {}
+          Authorize = ACLEvent({ results: { approved } });
         }
         @Module({
           entities: [Payment],
@@ -339,5 +345,97 @@ describe("Anti-Corruption Layer source parser", () => {
     assert.ok(
       result.diagnostics.some(({ code }) => code === "VANE_PARSE_STATIC_VALUE"),
     );
+  });
+
+  it("keeps Entity and ACL Event member factories owner-specific", () => {
+    const entityResult = parseModuleSource({
+      fileName: "entity-acl-event.vane.ts",
+      sourceText: `
+        import {
+          Module, Entity, ACLEvent, success, fail
+        } from "@lilka/vane";
+        @Entity()
+        class Order {
+          Place = ACLEvent({
+            results: { approved: success({}), declined: fail({}) },
+          });
+        }
+        @Module({ entities: [Order] }) class Sales {}
+      `,
+    });
+    assert.equal(entityResult.success, false);
+    if (!entityResult.success) {
+      assert.ok(
+        entityResult.diagnostics.some(
+          ({ code, message }) =>
+            code === "VANE_PARSE_DECORATOR_TARGET" &&
+            message.includes("ACLEvent"),
+        ),
+      );
+    }
+
+    const aclResult = parseModuleSource({
+      fileName: "acl-entity-event.vane.ts",
+      sourceText: `
+        import { Module, ACL, Event } from "@lilka/vane";
+        @ACL()
+        class PaymentGateway {
+          Authorize = Event();
+        }
+        @Module({ entities: [], antiCorruptionLayers: [PaymentGateway] })
+        class Payments {}
+      `,
+    });
+    assert.equal(aclResult.success, false);
+    if (!aclResult.success) {
+      assert.ok(
+        aclResult.diagnostics.some(
+          ({ code, message }) =>
+            code === "VANE_PARSE_DECORATOR_TARGET" && message.includes("Event"),
+        ),
+      );
+    }
+
+    const wrongTypeResult = parseModuleSource({
+      fileName: "wrong-event-type.vane.ts",
+      sourceText: `
+        import { Module, Entity, Event } from "@lilka/vane";
+        @Entity()
+        class Order {
+          Place: string = Event();
+        }
+        @Module({ entities: [Order] }) class Sales {}
+      `,
+    });
+    assert.equal(wrongTypeResult.success, false);
+    if (!wrongTypeResult.success) {
+      assert.ok(
+        wrongTypeResult.diagnostics.some(
+          ({ code }) => code === "VANE_PARSE_MEMBER_DECLARATION",
+        ),
+      );
+    }
+
+    const staticResult = parseModuleSource({
+      fileName: "static-event.vane.ts",
+      sourceText: `
+        import {
+          Module, Entity, Event
+        } from "@lilka/vane";
+        @Entity()
+        class Order {
+          static Place = Event();
+        }
+        @Module({ entities: [Order] }) class Sales {}
+      `,
+    });
+    assert.equal(staticResult.success, false);
+    if (!staticResult.success) {
+      assert.ok(
+        staticResult.diagnostics.some(
+          ({ code }) => code === "VANE_PARSE_MEMBER_DECLARATION",
+        ),
+      );
+    }
   });
 });

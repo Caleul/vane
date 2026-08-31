@@ -20,26 +20,22 @@ import {
 
 @Entity()
 class Subscription {
-  @Column({ type: "uuid", identity: true, generated: "uuid" })
-  id!: string;
+  id = Column({ type: "uuid", identity: true, generated: "uuid" });
 
-  @Column({ type: "date" })
-  startDate!: Date;
+  startDate = Column({ type: "date" });
 
-  @Column({ type: "date" })
-  endDate!: Date;
+  endDate = Column({ type: "date" });
 
   @Rule({ expression: gt(column("endDate"), column("startDate")) })
   EndsAfterStart() {}
 
-  @Event({
+  CreateSubscription = Event({
     input: {
       startDate: "date",
       endDate: "date",
       couponCode: optional("string"),
     },
-  })
-  CreateSubscription() {}
+  });
 }
 
 @Module({ entities: [Subscription] })
@@ -47,7 +43,7 @@ class Sales {}
 `;
 
 describe("parseModuleSource", () => {
-  it("turns the provisional decorator grammar into a ModuleDeclaration", () => {
+  it("turns the public static declaration grammar into a ModuleDeclaration", () => {
     const result = parseModuleSource({
       fileName: "sales.vane.ts",
       sourceText: validSource,
@@ -112,10 +108,12 @@ describe("parseModuleSource", () => {
     const result = parseModuleSource({
       fileName: "alias.vane.ts",
       sourceText: `
-        import { Module as M, Entity as E, Column as C } from "@lilka/vane";
+        import {
+          Module as M, Entity as E, Column as C
+        } from "@lilka/vane";
         @E()
         class Customer {
-          @C({ type: "uuid", identity: true }) id!: string;
+          id = C({ type: "uuid", identity: true });
         }
         @M({ entities: [Customer] })
         class CRM {}
@@ -128,6 +126,71 @@ describe("parseModuleSource", () => {
     assert.equal(result.declaration.entities[0]?.name, "Customer");
   });
 
+  it("requires inferred public instance member initializers", () => {
+    const result = parseModuleSource({
+      fileName: "invalid-columns.vane.ts",
+      sourceText: `
+        import {
+          Module, Entity, Column
+        } from "@lilka/vane";
+        @Entity()
+        class Customer {
+          id: string = Column({ type: "uuid", identity: true });
+          static cache = Column({ type: "string" });
+        }
+        @Module({ entities: [Customer] }) class CRM {}
+      `,
+    });
+
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.equal(
+      result.diagnostics.filter(
+        ({ code }) => code === "VANE_PARSE_MEMBER_DECLARATION",
+      ).length,
+      2,
+    );
+  });
+
+  it("rejects legacy decorators combined with member factories", () => {
+    const result = parseModuleSource({
+      fileName: "hybrid-members.vane.ts",
+      sourceText: `
+        import {
+          Module, Entity, ACL, Column, Event, ACLEvent, success, fail
+        } from "@lilka/vane";
+        @Entity()
+        class Order {
+          @Column({ type: "uuid" })
+          id = Column({ type: "uuid", identity: true });
+
+          @Event()
+          Place = Event();
+        }
+        @ACL()
+        class PaymentGateway {
+          @ACLEvent({ results: { ok: success({}), no: fail({}) } })
+          Authorize = ACLEvent({
+            results: { ok: success({}), no: fail({}) }
+          });
+        }
+        @Module({
+          entities: [Order], antiCorruptionLayers: [PaymentGateway]
+        })
+        class Sales {}
+      `,
+    });
+
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.equal(
+      result.diagnostics.filter(
+        ({ code }) => code === "VANE_PARSE_MEMBER_DECLARATION",
+      ).length,
+      3,
+    );
+  });
+
   it("parses static Entity references and composed Rule expressions", () => {
     const result = parseModuleSource({
       fileName: "orders.vane.ts",
@@ -137,14 +200,14 @@ describe("parseModuleSource", () => {
         } from "@lilka/vane";
         @Entity()
         class Customer {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          id = Column({ type: "uuid", identity: true });
         }
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: string;
-          @Column({ type: "uuid", references: Customer.id }) customerId!: string;
-          @Column({ type: "decimal" }) minimum!: number;
-          @Column({ type: "decimal" }) total!: number;
+          id = Column({ type: "uuid", identity: true });
+          customerId = Column({ type: "uuid", references: Customer.id });
+          minimum = Column({ type: "decimal" });
+          total = Column({ type: "decimal" });
           @Rule({
             expression: and(
               gte(column("total"), column("minimum")),
@@ -177,7 +240,7 @@ describe("parseModuleSource", () => {
         const columnOptions = { type: "uuid", identity: true };
         @Entity()
         class Customer {
-          @Column(columnOptions) id!: string;
+          id = Column(columnOptions);
         }
         @Module({ entities: [Customer] })
         class CRM {}
@@ -219,8 +282,8 @@ describe("parseModuleSource", () => {
         import { Module, Entity, Column, Rule, Event, column, eq } from "@lilka/vane";
         @Entity()
         class Customer {
-          @Column({ type: "uuid", identity: true }) id!: string;
-          @Event() BadEvent!: unknown;
+          id = Column({ type: "uuid", identity: true });
+          @Event() BadEvent() {}
           @Column({ type: "string" }) BadColumn() {}
           @Rule({ expression: eq(column("id"), column("id")) }) BadRule!: unknown;
         }
@@ -284,8 +347,8 @@ describe("compileModuleSource", () => {
         import { Module, Entity, Column, Rule, column, literal, gt } from "@lilka/vane";
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: string;
-          @Column({ type: "decimal" }) total!: number;
+          id = Column({ type: "uuid", identity: true });
+          total = Column({ type: "decimal" });
           @Rule({ expression: gt(column("total"), literal(0)) }) PositiveTotal() {}
         }
         @Module({ entities: [Order] }) class Sales {}
@@ -300,5 +363,37 @@ describe("compileModuleSource", () => {
     );
     assert.equal(result.diagnostics[0]?.location?.fileName, "rule.vane.ts");
     assert.equal(result.diagnostics[0]?.location?.start.line, 7);
+  });
+
+  it("does not treat a copied inferred token type as declaration provenance", () => {
+    const result = compileModuleSource({
+      fileName: "copied-token.vane.ts",
+      sourceText: `
+        import { Module, Entity, Column, View, field } from "@lilka/vane";
+        const token = Column({ type: "uuid" });
+        @Entity()
+        class Order {
+          id = Column({ type: "uuid", identity: true });
+          fake!: typeof token;
+        }
+        @View({
+          input: {},
+          output: { fake: field(Order, "fake") },
+          query: { root: Order },
+        })
+        class FakeOrderView {}
+        @Module({ entities: [Order], views: [FakeOrderView] }) class Sales {}
+      `,
+    });
+
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, location }) =>
+          code === "VANE_SEM_VIEW_COLUMN" &&
+          location?.fileName === "copied-token.vane.ts",
+      ),
+    );
   });
 });

@@ -3,14 +3,17 @@ import type {
   ColumnReferenceDeclaration,
   ColumnType,
   EventReferenceDeclaration,
+  JsonValue,
   RuleExpressionDeclaration,
   ViewExpressionDeclaration,
   ViewOrderDeclaration,
   ViewOutputExpressionDeclaration,
   ViewPaginationDeclaration,
+  ViewRelationDeclaration,
 } from "./declaration.js";
 
-export const SEMANTIC_IR_VERSION = 4 as const;
+export const SEMANTIC_IR_VERSION = 5 as const;
+export const SEMANTIC_PROJECT_IR_VERSION = 1 as const;
 
 export interface SemanticColumn {
   readonly name: string;
@@ -19,6 +22,12 @@ export interface SemanticColumn {
   readonly nullable: boolean;
   readonly unique: boolean;
   readonly generated: "uuid" | "increment" | null;
+  readonly minLength: number | null;
+  readonly maxLength: number | null;
+  readonly minimum: number | null;
+  readonly maximum: number | null;
+  readonly default: JsonValue;
+  readonly hasDefault: boolean;
   readonly references: ColumnReferenceDeclaration | null;
 }
 
@@ -46,6 +55,14 @@ export interface SemanticEntityEvent {
     readonly required: true;
   };
   readonly input: readonly SemanticEventInput[];
+  readonly publicResult: {
+    readonly success: "viewOnly";
+    readonly fail: {
+      readonly code: "stable";
+      readonly message: "safe";
+      readonly correlationId: true;
+    };
+  };
 }
 
 export interface SemanticEntity {
@@ -71,6 +88,7 @@ export interface SemanticAntiCorruptionLayerEvent {
   };
   readonly input: readonly SemanticEventInput[];
   readonly results: readonly SemanticAntiCorruptionLayerEventResult[];
+  readonly publicResult: SemanticEntityEvent["publicResult"];
 }
 
 export interface SemanticAntiCorruptionLayer {
@@ -126,6 +144,7 @@ export interface SemanticView {
   readonly output: readonly SemanticViewOutput[];
   readonly query: {
     readonly root: string;
+    readonly relations: readonly ViewRelationDeclaration[];
     readonly where: ViewExpressionDeclaration | null;
     readonly orderBy: readonly ViewOrderDeclaration[];
     readonly pagination: ViewPaginationDeclaration | null;
@@ -134,18 +153,31 @@ export interface SemanticView {
   readonly publicResult: { readonly kind: "view" };
 }
 
+export interface SemanticModule {
+  readonly name: string;
+  readonly imports: readonly string[];
+  readonly entities: readonly SemanticEntity[];
+  readonly views: readonly SemanticView[];
+  readonly antiCorruptionLayers: readonly SemanticAntiCorruptionLayer[];
+  readonly sagas: readonly SemanticSaga[];
+}
+
 export interface SemanticIr {
   readonly schema: "vane.semantic-ir";
   readonly version: typeof SEMANTIC_IR_VERSION;
-  readonly module: {
-    readonly name: string;
-    readonly entities: readonly SemanticEntity[];
-    readonly views: readonly SemanticView[];
-    readonly antiCorruptionLayers: readonly SemanticAntiCorruptionLayer[];
-    readonly sagas: readonly SemanticSaga[];
-  };
+  readonly module: SemanticModule;
+}
+
+export interface SemanticProjectIr {
+  readonly schema: "vane.semantic-project-ir";
+  readonly version: typeof SEMANTIC_PROJECT_IR_VERSION;
+  readonly modules: readonly SemanticModule[];
 }
 
 export function serializeSemanticIr(ir: SemanticIr): string {
+  return `${JSON.stringify(ir, null, 2)}\n`;
+}
+
+export function serializeSemanticProjectIr(ir: SemanticProjectIr): string {
   return `${JSON.stringify(ir, null, 2)}\n`;
 }

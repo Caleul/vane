@@ -39,6 +39,7 @@ const moduleWithView: ModuleDeclaration = {
       ],
       query: {
         root: "Order",
+        relations: [],
         where: {
           kind: "logical",
           operator: "and",
@@ -78,7 +79,7 @@ describe("View Semantic IR", () => {
 
     assert.equal(result.success, true);
     if (!result.success) return;
-    assert.equal(result.ir.version, 4);
+    assert.equal(result.ir.version, 5);
     assert.deepEqual(result.ir.module.views[0], {
       name: "OrderDetails",
       input: [
@@ -101,6 +102,7 @@ describe("View Semantic IR", () => {
       ],
       query: {
         root: "Order",
+        relations: [],
         where: result.ir.module.views[0]?.query.where,
         orderBy: [
           {
@@ -371,10 +373,10 @@ describe("View source parser", () => {
 
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: string;
-          @Column({ type: "uuid" }) customerId!: string;
-          @Column({ type: "decimal" }) total!: number;
-          @Column({ type: "datetime" }) createdAt!: Date;
+          id = Column({ type: "uuid", identity: true });
+          customerId = Column({ type: "uuid" });
+          total = Column({ type: "decimal" });
+          createdAt = Column({ type: "datetime" });
         }
 
         @View({
@@ -431,7 +433,7 @@ describe("View source parser", () => {
         const dynamicQuery = loadQuery();
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          id = Column({ type: "uuid", identity: true });
         }
         @View({ input: {}, output: { id: Order.id }, query: dynamicQuery })
         class OrderDetails {}
@@ -454,11 +456,11 @@ describe("View source parser", () => {
         import { Module, Entity, Column, View } from "@lilka/vane";
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: string;
+          id = Column({ type: "uuid", identity: true });
         }
         @View({ input: {}, output: { id: Order.id }, query: { root: Order } })
         class OrderDetails {
-          @Column({ type: "string" }) forbidden!: string;
+          forbidden = Column({ type: "string" });
         }
         @Module({ entities: [Order], views: [OrderDetails] }) class Sales {}
       `,
