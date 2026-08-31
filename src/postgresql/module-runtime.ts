@@ -552,7 +552,7 @@ function assertConstraints(
         installedExpression !== expectedExpression
       )
         configuration(
-          `PostgreSQL constraint ${JSON.stringify(`${storage.provider.namespace}.${table.name}.${name}`)} does not match its compiled definition (expected expression: ${JSON.stringify(expectedExpression)}; installed expression: ${JSON.stringify(installedExpression)}).`,
+          `PostgreSQL constraint ${JSON.stringify(`${storage.provider.namespace}.${table.name}.${name}`)} does not match its compiled definition (expected: ${JSON.stringify({ type: expectedType, columns: constraint.columns, reference, expression: expectedExpression, validated: true })}; installed: ${JSON.stringify({ type: found.constraint_type, columns: found.column_names, referenceTable: found.reference_table, referenceColumns: found.reference_columns, deleteAction: found.delete_action, updateAction: found.update_action, expression: installedExpression, validated: found.validated })}).`,
         );
     }
   }
