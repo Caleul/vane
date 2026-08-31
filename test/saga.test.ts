@@ -255,15 +255,15 @@ describe("Saga source parser", () => {
     @Entity()
     class Order {
       @Column({ type: "uuid", identity: true }) id!: string;
-      @Event() Place() {}
-      @Event() Cancel() {}
+      @Event() Place!: EventMember;
+      @Event() Cancel!: EventMember;
     }
 
     @Entity()
     class Payment {
       @Column({ type: "uuid", identity: true }) id!: string;
-      @Event() Capture() {}
-      @Event() Refund() {}
+      @Event() Capture!: EventMember;
+      @Event() Refund!: EventMember;
     }
 
     @View({
@@ -281,7 +281,7 @@ describe("Saga source parser", () => {
           declined: fail({}),
         },
       })
-      Authorize() {}
+      Authorize!: EventMember;
     }
 
     @Saga({

@@ -39,7 +39,7 @@ class Subscription {
       couponCode: optional("string"),
     },
   })
-  CreateSubscription() {}
+  CreateSubscription!: EventMember;
 }
 
 @Module({ entities: [Subscription] })
@@ -220,7 +220,7 @@ describe("parseModuleSource", () => {
         @Entity()
         class Customer {
           @Column({ type: "uuid", identity: true }) id!: string;
-          @Event() BadEvent!: unknown;
+          @Event() BadEvent() {}
           @Column({ type: "string" }) BadColumn() {}
           @Rule({ expression: eq(column("id"), column("id")) }) BadRule!: unknown;
         }

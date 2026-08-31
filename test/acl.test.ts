@@ -245,7 +245,7 @@ describe("Anti-Corruption Layer source parser", () => {
               }),
             },
           })
-          Authorize() {}
+          Authorize!: EventMember;
         }
 
         @Module({
@@ -295,7 +295,7 @@ describe("Anti-Corruption Layer source parser", () => {
               unavailable: fail({}),
             },
           })
-          Authorize() {}
+          Authorize!: EventMember;
         }
         @Module({
           entities: [Payment],
@@ -328,7 +328,7 @@ describe("Anti-Corruption Layer source parser", () => {
         }
         @ACL()
         class PaymentGateway {
-          @ACLEvent({ results: { approved } }) Authorize() {}
+          @ACLEvent({ results: { approved } }) Authorize!: EventMember;
         }
         @Module({
           entities: [Payment],
@@ -355,7 +355,7 @@ describe("Anti-Corruption Layer source parser", () => {
           @ACLEvent({
             results: { approved: success({}), declined: fail({}) },
           })
-          Place() {}
+          Place!: EventMember;
         }
         @Module({ entities: [Order] }) class Sales {}
       `,
@@ -377,7 +377,7 @@ describe("Anti-Corruption Layer source parser", () => {
         import { Module, ACL, Event } from "@lilka/vane";
         @ACL()
         class PaymentGateway {
-          @Event() Authorize() {}
+          @Event() Authorize!: EventMember;
         }
         @Module({ entities: [], antiCorruptionLayers: [PaymentGateway] })
         class Payments {}

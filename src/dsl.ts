@@ -19,8 +19,27 @@ type MethodName<T> = Extract<
   }[keyof T],
   string
 >;
-type ColumnName<T> = Exclude<MemberName<T>, MethodName<T>>;
 type TypedField = ColumnType | OptionalField;
+declare const eventMemberBrand: unique symbol;
+
+export interface EventMember {
+  readonly [eventMemberBrand]: "event";
+}
+
+export type EventName<T> = Extract<
+  {
+    [Name in keyof T]-?: T[Name] extends EventMember ? Name : never;
+  }[keyof T],
+  string
+>;
+
+type ColumnName<T> = Exclude<MemberName<T>, MethodName<T> | EventName<T>>;
+
+export type EventMemberDecorator = (
+  target: object,
+  propertyKey: string | symbol,
+  descriptor?: never,
+) => void;
 
 export interface OptionalField {
   readonly kind: "optional";
@@ -120,6 +139,7 @@ export interface SagaOptions {
 const classDecorator: ClassDecorator = () => undefined;
 const propertyDecorator: PropertyDecorator = () => undefined;
 const methodDecorator: MethodDecorator = () => undefined;
+const eventMemberDecorator: EventMemberDecorator = () => undefined;
 
 export function Module(_options: ModuleOptions): ClassDecorator {
   return classDecorator;
@@ -136,11 +156,11 @@ export function Column(_options: ColumnOptions): PropertyDecorator {
 export function Rule(_options: RuleOptions): MethodDecorator {
   return methodDecorator;
 }
-export function Event(_options: EntityEventOptions = {}): MethodDecorator {
-  return methodDecorator;
+export function Event(_options: EntityEventOptions = {}): EventMemberDecorator {
+  return eventMemberDecorator;
 }
-export function ACLEvent(_options: ACLEventOptions): MethodDecorator {
-  return methodDecorator;
+export function ACLEvent(_options: ACLEventOptions): EventMemberDecorator {
+  return eventMemberDecorator;
 }
 export function View(_options: ViewOptions): ClassDecorator {
   return classDecorator;
@@ -168,14 +188,14 @@ export function relation(from: ColumnToken, to: ColumnToken): RelationToken {
 
 export function eventRef<T>(
   owner: VaneClass<T>,
-  name: MethodName<T>,
+  name: EventName<T>,
 ): EventToken {
   return { owner: className(owner), event: name };
 }
 
 export function event<T>(
   owner: VaneClass<T>,
-  name: MethodName<T>,
+  name: EventName<T>,
   options: SagaStepOptions = {},
 ): SagaStepToken {
   return {

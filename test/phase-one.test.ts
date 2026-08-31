@@ -678,7 +678,7 @@ describe("phase one completion gate", () => {
             import { Module, Entity, Column, Event, View, Saga, event, field } from "@lilka/vane";
             @Entity() class Order {
               @Column({ type: "uuid", identity: true }) id!: string;
-              @Event() Place() {}
+              @Event() Place!: EventMember;
             }
             @View({
               output: { id: field(Order, "id") },
@@ -1047,8 +1047,8 @@ describe("phase one completion gate", () => {
           @Entity() class Order {
             @Column({ type: "uuid", identity: true }) id!: string;
             @Column({ type: "uuid", references: reference(Customer, "id") }) customerId!: string;
-            @Event() Place() {}
-            @Event() Cancel() {}
+            @Event() Place!: EventMember;
+            @Event() Cancel!: EventMember;
           }
           @View({
             input: {},

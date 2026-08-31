@@ -1075,7 +1075,10 @@ function parseEntityClass(
     } else if (memberDecorator === "Rule" && ts.isMethodDeclaration(member)) {
       const rule = parseRule(context, name, member);
       if (rule) rules.push(rule);
-    } else if (memberDecorator === "Event" && ts.isMethodDeclaration(member)) {
+    } else if (
+      memberDecorator === "Event" &&
+      ts.isPropertyDeclaration(member)
+    ) {
       const event = parseEvent(context, name, member);
       if (event) events.push(event);
     } else if (memberDecorator) {
@@ -1087,7 +1090,9 @@ function parseEntityClass(
           `@${memberDecorator} cannot decorate this kind of Entity member.`,
           memberDecorator === "Column"
             ? "Apply @Column to a property declaration."
-            : `Apply @${memberDecorator} to a method declaration.`,
+            : memberDecorator === "Event"
+              ? "Apply @Event to a property typed as EventMember."
+              : `Apply @${memberDecorator} to a method declaration.`,
           member,
         ),
       );
@@ -1121,7 +1126,7 @@ function parseAntiCorruptionLayerClass(
     if (
       decorators.length === 1 &&
       decorators[0] === "ACLEvent" &&
-      ts.isMethodDeclaration(member)
+      ts.isPropertyDeclaration(member)
     ) {
       const event = parseAntiCorruptionLayerEvent(context, name, member);
       if (event) events.push(event);
@@ -1132,8 +1137,8 @@ function parseAntiCorruptionLayerClass(
         context,
         "VANE_PARSE_DECORATOR_TARGET",
         [...path, "members"],
-        `@ACL members may only be ACLEvent methods; found ${decorators.map((symbol) => `@${symbol}`).join(", ")}.`,
-        "Apply exactly one @ACLEvent decorator to a method declaration.",
+        `@ACL members may only be ACLEvent properties; found ${decorators.map((symbol) => `@${symbol}`).join(", ")}.`,
+        "Apply exactly one @ACLEvent decorator to a property typed as EventMember.",
         member,
       ),
     );
@@ -2380,7 +2385,7 @@ function parseRuleValue(
 function parseEvent(
   context: ParserContext,
   entityName: string,
-  node: ts.MethodDeclaration,
+  node: ts.PropertyDeclaration,
 ): EntityEventDeclaration | undefined {
   const name = memberName(context, node.name, ["entity", entityName, "events"]);
   const path = ["entity", entityName, "events", name ?? "unknown"];
@@ -2408,7 +2413,7 @@ function parseEvent(
 function parseAntiCorruptionLayerEvent(
   context: ParserContext,
   layerName: string,
-  node: ts.MethodDeclaration,
+  node: ts.PropertyDeclaration,
 ): AntiCorruptionLayerEventDeclaration | undefined {
   const name = memberName(context, node.name, [
     "antiCorruptionLayer",

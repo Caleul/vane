@@ -27,6 +27,7 @@ import {
   success,
 } from "../src/index.js";
 import type {
+  EventMember,
   RuleExpressionDeclaration,
   ViewExpressionDeclaration,
 } from "../src/index.js";
@@ -61,10 +62,12 @@ class Order {
   discount!: number;
 
   @Event({ input: { customerId: "uuid", coupon: optional("string") } })
-  Place() {}
+  Place!: EventMember;
 
   @Event()
-  Cancel() {}
+  Cancel!: EventMember;
+
+  formatForLogs() {}
 }
 
 @ACL()
@@ -76,14 +79,20 @@ class PaymentGateway {
       declined: fail({ code: "string", reason: optional("string") }),
     },
   })
-  Authorize() {}
+  Authorize!: EventMember;
 }
 
 @Entity()
 class InvalidEntityEventOptions {
   // @ts-expect-error ACL result interpretations require @ACLEvent, not @Event.
   @Event({ results: { approved: success({}), declined: fail({}) } })
-  Authorize() {}
+  Authorize!: EventMember;
+}
+
+class InvalidEventMemberKind {
+  // @ts-expect-error Events are declarative EventMember properties, not arbitrary methods.
+  @Event()
+  Place() {}
 }
 
 // @ts-expect-error ACL Events must declare result interpretations.
@@ -113,8 +122,12 @@ class OrderDetails {}
 @Saga({
   input: { orderId: "uuid" },
   steps: {
-    place: event(Order, "Place", { compensateWith: eventRef(Order, "Cancel") }),
-    authorize: event(PaymentGateway, "Authorize", { causedBy: ["place"] }),
+    place: event(Order, "Place", {
+      compensateWith: eventRef(Order, "Cancel"),
+    }),
+    authorize: event(PaymentGateway, "Authorize", {
+      causedBy: ["place"],
+    }),
   },
   terminal: { step: "authorize", view: OrderDetails },
 })
@@ -135,10 +148,14 @@ void Application;
 
 // @ts-expect-error Entity members are checked by field().
 field(Customer, "missing");
-// @ts-expect-error Methods are Events, not Columns.
+// @ts-expect-error Event members are not Columns.
 field(Order, "Place");
-// @ts-expect-error Methods are Events, not Column references.
+// @ts-expect-error Event members are not Column references.
 reference(Order, "Cancel");
+// @ts-expect-error Rule methods are not semantic Events.
+eventRef(Order, "PositiveTotal");
+// @ts-expect-error Undecorated methods are not semantic Events.
+eventRef(Order, "formatForLogs");
 // @ts-expect-error Event members are checked by eventRef().
 eventRef(Order, "MissingEvent");
 // @ts-expect-error Properties are Columns, not Events.

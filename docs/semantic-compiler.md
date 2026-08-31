@@ -26,6 +26,7 @@ import {
   column,
   gt,
   optional,
+  type EventMember,
 } from "@lilka/vane";
 
 @Entity()
@@ -40,7 +41,7 @@ class Subscription {
   EndsAfterStart() {}
 
   @Event({ input: { startDate: "date", couponCode: optional("string") } })
-  CreateSubscription() {}
+  CreateSubscription!: EventMember;
 }
 
 @Module({ entities: [Subscription] })
@@ -69,7 +70,9 @@ customerId!: string;
 
 field(Order, "customerId");
 eventRef(Order, "Cancel");
-event(Order, "Place", { compensateWith: eventRef(Order, "Cancel") });
+event(Order, "Place", {
+  compensateWith: eventRef(Order, "Cancel"),
+});
 ```
 
 The parser continues to understand the earlier `Customer.id` and `Order.Place`
