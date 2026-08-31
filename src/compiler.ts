@@ -3,9 +3,11 @@ import type {
   ColumnType,
   EntityColumnReferenceDeclaration,
   EntityDeclaration,
+  EventReferenceDeclaration,
   ModuleDeclaration,
   RuleExpressionDeclaration,
   RuleValueDeclaration,
+  SagaDeclaration,
   ViewDeclaration,
   ViewExpressionDeclaration,
   ViewOutputExpressionDeclaration,
@@ -18,6 +20,7 @@ import {
   type SemanticAntiCorruptionLayer,
   type SemanticEntity,
   type SemanticIr,
+  type SemanticSaga,
   type SemanticView,
 } from "./semantic-ir.js";
 
@@ -55,6 +58,12 @@ export function compileSemanticIr(
     "Anti-Corruption Layer",
     diagnostics,
   );
+  validateUniqueNames(
+    declaration.sagas ?? [],
+    ["module", "sagas"],
+    "Saga",
+    diagnostics,
+  );
   validateEventOwnerNames(declaration, diagnostics);
 
   const entitiesByName = new Map(
@@ -68,6 +77,11 @@ export function compileSemanticIr(
   }
   for (const antiCorruptionLayer of declaration.antiCorruptionLayers ?? []) {
     validateAntiCorruptionLayer(antiCorruptionLayer, diagnostics);
+  }
+  const eventIdentities = collectEventIdentities(declaration);
+  const viewNames = new Set((declaration.views ?? []).map(({ name }) => name));
+  for (const saga of declaration.sagas ?? []) {
+    validateSaga(saga, eventIdentities, viewNames, diagnostics);
   }
 
   if (diagnostics.length > 0) {
@@ -91,9 +105,23 @@ export function compileSemanticIr(
         antiCorruptionLayers: (declaration.antiCorruptionLayers ?? [])
           .map(toSemanticAntiCorruptionLayer)
           .sort((left, right) => compare(left.name, right.name)),
+        sagas: (declaration.sagas ?? [])
+          .map(toSemanticSaga)
+          .sort((left, right) => compare(left.name, right.name)),
       },
     },
   };
+}
+
+function collectEventIdentities(declaration: ModuleDeclaration): Set<string> {
+  return new Set([
+    ...declaration.entities.flatMap((entity) =>
+      (entity.events ?? []).map((event) => `${entity.name}.${event.name}`),
+    ),
+    ...(declaration.antiCorruptionLayers ?? []).flatMap((layer) =>
+      layer.events.map((event) => `${layer.name}.${event.name}`),
+    ),
+  ]);
 }
 
 function validateEventOwnerNames(
@@ -339,6 +367,177 @@ function validateAntiCorruptionLayer(
       });
     }
   }
+}
+
+function validateSaga(
+  saga: SagaDeclaration,
+  eventIdentities: ReadonlySet<string>,
+  viewNames: ReadonlySet<string>,
+  diagnostics: Diagnostic[],
+): void {
+  const sagaPath = ["module", "sagas", saga.name];
+  validateName(saga.name, [...sagaPath, "name"], "Saga", diagnostics);
+  validateUniqueNames(
+    saga.input,
+    [...sagaPath, "input"],
+    "Saga input",
+    diagnostics,
+  );
+  validateUniqueNames(
+    saga.steps,
+    [...sagaPath, "steps"],
+    "Saga step",
+    diagnostics,
+  );
+  for (const input of saga.input) {
+    validateName(
+      input.name,
+      [...sagaPath, "input", input.name],
+      "Saga input",
+      diagnostics,
+    );
+  }
+
+  if (saga.steps.length === 0) {
+    diagnostics.push({
+      code: "VANE_SEM_SAGA_STEPS",
+      path: [...sagaPath, "steps"],
+      message: `Saga ${saga.name} has no Event steps.`,
+      correction: "Declare at least one Event step in the Saga.",
+    });
+  }
+
+  const stepNames = new Set(saga.steps.map(({ name }) => name));
+  for (const step of saga.steps) {
+    const stepPath = [...sagaPath, "steps", step.name];
+    validateName(step.name, [...stepPath, "name"], "Saga step", diagnostics);
+    validateSagaEventReference(
+      step.event,
+      eventIdentities,
+      [...stepPath, "event"],
+      diagnostics,
+    );
+    if (step.compensateWith) {
+      validateSagaEventReference(
+        step.compensateWith,
+        eventIdentities,
+        [...stepPath, "compensateWith"],
+        diagnostics,
+      );
+    }
+
+    const seenCauses = new Set<string>();
+    for (const cause of step.causedBy) {
+      if (seenCauses.has(cause)) {
+        diagnostics.push({
+          code: "VANE_SEM_SAGA_CAUSE_DUPLICATE",
+          path: [...stepPath, "causedBy", cause],
+          message: `Saga step ${step.name} declares causal predecessor ${cause} more than once.`,
+          correction: "Keep each causal predecessor once.",
+        });
+      }
+      seenCauses.add(cause);
+      if (!stepNames.has(cause)) {
+        diagnostics.push({
+          code: "VANE_SEM_SAGA_CAUSE",
+          path: [...stepPath, "causedBy", cause],
+          message: `Saga step ${step.name} references unknown causal predecessor ${cause}.`,
+          correction: "Reference a step declared in the same Saga.",
+        });
+      }
+    }
+  }
+
+  validateSagaAcyclic(saga, diagnostics);
+
+  if (!stepNames.has(saga.terminal.step)) {
+    diagnostics.push({
+      code: "VANE_SEM_SAGA_TERMINAL_STEP",
+      path: [...sagaPath, "terminal", "step"],
+      message: `Saga ${saga.name} references unknown terminal step ${saga.terminal.step}.`,
+      correction: "Choose a step declared in this Saga as the terminal step.",
+    });
+  }
+  if (!viewNames.has(saga.terminal.view)) {
+    diagnostics.push({
+      code: "VANE_SEM_SAGA_TERMINAL_VIEW",
+      path: [...sagaPath, "terminal", "view"],
+      message: `Saga ${saga.name} references unknown terminal View ${saga.terminal.view}.`,
+      correction: "Use a View declared in the same Module.",
+    });
+  }
+
+  const stepsWithSuccessors = new Set(
+    saga.steps.flatMap(({ causedBy }) => causedBy),
+  );
+  const sinks = saga.steps
+    .map(({ name }) => name)
+    .filter((name) => !stepsWithSuccessors.has(name))
+    .sort(compare);
+  if (sinks.length !== 1 || sinks[0] !== saga.terminal.step) {
+    diagnostics.push({
+      code: "VANE_SEM_SAGA_TERMINAL_GRAPH",
+      path: [...sagaPath, "terminal", "step"],
+      message: `Saga ${saga.name} terminal step must be the graph's only sink; found ${sinks.length === 0 ? "none" : sinks.join(", ")}.`,
+      correction:
+        "Connect every causal branch to one final step and select that step as terminal.",
+    });
+  }
+}
+
+function validateSagaEventReference(
+  reference: EventReferenceDeclaration,
+  eventIdentities: ReadonlySet<string>,
+  path: readonly string[],
+  diagnostics: Diagnostic[],
+): void {
+  const identity = `${reference.owner}.${reference.event}`;
+  if (eventIdentities.has(identity)) return;
+  diagnostics.push({
+    code: "VANE_SEM_SAGA_EVENT",
+    path,
+    message: `Saga references unknown Event ${identity}.`,
+    correction:
+      "Reference an Event owned by an Entity or Anti-Corruption Layer in the same Module.",
+  });
+}
+
+function validateSagaAcyclic(
+  saga: SagaDeclaration,
+  diagnostics: Diagnostic[],
+): void {
+  const known = new Set(saga.steps.map(({ name }) => name));
+  const causesByStep = new Map(
+    saga.steps.map((step) => [
+      step.name,
+      step.causedBy.filter((cause) => known.has(cause)),
+    ]),
+  );
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+  let cycle: readonly string[] | undefined;
+
+  const visit = (step: string, path: readonly string[]): void => {
+    if (cycle || visited.has(step)) return;
+    if (visiting.has(step)) {
+      cycle = [...path, step];
+      return;
+    }
+    visiting.add(step);
+    for (const cause of causesByStep.get(step) ?? []) {
+      visit(cause, [...path, step]);
+    }
+    visiting.delete(step);
+    visited.add(step);
+  };
+  for (const step of [...known].sort(compare)) visit(step, []);
+  if (!cycle) return;
+  diagnostics.push({
+    code: "VANE_SEM_SAGA_CYCLE",
+    path: ["module", "sagas", saga.name, "steps"],
+    message: `Saga ${saga.name} contains a causal cycle: ${cycle.join(" -> ")}.`,
+    correction: "Remove the cycle so the Saga forms a directed acyclic graph.",
+  });
 }
 
 function validateView(
@@ -959,6 +1158,37 @@ function toSemanticAntiCorruptionLayer(
           .sort((left, right) => compare(left.name, right.name)),
       }))
       .sort((left, right) => compare(left.identity, right.identity)),
+  };
+}
+
+function toSemanticSaga(saga: SagaDeclaration): SemanticSaga {
+  return {
+    name: saga.name,
+    input: toSemanticEventFields(saga.input),
+    steps: saga.steps
+      .map((step) => ({
+        name: step.name,
+        event: { owner: step.event.owner, event: step.event.event },
+        causedBy: [...step.causedBy].sort(compare),
+        compensateWith: step.compensateWith
+          ? {
+              owner: step.compensateWith.owner,
+              event: step.compensateWith.event,
+            }
+          : null,
+      }))
+      .sort((left, right) => compare(left.name, right.name)),
+    terminal: {
+      step: saga.terminal.step,
+      success: { kind: "view", view: saga.terminal.view },
+      fail: { kind: "fail" },
+    },
+    guarantees: {
+      causalMetadata: ["eventId", "sagaId", "causationId", "correlationId"],
+      durableState: true,
+      intermediateResults: "internal",
+      streamVisibility: "terminalOnly",
+    },
   };
 }
 

@@ -15,9 +15,10 @@ user-facing DSL.
 The Semantic IR must preserve meaning without choosing how that meaning is
 executed. It can state that an Event belongs to an Entity and necessarily
 persists its owner, that an Event belongs to an Anti-Corruption Layer and
-interprets external results, and that a View is a non-persistent public result.
-It cannot choose PostgreSQL, NestJS, HTTP, SSE, a queue, retry policy,
-credentials, or deployment topology.
+interprets external results, that a View is a non-persistent public result, and
+that a Saga requires a durable causal DAG with terminal-only visibility. It
+cannot choose PostgreSQL, NestJS, HTTP, SSE, a queue, retry policy, credentials,
+or deployment topology.
 
 Those choices require a `ServiceConfiguration` and belong to stage two.
 
@@ -41,9 +42,9 @@ executes the user's module.
 ## Provisional static grammar
 
 The parser recognizes named imports from `@lilka/vane`, including aliases, and
-the decorators `@Module`, `@Entity`, `@Column`, `@Rule`, `@Event`, `@View`, and
-`@ACL`. The first slices intentionally keep all declarations in one source
-file.
+the decorators `@Module`, `@Entity`, `@Column`, `@Rule`, `@Event`, `@View`,
+`@ACL`, and `@Saga`. The first slices intentionally keep all declarations in
+one source file.
 
 ```ts
 import {
@@ -171,6 +172,48 @@ outcome. The Semantic IR records the stable identity
 credentials, status codes, serialization, timeout, retry, or idempotency.
 Those mappings require ServiceConfiguration in compiler stage two.
 
+Sagas declare causal Event graphs. A step names an Event occurrence;
+`causedBy` creates directed causal edges without introducing `await` or an
+intermediate return value. Compensation references another existing Event:
+
+```ts
+@Saga({
+  input: { orderId: "uuid" },
+  steps: {
+    place: event(Order.Place, {
+      compensateWith: Order.Cancel,
+    }),
+    authorize: event(PaymentGateway.Authorize, {
+      causedBy: ["place"],
+    }),
+    capture: event(Payment.Capture, {
+      causedBy: ["authorize"],
+      compensateWith: Payment.Refund,
+    }),
+  },
+  terminal: {
+    step: "capture",
+    view: PaymentReceipt,
+  },
+})
+class PlaceOrder {}
+
+@Module({
+  entities: [Order, Payment],
+  views: [PaymentReceipt],
+  antiCorruptionLayers: [PaymentGateway],
+  sagas: [PlaceOrder],
+})
+class Sales {}
+```
+
+The compiler validates every Entity/ACL Event, compensation, causal predecessor,
+terminal step, and terminal View. Cycles are rejected. Every branch must
+converge on one sink, which must be the selected terminal step. The Semantic IR
+records the required causal identifiers and durable Saga state without choosing
+their provider. It also fixes Saga Stream visibility to the final View or
+terminal fail; intermediate steps, retries, and compensations remain internal.
+
 Decorator configuration must consist of inline object and array literals,
 literal scalar values, Entity identifiers, and the recognized helper calls.
 Variables, spreads, shorthand properties, computed properties, and arbitrary
@@ -183,7 +226,6 @@ boundary and executable invariants; it does not freeze the final DSL ergonomics.
 
 - persistence operation grammar;
 - View relation navigation and joins;
-- Saga graphs;
 - ServiceConfiguration and provider capability negotiation;
 - Runtime, Storage, Contract, and Infrastructure IRs.
 

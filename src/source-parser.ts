@@ -16,6 +16,9 @@ import {
   type RuleDeclaration,
   type RuleExpressionDeclaration,
   type RuleValueDeclaration,
+  type SagaDeclaration,
+  type SagaStepDeclaration,
+  type SagaTerminalDeclaration,
   type ViewDeclaration,
   type ViewExpressionDeclaration,
   type ViewOrderDeclaration,
@@ -33,6 +36,7 @@ const VANE_MODULE = "@lilka/vane";
 const DSL_SYMBOLS = new Set([
   "Module",
   "ACL",
+  "Saga",
   "Entity",
   "Column",
   "Rule",
@@ -60,6 +64,7 @@ const DSL_SYMBOLS = new Set([
   "desc",
   "success",
   "fail",
+  "event",
 ]);
 const COMPARISON_OPERATORS = new Set(["eq", "neq", "gt", "gte", "lt", "lte"]);
 const VIEW_AGGREGATES = new Set(["count", "sum", "avg", "min", "max"]);
@@ -244,7 +249,7 @@ function parseModuleClass(
     rejectUnknownOptions(
       context,
       options,
-      new Set(["entities", "views", "antiCorruptionLayers"]),
+      new Set(["entities", "views", "antiCorruptionLayers", "sagas"]),
       ["module"],
     );
   }
@@ -422,7 +427,63 @@ function parseModuleClass(
     }
   }
 
-  return { name, entities, views, antiCorruptionLayers };
+  const sagas: SagaDeclaration[] = [];
+  const sagasExpression = options?.get("sagas");
+  if (sagasExpression) {
+    if (!ts.isArrayLiteralExpression(sagasExpression)) {
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_MODULE_SAGAS",
+          ["module", "sagas"],
+          "@Module sagas must be a static array of @Saga class identifiers.",
+          "Use @Module({ entities: [...], sagas: [PlaceOrder] }).",
+          sagasExpression,
+        ),
+      );
+    } else {
+      recordLocation(context, ["module", "sagas"], sagasExpression);
+      const sagaClasses = new Map(
+        classes
+          .filter((candidate) => hasDecorator(context, candidate, "Saga"))
+          .flatMap((candidate) =>
+            candidate.name ? [[candidate.name.text, candidate] as const] : [],
+          ),
+      );
+      for (const element of sagasExpression.elements) {
+        if (!ts.isIdentifier(element)) {
+          context.diagnostics.push(
+            staticDiagnostic(
+              context,
+              ["module", "sagas"],
+              "Module Saga references",
+              element,
+              "Use a @Saga class identifier from this source file.",
+            ),
+          );
+          continue;
+        }
+        const sagaClass = sagaClasses.get(element.text);
+        if (!sagaClass) {
+          context.diagnostics.push(
+            createDiagnostic(
+              context,
+              "VANE_PARSE_MODULE_SAGA",
+              ["module", "sagas", element.text],
+              `@Module references ${element.text}, but no matching @Saga class exists in this source file.`,
+              "Declare and decorate the Saga in the same source file.",
+              element,
+            ),
+          );
+          continue;
+        }
+        const saga = parseSagaClass(context, sagaClass);
+        if (saga) sagas.push(saga);
+      }
+    }
+  }
+
+  return { name, entities, views, antiCorruptionLayers, sagas };
 }
 
 function parseEntityClass(
@@ -537,6 +598,215 @@ function parseAntiCorruptionLayerClass(
   }
 
   return { name, events };
+}
+
+function parseSagaClass(
+  context: ParserContext,
+  node: ts.ClassDeclaration,
+): SagaDeclaration | undefined {
+  const name = className(context, node, ["saga", "name"], "Saga");
+  const path = ["saga", name ?? "unknown"];
+  const decorator = oneDecorator(context, node, "Saga", path);
+  if (!name || !decorator) return undefined;
+
+  for (const member of node.members) {
+    const forbidden = ["Column", "Rule", "Event"].filter((symbol) =>
+      hasDecorator(context, member, symbol),
+    );
+    if (forbidden.length === 0) continue;
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_DECORATOR_TARGET",
+        [...path, "members"],
+        `@Saga cannot contain ${forbidden.map((symbol) => `@${symbol}`).join(", ")} members.`,
+        "Declare Saga input, causal steps, compensation, and terminal View in @Saga.",
+        member,
+      ),
+    );
+  }
+
+  const semanticPath = ["module", "sagas", name];
+  recordLocation(context, semanticPath, node);
+  recordLocation(context, [...semanticPath, "name"], node.name ?? node);
+  const options = decoratorObject(context, decorator, path, "Saga");
+  if (!options) return undefined;
+  rejectUnknownOptions(
+    context,
+    options,
+    new Set(["input", "steps", "terminal"]),
+    path,
+  );
+
+  const inputExpression = options.get("input");
+  const stepsExpression = options.get("steps");
+  const terminalExpression = options.get("terminal");
+  if (!stepsExpression || !terminalExpression) {
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_SAGA_OPTIONS",
+        path,
+        "@Saga requires static steps and terminal properties.",
+        'Use @Saga({ steps: {...}, terminal: { step: "final", view: ResultView } }).',
+        decorator,
+      ),
+    );
+    return undefined;
+  }
+
+  const input = inputExpression
+    ? parseTypedInputs(
+        context,
+        inputExpression,
+        [...path, "input"],
+        "Saga input",
+      )
+    : [];
+  const steps = parseSagaSteps(context, stepsExpression, [...path, "steps"]);
+  const terminal = parseSagaTerminal(context, terminalExpression, [
+    ...path,
+    "terminal",
+  ]);
+  if (inputExpression)
+    recordLocation(context, [...semanticPath, "input"], inputExpression);
+  recordLocation(context, [...semanticPath, "steps"], stepsExpression);
+  recordLocation(context, [...semanticPath, "terminal"], terminalExpression);
+  return input && steps && terminal
+    ? { name, input, steps, terminal }
+    : undefined;
+}
+
+function parseSagaSteps(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): readonly SagaStepDeclaration[] | undefined {
+  const object = staticObject(context, node, path, "Saga steps");
+  if (!object) return undefined;
+  const steps: SagaStepDeclaration[] = [];
+
+  for (const [name, expression] of object) {
+    const stepPath = [...path, name];
+    const call = dslCall(context, expression);
+    if (
+      !call ||
+      call.symbol !== "event" ||
+      (call.expression.arguments.length !== 1 &&
+        call.expression.arguments.length !== 2)
+    ) {
+      context.diagnostics.push(
+        staticDiagnostic(
+          context,
+          stepPath,
+          "Saga steps",
+          expression,
+          "Use event(Owner.Event) or event(Owner.Event, { causedBy: [...], compensateWith: Owner.Event }).",
+        ),
+      );
+      continue;
+    }
+    const eventExpression = call.expression.arguments[0];
+    const eventReference = eventExpression
+      ? parseEventReference(eventExpression)
+      : undefined;
+    if (!eventReference) {
+      context.diagnostics.push(
+        staticDiagnostic(
+          context,
+          [...stepPath, "event"],
+          "Saga Event references",
+          eventExpression ?? expression,
+          "Use an Owner.Event property reference.",
+        ),
+      );
+      continue;
+    }
+
+    let causedBy: readonly string[] = [];
+    let compensateWith: SagaStepDeclaration["compensateWith"];
+    const optionsExpression = call.expression.arguments[1];
+    if (optionsExpression) {
+      const options = staticObject(
+        context,
+        optionsExpression,
+        stepPath,
+        "Saga step options",
+      );
+      if (!options) continue;
+      rejectUnknownOptions(
+        context,
+        options,
+        new Set(["causedBy", "compensateWith"]),
+        stepPath,
+      );
+      const causedByExpression = options.get("causedBy");
+      if (causedByExpression) {
+        const parsed = parseStaticStringArray(
+          context,
+          causedByExpression,
+          [...stepPath, "causedBy"],
+          "Saga causal predecessors",
+        );
+        if (!parsed) continue;
+        causedBy = parsed;
+      }
+      const compensationExpression = options.get("compensateWith");
+      if (compensationExpression) {
+        compensateWith = parseEventReference(compensationExpression);
+        if (!compensateWith) {
+          context.diagnostics.push(
+            staticDiagnostic(
+              context,
+              [...stepPath, "compensateWith"],
+              "Saga compensation Event references",
+              compensationExpression,
+              "Use an Owner.Event property reference.",
+            ),
+          );
+          continue;
+        }
+      }
+    }
+    steps.push({
+      name,
+      event: eventReference,
+      causedBy,
+      ...(compensateWith ? { compensateWith } : {}),
+    });
+  }
+  return steps;
+}
+
+function parseSagaTerminal(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): SagaTerminalDeclaration | undefined {
+  const object = staticObject(context, node, path, "Saga terminal");
+  if (!object) return undefined;
+  rejectUnknownOptions(context, object, new Set(["step", "view"]), path);
+  const stepExpression = object.get("step");
+  const viewExpression = object.get("view");
+  if (
+    !stepExpression ||
+    !ts.isStringLiteral(stepExpression) ||
+    !viewExpression ||
+    !ts.isIdentifier(viewExpression)
+  ) {
+    context.diagnostics.push(
+      createDiagnostic(
+        context,
+        "VANE_PARSE_SAGA_TERMINAL",
+        path,
+        "Saga terminal must reference a static step name and View class.",
+        'Use terminal: { step: "finalStep", view: ResultView }.',
+        node,
+      ),
+    );
+    return undefined;
+  }
+  return { step: stepExpression.text, view: viewExpression.text };
 }
 
 function parseViewClass(
@@ -983,6 +1253,40 @@ function parseEntityColumnReference(
     ts.isIdentifier(node.name)
     ? { entity: node.expression.text, column: node.name.text }
     : undefined;
+}
+
+function parseEventReference(
+  node: ts.Expression,
+): SagaStepDeclaration["event"] | undefined {
+  return ts.isPropertyAccessExpression(node) &&
+    ts.isIdentifier(node.expression) &&
+    ts.isIdentifier(node.name)
+    ? { owner: node.expression.text, event: node.name.text }
+    : undefined;
+}
+
+function parseStaticStringArray(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+  subject: string,
+): readonly string[] | undefined {
+  if (
+    !ts.isArrayLiteralExpression(node) ||
+    node.elements.some((element) => !ts.isStringLiteral(element))
+  ) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        path,
+        subject,
+        node,
+        "Use an array of static string literals.",
+      ),
+    );
+    return undefined;
+  }
+  return node.elements.map((element) => (element as ts.StringLiteral).text);
 }
 
 function parseColumn(
