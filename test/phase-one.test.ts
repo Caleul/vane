@@ -272,6 +272,81 @@ describe("phase one completion gate", () => {
     }
   });
 
+  it("rejects unbound and type-only Entity identifiers in typed references", () => {
+    const core = {
+      fileName: "core.vane.ts",
+      sourceText: `
+        import { Module, Entity, Column } from "@lilka/vane";
+        @Entity() export class Customer {
+          @Column({ type: "uuid", identity: true }) id!: string;
+        }
+        @Module({ entities: [Customer] }) export class Core {}
+      `,
+    };
+    for (const customerImport of [
+      "",
+      'import type { Customer } from "./core.vane.js";',
+    ]) {
+      const result = compileProjectSources([
+        core,
+        {
+          fileName: "sales.vane.ts",
+          sourceText: `
+            import { Module, Entity, Column, reference } from "@lilka/vane";
+            import { Core } from "./core.vane.js";
+            ${customerImport}
+            @Entity() class Order {
+              @Column({ type: "uuid", identity: true }) id!: string;
+              @Column({ type: "uuid", references: reference(Customer, "id") }) customerId!: string;
+            }
+            @Module({ imports: [Core], entities: [Order] }) class Sales {}
+          `,
+        },
+      ]);
+      assert.equal(result.success, false);
+      if (result.success) continue;
+      assert.ok(
+        result.diagnostics.some(
+          ({ location }) => location?.fileName === "sales.vane.ts",
+        ),
+      );
+    }
+  });
+
+  it("rejects surplus arguments in typed and legacy Saga event calls", () => {
+    for (const eventCall of [
+      'event(Order, "Place", {}, "extra")',
+      'event(Order.Place, {}, "extra")',
+    ]) {
+      const result = compileProjectSources([
+        {
+          fileName: "saga.vane.ts",
+          sourceText: `
+            import { Module, Entity, Column, Event, View, Saga, event, field } from "@lilka/vane";
+            @Entity() class Order {
+              @Column({ type: "uuid", identity: true }) id!: string;
+              @Event() Place() {}
+            }
+            @View({
+              output: { id: field(Order, "id") },
+              query: { root: Order }
+            }) class Result {}
+            @Saga({
+              steps: { place: ${eventCall} },
+              terminal: { step: "place", view: Result }
+            }) class PlaceOrder {}
+            @Module({ entities: [Order], views: [Result], sagas: [PlaceOrder] }) class Commerce {}
+          `,
+        },
+      ]);
+      assert.equal(result.success, false);
+      if (result.success) continue;
+      assert.ok(
+        result.diagnostics.some(({ code }) => code === "VANE_PARSE_ARGUMENTS"),
+      );
+    }
+  });
+
   it("canonicalizes nested JSON defaults independently of object key order", () => {
     const first = compileSemanticIr({
       name: "Configuration",

@@ -110,6 +110,7 @@ interface ParserContext {
   readonly sourceFile: ts.SourceFile;
   readonly bindings: ReadonlyMap<string, string>;
   readonly semanticBindings: ReadonlyMap<string, string>;
+  readonly localClassNames: ReadonlySet<string>;
   readonly diagnostics: Diagnostic[];
   readonly sourceLocations: Map<string, SourceLocation>;
 }
@@ -145,14 +146,19 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   appendSyntaxDiagnostics(sourceFile, diagnostics);
 
   const bindings = collectDslBindings(sourceFile, diagnostics);
+  const classes = sourceFile.statements.filter(ts.isClassDeclaration);
   const context: ParserContext = {
     sourceFile,
     bindings,
     semanticBindings: collectSemanticBindings(sourceFile),
+    localClassNames: new Set(
+      classes.flatMap((candidate) =>
+        candidate.name ? [candidate.name.text] : [],
+      ),
+    ),
     diagnostics,
     sourceLocations: new Map(),
   };
-  const classes = sourceFile.statements.filter(ts.isClassDeclaration);
   const moduleClasses = classes.filter((node) =>
     hasDecorator(context, node, "Module"),
   );
@@ -222,6 +228,16 @@ function collectSemanticBindings(
 
 function semanticName(context: ParserContext, localName: string): string {
   return context.semanticBindings.get(localName) ?? localName;
+}
+
+function hasRuntimeClassBinding(
+  context: ParserContext,
+  localName: string,
+): boolean {
+  return (
+    context.localClassNames.has(localName) ||
+    context.semanticBindings.has(localName)
+  );
 }
 
 export function compileModuleSource(
@@ -350,18 +366,12 @@ function parseModuleClass(
     );
   }
   const importsExpression = options?.get("imports");
-  const localClassNames = new Set(
-    classes.flatMap((candidate) =>
-      candidate.name ? [candidate.name.text] : [],
-    ),
-  );
   const imports = importsExpression
     ? parseStaticIdentifierArray(
         context,
         importsExpression,
         ["module", "imports"],
         "Module imports",
-        localClassNames,
       )
     : [];
   if (importsExpression && !imports) return undefined;
@@ -834,11 +844,36 @@ function parseSagaSteps(
     }
     const [ownerOrReference, eventNameOrOptions, typedOptions] =
       call.expression.arguments;
-    const typedForm =
+    const typedSyntax =
       ownerOrReference &&
       ts.isIdentifier(ownerOrReference) &&
       eventNameOrOptions &&
       ts.isStringLiteral(eventNameOrOptions);
+    const validArgumentCount = typedSyntax
+      ? call.expression.arguments.length === 2 ||
+        call.expression.arguments.length === 3
+      : call.expression.arguments.length === 1 ||
+        call.expression.arguments.length === 2;
+    if (!validArgumentCount) {
+      context.diagnostics.push(
+        createDiagnostic(
+          context,
+          "VANE_PARSE_ARGUMENTS",
+          stepPath,
+          `${typedSyntax ? "Typed" : "Legacy"} event expects ${typedSyntax ? "two or three" : "one or two"} arguments; found ${call.expression.arguments.length}.`,
+          typedSyntax
+            ? 'Use event(Owner, "Event") or event(Owner, "Event", options).'
+            : "Use event(Owner.Event) or event(Owner.Event, options).",
+          call.expression,
+        ),
+      );
+      continue;
+    }
+    const typedForm =
+      typedSyntax &&
+      ownerOrReference &&
+      ts.isIdentifier(ownerOrReference) &&
+      hasRuntimeClassBinding(context, ownerOrReference.text);
     const eventReference = typedForm
       ? {
           owner: semanticName(context, ownerOrReference.text),
@@ -929,7 +964,8 @@ function parseSagaTerminal(
     !stepExpression ||
     !ts.isStringLiteral(stepExpression) ||
     !viewExpression ||
-    !ts.isIdentifier(viewExpression)
+    !ts.isIdentifier(viewExpression) ||
+    !hasRuntimeClassBinding(context, viewExpression.text)
   ) {
     context.diagnostics.push(
       createDiagnostic(
@@ -1092,7 +1128,11 @@ function parseViewQuery(
   );
 
   const rootExpression = object.get("root");
-  if (!rootExpression || !ts.isIdentifier(rootExpression)) {
+  if (
+    !rootExpression ||
+    !ts.isIdentifier(rootExpression) ||
+    !hasRuntimeClassBinding(context, rootExpression.text)
+  ) {
     context.diagnostics.push(
       createDiagnostic(
         context,
@@ -1451,7 +1491,8 @@ function parseEntityColumnReference(
 ): EntityColumnReferenceDeclaration | undefined {
   return ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
-    ts.isIdentifier(node.name)
+    ts.isIdentifier(node.name) &&
+    hasRuntimeClassBinding(context, node.expression.text)
     ? {
         entity: semanticName(context, node.expression.text),
         column: node.name.text,
@@ -1475,6 +1516,7 @@ function parseTypedColumnReference(
     if (
       entity &&
       ts.isIdentifier(entity) &&
+      hasRuntimeClassBinding(context, entity.text) &&
       column &&
       ts.isStringLiteral(column)
     ) {
@@ -1494,7 +1536,8 @@ function parseEventReference(
   const legacy =
     ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
-    ts.isIdentifier(node.name)
+    ts.isIdentifier(node.name) &&
+    hasRuntimeClassBinding(context, node.expression.text)
       ? {
           owner: semanticName(context, node.expression.text),
           event: node.name.text,
@@ -1508,6 +1551,7 @@ function parseEventReference(
   const [owner, eventName] = call.expression.arguments;
   return owner &&
     ts.isIdentifier(owner) &&
+    hasRuntimeClassBinding(context, owner.text) &&
     eventName &&
     ts.isStringLiteral(eventName)
     ? { owner: semanticName(context, owner.text), event: eventName.text }
@@ -1543,7 +1587,6 @@ function parseStaticIdentifierArray(
   node: ts.Expression,
   path: readonly string[],
   subject: string,
-  localClassNames: ReadonlySet<string>,
 ): readonly string[] | undefined {
   if (
     !ts.isArrayLiteralExpression(node) ||
@@ -1564,10 +1607,7 @@ function parseStaticIdentifierArray(
   let hasUnboundIdentifier = false;
   for (const element of node.elements) {
     const identifier = element as ts.Identifier;
-    if (
-      !localClassNames.has(identifier.text) &&
-      !context.semanticBindings.has(identifier.text)
-    ) {
+    if (!hasRuntimeClassBinding(context, identifier.text)) {
       hasUnboundIdentifier = true;
       context.diagnostics.push(
         createDiagnostic(
@@ -1717,9 +1757,13 @@ function parseReference(
   if (
     ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
-    ts.isIdentifier(node.name)
+    ts.isIdentifier(node.name) &&
+    hasRuntimeClassBinding(context, node.expression.text)
   ) {
-    return { entity: node.expression.text, column: node.name.text };
+    return {
+      entity: semanticName(context, node.expression.text),
+      column: node.name.text,
+    };
   }
 
   const object = staticObject(context, node, path, "Column references");
@@ -1728,10 +1772,13 @@ function parseReference(
   const entityNode = object.get("entity");
   const columnNode = object.get("column");
   const entity =
-    entityNode &&
-    (ts.isIdentifier(entityNode) || ts.isStringLiteral(entityNode))
-      ? semanticName(context, entityNode.text)
-      : undefined;
+    entityNode && ts.isIdentifier(entityNode)
+      ? hasRuntimeClassBinding(context, entityNode.text)
+        ? semanticName(context, entityNode.text)
+        : undefined
+      : entityNode && ts.isStringLiteral(entityNode)
+        ? entityNode.text
+        : undefined;
   const column =
     columnNode && ts.isStringLiteral(columnNode) ? columnNode.text : undefined;
   if (!entity || !column) {
