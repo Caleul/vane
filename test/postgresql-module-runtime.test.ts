@@ -359,6 +359,9 @@ describe("PostgreSQL Module runtime", () => {
     assert.equal(database.revision, 1);
     assert.equal(database.outboxCount, 1);
     assert.ok(database.queries.includes("SHOW server_version_num"));
+    assert.ok(
+      database.queries.some((sql) => sql.includes("attribute.attname::text")),
+    );
     await runtime.stop();
   });
 
