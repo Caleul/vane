@@ -1,3 +1,4 @@
+import { posix as path } from "node:path";
 import ts from "typescript";
 import { compileSemanticIr, compileSemanticProject } from "./compiler.js";
 import {
@@ -110,9 +111,18 @@ interface ParserContext {
   readonly sourceFile: ts.SourceFile;
   readonly bindings: ReadonlyMap<string, string>;
   readonly semanticBindings: ReadonlyMap<string, string>;
+  readonly semanticImportBindings: ReadonlyMap<string, SemanticImportBinding>;
+  readonly usedSemanticImports: Set<string>;
   readonly localClassNames: ReadonlySet<string>;
   readonly diagnostics: Diagnostic[];
   readonly sourceLocations: Map<string, SourceLocation>;
+}
+
+interface SemanticImportBinding {
+  readonly localName: string;
+  readonly semanticName: string;
+  readonly moduleSpecifier: string;
+  readonly location: SourceLocation;
 }
 
 export function parseModuleSource(
@@ -133,6 +143,9 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
       readonly declaration: ModuleDeclaration;
       readonly diagnostics: readonly [];
       readonly sourceLocations: ReadonlyMap<string, SourceLocation>;
+      readonly fileName: string;
+      readonly semanticImportUses: readonly SemanticImportBinding[];
+      readonly exportedClassNames: ReadonlySet<string>;
     }
   | { readonly success: false; readonly diagnostics: readonly Diagnostic[] } {
   const sourceFile = ts.createSourceFile(
@@ -147,10 +160,18 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
 
   const bindings = collectDslBindings(sourceFile, diagnostics);
   const classes = sourceFile.statements.filter(ts.isClassDeclaration);
+  const semanticImportBindings = collectSemanticImportBindings(sourceFile);
   const context: ParserContext = {
     sourceFile,
     bindings,
-    semanticBindings: collectSemanticBindings(sourceFile),
+    semanticBindings: new Map(
+      [...semanticImportBindings].map(([localName, binding]) => [
+        localName,
+        binding.semanticName,
+      ]),
+    ),
+    semanticImportBindings,
+    usedSemanticImports: new Set(),
     localClassNames: new Set(
       classes.flatMap((candidate) =>
         candidate.name ? [candidate.name.text] : [],
@@ -190,13 +211,21 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
     declaration,
     diagnostics: [],
     sourceLocations: context.sourceLocations,
+    fileName: input.fileName,
+    semanticImportUses: [...context.usedSemanticImports].flatMap(
+      (localName) => {
+        const binding = context.semanticImportBindings.get(localName);
+        return binding ? [binding] : [];
+      },
+    ),
+    exportedClassNames: collectExportedClassNames(sourceFile, classes),
   };
 }
 
-function collectSemanticBindings(
+function collectSemanticImportBindings(
   sourceFile: ts.SourceFile,
-): ReadonlyMap<string, string> {
-  const bindings = new Map<string, string>();
+): ReadonlyMap<string, SemanticImportBinding> {
+  const bindings = new Map<string, SemanticImportBinding>();
   for (const statement of sourceFile.statements) {
     if (
       !ts.isImportDeclaration(statement) ||
@@ -209,19 +238,67 @@ function collectSemanticBindings(
     }
     const namedBindings = statement.importClause.namedBindings;
     if (!namedBindings || !ts.isNamedImports(namedBindings)) continue;
+    if (!ts.isStringLiteral(statement.moduleSpecifier)) continue;
     for (const element of namedBindings.elements) {
       if (element.isTypeOnly) continue;
-      bindings.set(
-        element.name.text,
-        (element.propertyName ?? element.name).text,
-      );
+      bindings.set(element.name.text, {
+        localName: element.name.text,
+        semanticName: (element.propertyName ?? element.name).text,
+        moduleSpecifier: statement.moduleSpecifier.text,
+        location: locationOf(sourceFile, element),
+      });
     }
   }
   return bindings;
 }
 
 function semanticName(context: ParserContext, localName: string): string {
+  if (context.semanticImportBindings.has(localName)) {
+    context.usedSemanticImports.add(localName);
+  }
   return context.semanticBindings.get(localName) ?? localName;
+}
+
+function collectExportedClassNames(
+  sourceFile: ts.SourceFile,
+  classes: readonly ts.ClassDeclaration[],
+): ReadonlySet<string> {
+  const classNames = new Set(
+    classes.flatMap((candidate) =>
+      candidate.name ? [candidate.name.text] : [],
+    ),
+  );
+  const exported = new Set<string>();
+  for (const candidate of classes) {
+    if (
+      candidate.name &&
+      candidate.modifiers?.some(
+        (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+      ) &&
+      !candidate.modifiers.some(
+        (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
+      )
+    ) {
+      exported.add(candidate.name.text);
+    }
+  }
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isExportDeclaration(statement) ||
+      statement.moduleSpecifier ||
+      !statement.exportClause ||
+      !ts.isNamedExports(statement.exportClause)
+    ) {
+      continue;
+    }
+    for (const element of statement.exportClause.elements) {
+      const localName = (element.propertyName ?? element.name).text;
+      if (classNames.has(localName) && element.name.text === localName) {
+        exported.add(localName);
+      }
+    }
+  }
+  return exported;
 }
 
 function hasRuntimeClassBinding(
@@ -285,6 +362,13 @@ export function compileProjectSources(
       diagnostics: sortDiagnostics(duplicateModuleDiagnostics),
     };
   }
+  const semanticImportDiagnostics = validateSemanticImportSources(successful);
+  if (semanticImportDiagnostics.length > 0) {
+    return {
+      success: false,
+      diagnostics: sortDiagnostics(semanticImportDiagnostics),
+    };
+  }
   const compiled = compileSemanticProject(
     successful.map(({ declaration }) => declaration),
   );
@@ -305,6 +389,119 @@ export function compileProjectSources(
         : diagnostic;
     }),
   };
+}
+
+function validateSemanticImportSources(
+  sources: readonly {
+    readonly fileName: string;
+    readonly declaration: ModuleDeclaration;
+    readonly semanticImportUses: readonly SemanticImportBinding[];
+    readonly exportedClassNames: ReadonlySet<string>;
+  }[],
+): readonly Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+  const sourcesByFileName = new Map(
+    sources.map((source) => [normalizeSourceFileName(source.fileName), source]),
+  );
+  const modulesByName = new Map(
+    sources.map((source) => [source.declaration.name, source]),
+  );
+
+  for (const source of sources) {
+    const visibleModules = collectVisibleModuleNames(
+      source.declaration.name,
+      modulesByName,
+    );
+    for (const binding of source.semanticImportUses) {
+      const target = resolveSemanticImportSource(
+        source.fileName,
+        binding.moduleSpecifier,
+        sourcesByFileName,
+      );
+      const targetSemanticNames = target
+        ? semanticClassNames(target.declaration)
+        : undefined;
+      if (
+        target?.exportedClassNames.has(binding.semanticName) &&
+        targetSemanticNames?.has(binding.semanticName) &&
+        visibleModules.has(target.declaration.name)
+      ) {
+        continue;
+      }
+      diagnostics.push({
+        code: "VANE_PARSE_SEMANTIC_IMPORT_SOURCE",
+        path: ["module", "imports", binding.semanticName],
+        message: `Semantic class ${binding.localName} does not resolve to an exported ${binding.semanticName} declaration from a visible supplied Module source.`,
+        correction:
+          "Import the class from the source that exports its semantic declaration, and include that source's Module in @Module imports.",
+        location: binding.location,
+      });
+    }
+  }
+  return diagnostics;
+}
+
+function normalizeSourceFileName(fileName: string): string {
+  return path.normalize(fileName.replaceAll("\\", "/"));
+}
+
+function resolveSemanticImportSource<T>(
+  importerFileName: string,
+  moduleSpecifier: string,
+  sourcesByFileName: ReadonlyMap<string, T>,
+): T | undefined {
+  if (!moduleSpecifier.startsWith(".")) return undefined;
+  const resolved = path.normalize(
+    path.join(
+      path.dirname(normalizeSourceFileName(importerFileName)),
+      moduleSpecifier,
+    ),
+  );
+  const candidates = new Set([resolved]);
+  if (resolved.endsWith(".js")) candidates.add(`${resolved.slice(0, -3)}.ts`);
+  if (resolved.endsWith(".mjs")) candidates.add(`${resolved.slice(0, -4)}.mts`);
+  if (resolved.endsWith(".cjs")) candidates.add(`${resolved.slice(0, -4)}.cts`);
+  if (!path.extname(resolved)) {
+    candidates.add(`${resolved}.ts`);
+    candidates.add(path.join(resolved, "index.ts"));
+  }
+  for (const candidate of candidates) {
+    const source = sourcesByFileName.get(candidate);
+    if (source) return source;
+  }
+  return undefined;
+}
+
+function semanticClassNames(
+  declaration: ModuleDeclaration,
+): ReadonlySet<string> {
+  return new Set([
+    declaration.name,
+    ...declaration.entities.map(({ name }) => name),
+    ...(declaration.views ?? []).map(({ name }) => name),
+    ...(declaration.antiCorruptionLayers ?? []).map(({ name }) => name),
+    ...(declaration.sagas ?? []).map(({ name }) => name),
+  ]);
+}
+
+function collectVisibleModuleNames(
+  moduleName: string,
+  modulesByName: ReadonlyMap<
+    string,
+    { readonly declaration: ModuleDeclaration }
+  >,
+): ReadonlySet<string> {
+  const visible = new Set<string>();
+  const visit = (name: string): void => {
+    if (visible.has(name)) return;
+    visible.add(name);
+    const source = modulesByName.get(name);
+    for (const importedName of source?.declaration.imports ?? []) {
+      visit(importedName);
+    }
+  };
+  visit(moduleName);
+  return visible;
 }
 
 function collectDslBindings(

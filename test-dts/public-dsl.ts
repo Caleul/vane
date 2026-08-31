@@ -138,6 +138,16 @@ const ruleOnlyComparison = eq(column("total"), literal(0));
 // @ts-expect-error Rule-only operands cannot produce a View expression.
 const invalidViewExpression: ViewExpressionDeclaration = ruleOnlyComparison;
 
+const sharedComparison = eq(literal(1), literal(1));
+const ruleWithSharedComparison: RuleExpressionDeclaration = and(
+  ruleOnlyComparison,
+  sharedComparison,
+);
+const viewWithSharedComparison: ViewExpressionDeclaration = and(
+  viewOnlyComparison,
+  sharedComparison,
+);
+
 // @ts-expect-error Logical Rule helpers require at least two operands.
 and(ruleOnlyComparison);
 // @ts-expect-error Logical View helpers require at least two operands.
@@ -145,3 +155,5 @@ or(viewOnlyComparison);
 
 void invalidRuleExpression;
 void invalidViewExpression;
+void ruleWithSharedComparison;
+void viewWithSharedComparison;

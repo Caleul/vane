@@ -238,7 +238,7 @@ describe("phase one completion gate", () => {
           @Entity() class Broken {
             @Column({ type: "string" }) value!: string;
           }
-          @Module({ entities: [Broken] }) class Core {}
+          @Module({ entities: [Broken] }) export class Core {}
         `,
       },
       {
@@ -368,6 +368,55 @@ describe("phase one completion gate", () => {
         ),
       );
     }
+  });
+
+  it("rejects semantic class imports from the wrong Module source", () => {
+    const result = compileProjectSources([
+      {
+        fileName: "core.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() export class Customer {
+            @Column({ type: "uuid", identity: true }) id!: string;
+          }
+          @Module({ entities: [Customer] }) export class Core {}
+        `,
+      },
+      {
+        fileName: "unrelated.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() export class Customer {
+            @Column({ type: "uuid", identity: true }) id!: string;
+          }
+          @Module({ entities: [Customer] }) export class Unrelated {}
+        `,
+      },
+      {
+        fileName: "application.vane.ts",
+        sourceText: `
+          import { Module, View, field } from "@lilka/vane";
+          import { Core } from "./core.vane.js";
+          import { Customer } from "./unrelated.vane.js";
+          @View({
+            input: {},
+            output: { id: field(Customer, "id") },
+            query: { root: Customer },
+          }) class CustomerView {}
+          @Module({ imports: [Core], entities: [], views: [CustomerView] })
+          class Application {}
+        `,
+      },
+    ]);
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, location }) =>
+          code === "VANE_PARSE_SEMANTIC_IMPORT_SOURCE" &&
+          location?.fileName === "application.vane.ts",
+      ),
+    );
   });
 
   it("rejects surplus arguments in typed and legacy Saga event calls", () => {
@@ -706,11 +755,11 @@ describe("phase one completion gate", () => {
         fileName: "core.vane.ts",
         sourceText: `
           import { Module, Entity, Column } from "@lilka/vane";
-          @Entity() class Customer {
+          @Entity() export class Customer {
             @Column({ type: "uuid", identity: true }) id!: string;
             @Column({ type: "json", default: { source: "test", flags: ["safe"] } }) metadata!: unknown;
           }
-          @Module({ entities: [Customer] }) class Core {}
+          @Module({ entities: [Customer] }) export class Core {}
           throw new Error("must not execute");
         `,
       },

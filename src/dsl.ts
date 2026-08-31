@@ -181,13 +181,23 @@ export function input(
 ): ViewValueDeclaration & ViewPaginationValueDeclaration {
   return { kind: "input", input: name };
 }
+type LiteralDeclaration = {
+  readonly kind: "literal";
+  readonly value: boolean | number | string | null;
+};
 export function literal(
   value: boolean | number | string | null,
-): RuleValueDeclaration & ViewValueDeclaration {
+): LiteralDeclaration {
   return { kind: "literal", value };
 }
 
 type Comparable = RuleValueDeclaration | ViewValueDeclaration;
+type SharedComparison = {
+  readonly kind: "comparison";
+  readonly operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+  readonly left: LiteralDeclaration;
+  readonly right: LiteralDeclaration;
+};
 function comparison(
   operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte",
   left: Comparable,
@@ -200,15 +210,16 @@ function comparison(
     right,
   } as RuleExpressionDeclaration | ViewExpressionDeclaration;
 }
-type Comparison = (
-  left: RuleValueDeclaration,
-  right: RuleValueDeclaration,
-) => RuleExpressionDeclaration;
-interface ComparisonOverloads extends Comparison {
+interface ComparisonOverloads {
+  (left: LiteralDeclaration, right: LiteralDeclaration): SharedComparison;
   (
     left: ViewValueDeclaration,
     right: ViewValueDeclaration,
   ): ViewExpressionDeclaration;
+  (
+    left: RuleValueDeclaration,
+    right: RuleValueDeclaration,
+  ): RuleExpressionDeclaration;
 }
 function makeComparison(
   operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte",
