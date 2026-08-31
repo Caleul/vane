@@ -19,6 +19,7 @@ import {
   input,
   literal,
   optional,
+  or,
   reference,
   relation,
   success,
@@ -136,6 +137,11 @@ const invalidRuleExpression: RuleExpressionDeclaration = viewOnlyComparison;
 const ruleOnlyComparison = eq(column("total"), literal(0));
 // @ts-expect-error Rule-only operands cannot produce a View expression.
 const invalidViewExpression: ViewExpressionDeclaration = ruleOnlyComparison;
+
+// @ts-expect-error Logical Rule helpers require at least two operands.
+and(ruleOnlyComparison);
+// @ts-expect-error Logical View helpers require at least two operands.
+or(viewOnlyComparison);
 
 void invalidRuleExpression;
 void invalidViewExpression;

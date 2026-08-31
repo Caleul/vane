@@ -224,10 +224,18 @@ export const lt = makeComparison("lt");
 export const lte = makeComparison("lte");
 
 export function and(
-  ...operands: readonly RuleExpressionDeclaration[]
+  ...operands: readonly [
+    RuleExpressionDeclaration,
+    RuleExpressionDeclaration,
+    ...RuleExpressionDeclaration[],
+  ]
 ): RuleExpressionDeclaration;
 export function and(
-  ...operands: readonly ViewExpressionDeclaration[]
+  ...operands: readonly [
+    ViewExpressionDeclaration,
+    ViewExpressionDeclaration,
+    ...ViewExpressionDeclaration[],
+  ]
 ): ViewExpressionDeclaration;
 export function and(
   ...operands: readonly (
@@ -242,10 +250,18 @@ export function and(
   } as RuleExpressionDeclaration | ViewExpressionDeclaration;
 }
 export function or(
-  ...operands: readonly RuleExpressionDeclaration[]
+  ...operands: readonly [
+    RuleExpressionDeclaration,
+    RuleExpressionDeclaration,
+    ...RuleExpressionDeclaration[],
+  ]
 ): RuleExpressionDeclaration;
 export function or(
-  ...operands: readonly ViewExpressionDeclaration[]
+  ...operands: readonly [
+    ViewExpressionDeclaration,
+    ViewExpressionDeclaration,
+    ...ViewExpressionDeclaration[],
+  ]
 ): ViewExpressionDeclaration;
 export function or(
   ...operands: readonly (
