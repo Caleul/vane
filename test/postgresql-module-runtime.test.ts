@@ -522,6 +522,63 @@ describe("PostgreSQL Module runtime", () => {
     await runtime.stop();
   });
 
+  it("accepts PostgreSQL boolean and canonical JSONB default deparse", async () => {
+    const module = semanticModule();
+    const initial = storageFor(module);
+    const storage: PostgreSqlStorageIr = {
+      ...initial,
+      tables: initial.tables.map((table) =>
+        table.semanticId === "Sales.Order"
+          ? {
+              ...table,
+              columns: [
+                ...table.columns,
+                {
+                  semanticId: "Sales.Order.active",
+                  name: "active",
+                  type: "boolean",
+                  nullable: false,
+                  defaultSql: "TRUE",
+                  generated: null,
+                  technical: false,
+                },
+                {
+                  semanticId: "Sales.Order.metadata",
+                  name: "metadata",
+                  type: "jsonb",
+                  nullable: false,
+                  defaultSql: `'{\"a\":1,\"b\":2}'::jsonb`,
+                  generated: null,
+                  technical: false,
+                },
+              ],
+            }
+          : table,
+      ),
+    };
+    const database = new MemoryPostgreSqlPool(storage);
+    const active = database.catalogRows.find(
+      ({ column_name }) => column_name === "active",
+    );
+    const metadata = database.catalogRows.find(
+      ({ column_name }) => column_name === "metadata",
+    );
+    assert.ok(active);
+    assert.ok(metadata);
+    Object.assign(active, { column_default: "true" });
+    Object.assign(metadata, {
+      column_default: `'{\"b\": 2, \"a\": 1}'::jsonb`,
+    });
+
+    const runtime = new PostgreSqlModuleRuntime({
+      module,
+      pool: database,
+      storage,
+    });
+    await runtime.start();
+    await runtime.stop();
+  });
+
   it("stops admission immediately and waits for every accepted transaction", async () => {
     const module = semanticModule();
     const storage = storageFor(module);

@@ -3,7 +3,11 @@ import type {
   SemanticEntityEvent,
   SemanticModule,
 } from "../semantic-ir.js";
-import { type EventEnvelope, assertValidEventEnvelope } from "./envelope.js";
+import {
+  type EventEnvelope,
+  assertValidEventEnvelope,
+  canonicalJson,
+} from "./envelope.js";
 import { quotePostgreSqlIdentifier } from "./identifiers.js";
 import {
   POSTGRESQL_MIGRATION_HISTORY_TABLE,
@@ -428,8 +432,8 @@ async function validatePostgreSqlDatabase(
           installed.is_nullable !== expectedNullable ||
           installed.is_identity !== expectedIdentity ||
           (column.generated === null &&
-            normalizeDefault(installed.column_default) !==
-              normalizeDefault(column.defaultSql))
+            normalizeDefault(installed.column_default, column.type) !==
+              normalizeDefault(column.defaultSql, column.type))
         )
           configuration(
             `PostgreSQL Column ${JSON.stringify(`${storage.provider.namespace}.${table.name}.${column.name}`)} does not match its compiled type, nullability, generation or default.`,
@@ -475,22 +479,24 @@ const POSTGRESQL_UDT = {
   jsonb: "jsonb",
 } as const;
 
-function normalizeDefault(value: string | null): string | null {
+function normalizeDefault(
+  value: string | null,
+  type: PostgreSqlStorageIr["tables"][number]["columns"][number]["type"],
+): string | null {
   if (value === null) return null;
-  let normalized = value.replace(/\s+/g, "");
-  normalized = normalized.replace(
-    /::(?:text|bigint|numeric|boolean|date|timestampwithtimezone|uuid|jsonb)/giu,
-    "",
-  );
-  let previous = "";
-  while (previous !== normalized) {
-    previous = normalized;
-    normalized = normalized.replace(
-      /^\(([-+]?\d+(?:\.\d+)?|true|false|null)\)$/iu,
-      "$1",
-    );
+  const normalized = normalizeCatalogExpression(value);
+  if (type !== "jsonb" || normalized === null) return normalized;
+  const literal = /^'(.*)'$/su.exec(normalized);
+  if (!literal) return normalized;
+  try {
+    return `jsonb:${canonicalJson(
+      JSON.parse(literal[1]?.replaceAll("''", "'") ?? "") as Parameters<
+        typeof canonicalJson
+      >[0],
+    )}`;
+  } catch {
+    return normalized;
   }
-  return normalized;
 }
 
 function assertConstraints(

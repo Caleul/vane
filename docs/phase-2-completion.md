@@ -57,7 +57,7 @@ npm run verify
 ```
 
 It runs Biome, TypeScript, public type fixtures, package build and the complete
-138-test unit suite. Phase 2 adds semantic-operation, materializer, migrations, envelope,
+139-test unit suite. Phase 2 adds semantic-operation, materializer, migrations, envelope,
 runtime, module-lifecycle and outbox suites while retaining every phase-1
 regression.
 
