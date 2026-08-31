@@ -506,6 +506,8 @@ describe("PostgreSQL Module runtime", () => {
     const storage = storageFor(module);
     const database = new MemoryPostgreSqlPool(storage);
     for (const constraint of database.constraintRows) {
+      if (constraint.constraint_type !== "f")
+        Object.assign(constraint, { reference_columns: [] });
       if (constraint.check_expression?.includes(" IN ("))
         constraint.check_expression = `(${constraint.check_expression
           .replace(" IN (", " = ANY (ARRAY[")

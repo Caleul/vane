@@ -544,13 +544,11 @@ function assertConstraints(
         !found.validated ||
         found.constraint_type !== expectedType ||
         !sameStrings(found.column_names, constraint.columns) ||
-        found.reference_table !== (reference?.table ?? null) ||
-        !sameNullableStrings(
-          found.reference_columns,
-          reference ? [reference.column] : null,
-        ) ||
         (reference !== null &&
-          (found.delete_action !== "a" || found.update_action !== "a")) ||
+          (found.reference_table !== reference.table ||
+            !sameNullableStrings(found.reference_columns, [reference.column]) ||
+            found.delete_action !== "a" ||
+            found.update_action !== "a")) ||
         installedExpression !== expectedExpression
       )
         configuration(
