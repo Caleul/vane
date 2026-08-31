@@ -83,7 +83,7 @@ describe("Saga Semantic IR", () => {
 
     assert.equal(result.success, true);
     if (!result.success) return;
-    assert.equal(result.ir.version, 4);
+    assert.equal(result.ir.version, 5);
     assert.deepEqual(result.ir.module.sagas[0], {
       name: "PlaceOrder",
       input: [{ name: "orderId", type: "uuid", optional: false }],

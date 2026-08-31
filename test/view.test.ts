@@ -39,6 +39,7 @@ const moduleWithView: ModuleDeclaration = {
       ],
       query: {
         root: "Order",
+        relations: [],
         where: {
           kind: "logical",
           operator: "and",
@@ -78,7 +79,7 @@ describe("View Semantic IR", () => {
 
     assert.equal(result.success, true);
     if (!result.success) return;
-    assert.equal(result.ir.version, 4);
+    assert.equal(result.ir.version, 5);
     assert.deepEqual(result.ir.module.views[0], {
       name: "OrderDetails",
       input: [
@@ -101,6 +102,7 @@ describe("View Semantic IR", () => {
       ],
       query: {
         root: "Order",
+        relations: [],
         where: result.ir.module.views[0]?.query.where,
         orderBy: [
           {

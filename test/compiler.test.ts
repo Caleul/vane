@@ -45,7 +45,7 @@ describe("compileSemanticIr", () => {
     if (!result.success) return;
 
     assert.equal(result.ir.schema, "vane.semantic-ir");
-    assert.equal(result.ir.version, 4);
+    assert.equal(result.ir.version, 5);
     assert.equal(result.ir.module.entities[0]?.identityColumn, "id");
     assert.deepEqual(result.ir.module.entities[0]?.events[0], {
       identity: "Subscription.CreateSubscription",
@@ -56,6 +56,10 @@ describe("compileSemanticIr", () => {
         { name: "endDate", type: "date", optional: false },
         { name: "startDate", type: "date", optional: false },
       ],
+      publicResult: {
+        success: "viewOnly",
+        fail: { code: "stable", message: "safe", correlationId: true },
+      },
     });
   });
 

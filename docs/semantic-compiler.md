@@ -1,58 +1,28 @@
 # Semantic compiler boundary
 
-Vane uses a mandatory two-stage compiler:
+Vane has a mandatory two-stage compiler:
 
-1. `Module -> Semantic IR`
+1. `TypeScript DSL -> declarations -> Semantic IR`
 2. `Semantic IR + ServiceConfiguration + profile -> materialization IRs`
 
-This repository currently implements the first executable slices of stage one:
-the static TypeScript parser and the `ModuleDeclaration -> Semantic IR`
-compiler. `ModuleDeclaration` remains an internal boundary; it is not the final
-user-facing DSL.
+Stage one is the executable specification. It preserves meaning and rejects an
+invalid model without selecting a database, framework, protocol, queue,
+credential, retry policy, or deployment topology. Those choices require a
+`ServiceConfiguration` and belong to stage two.
 
-## Why this boundary exists
+## Public TypeScript DSL
 
-The Semantic IR must preserve meaning without choosing how that meaning is
-executed. It can state that an Event belongs to an Entity and necessarily
-persists its owner, that an Event belongs to an Anti-Corruption Layer and
-interprets external results, that a View is a non-persistent public result, and
-that a Saga requires a durable causal DAG with terminal-only visibility. It
-cannot choose PostgreSQL, NestJS, HTTP, SSE, a queue, retry policy, credentials,
-or deployment topology.
-
-Those choices require a `ServiceConfiguration` and belong to stage two.
-
-## Determinism
-
-Declarations are normalized into a canonical order before serialization. Given
-semantically equivalent input ordering, `serializeSemanticIr` must return the
-same bytes. This property is foundational for reproducible generation, schema
-snapshots, diffs, cache keys, and later migration planning.
-
-## Failure model
-
-Semantic validation is all-or-nothing. A failed compilation returns diagnostics
-with a code, semantic path, cause, and likely correction. It never exposes a
-partial IR that a downstream materializer could accidentally consume.
-
-Source parser diagnostics also carry a one-based file, line, and column range.
-The parser reads the TypeScript AST directly. It never imports, transpiles, or
-executes the user's module.
-
-## Provisional static grammar
-
-The parser recognizes named imports from `@lilka/vane`, including aliases, and
-the decorators `@Module`, `@Entity`, `@Column`, `@Rule`, `@Event`, `@View`,
-`@ACL`, and `@Saga`. The first slices intentionally keep all declarations in
-one source file.
+`@lilka/vane` exports the decorators and helpers accepted by the static parser.
+The same API is checked by TypeScript fixtures, so examples cannot drift away
+from the package surface.
 
 ```ts
 import {
-  Module,
-  Entity,
   Column,
-  Rule,
+  Entity,
   Event,
+  Module,
+  Rule,
   column,
   gt,
   optional,
@@ -77,156 +47,149 @@ class Subscription {
 class Sales {}
 ```
 
-Rule values use `column("name")` and `literal(value)`. Comparisons use `eq`,
-`neq`, `gt`, `gte`, `lt`, and `lte`; expressions compose with `and`, `or`, and
-`not`. Column references accept `Customer.id` or
-`{ entity: Customer, column: "id" }`.
+The parser reads the TypeScript AST directly. It never imports, transpiles, or
+executes the user's source. Decorator configuration must therefore consist of
+inline objects and arrays, literal values, class identifiers, and recognized
+helper calls. Variables, spreads, shorthand properties, computed properties,
+and arbitrary function calls are rejected with source locations.
 
-Views declare typed input, an output whose types are derived from projections,
-and a mandatory query owned by the View:
+Column constraints include nullability, uniqueness, identity, reference,
+generation, string length, numeric bounds, and static defaults. Contradictions
+such as nullable identities, an incompatible generator, `minLength >
+maxLength`, or generation combined with a default fail semantic compilation.
+
+## Typed references
+
+TypeScript cannot infer static properties from property decorators. Vane uses
+helpers that check member names against the referenced class instead:
+
+```ts
+@Column({ type: "uuid", references: reference(Customer, "id") })
+customerId!: string;
+
+field(Order, "customerId");
+eventRef(Order, "Cancel");
+event(Order, "Place", { compensateWith: eventRef(Order, "Cancel") });
+```
+
+The parser continues to understand the earlier `Customer.id` and `Order.Place`
+forms for source compatibility, but the helper form is the public, type-checked
+grammar.
+
+## Views and explicit relations
+
+A View owns its query, never persists, and is the only successful public result
+shape. Output types and nullability are inferred from projected Columns and
+aggregates.
 
 ```ts
 @View({
-  input: {
-    customerId: "uuid",
-    pageSize: "integer",
-    offset: optional("integer"),
-  },
+  input: { customerId: "uuid", limit: "integer" },
   output: {
-    id: Order.id,
-    total: Order.total,
+    orderId: field(Order, "id"),
+    customerName: field(Customer, "name"),
   },
   query: {
     root: Order,
-    where: and(
-      eq(Order.customerId, input("customerId")),
-      gt(Order.total, literal(0)),
-    ),
-    orderBy: [desc(Order.createdAt)],
-    pagination: {
-      limit: input("pageSize"),
-      offset: input("offset"),
+    relations: {
+      customer: relation(
+        field(Order, "customerId"),
+        field(Customer, "id"),
+      ),
     },
+    where: eq(field(Order, "customerId"), input("customerId")),
+    orderBy: [desc(field(Customer, "name"))],
+    pagination: { limit: input("limit") },
   },
 })
 class OrderDetails {}
-
-@Module({ entities: [Order], views: [OrderDetails] })
-class Sales {}
 ```
 
-View output supports direct Column projections and `count`, `sum`, `avg`,
-`min`, and `max`. Filters use Entity Column references, declared inputs, static
-literals, comparisons, and logical operators. Ordering and pagination remain
-ordered query properties. The Semantic IR records that a View cannot persist
-and is a public result. Each output contract also preserves nullability:
-projected Columns inherit it, `count` is non-null, and the other aggregates are
-nullable because an empty result set has no aggregate value.
+Every relation must follow an actual Column reference, use compatible types,
+and form a connected path from the query root. Vane does not infer joins.
+Filters use typed Columns, declared inputs, literals, comparison operators, and
+logical composition. Ordering and pagination remain ordered query properties.
 
-Until grouping has an explicit grammar, an aggregate View may contain only
-aggregate outputs and cannot order by ungrouped Columns. Mixing `Order.id` with
-`count(Order.id)` is rejected instead of assigning accidental SQL semantics.
+`count`, `sum`, `avg`, `min`, and `max` are supported. Until grouping has its
+own semantic vocabulary, a View cannot mix scalar and aggregate outputs or
+order an aggregate-only result by an ungrouped Column. Rejection is preferable
+to accidental SQL semantics.
 
-This slice accepts only Columns from the query root. Relation navigation is
-deliberately rejected until the compiler has an explicit relation path it can
-validate; accepting `User.orders.total` without that guarantee would silently
-invent query semantics.
+## Anti-Corruption Layers and terminal outcomes
 
-Anti-Corruption Layers declare external Events without declaring how the
-external system is reached:
+An ACL owns Events that interpret external results as `success` or `fail` but
+does not define how the external system is reached. Result names and fields are
+semantic; endpoints, protocols, credentials, status mappings, timeouts, retries,
+and idempotency belong to `ServiceConfiguration`.
 
-```ts
-@ACL()
-class PaymentGateway {
-  @Event({
-    input: {
-      amount: "decimal",
-      currency: "string",
-    },
-    results: {
-      approved: success({
-        transactionId: "string",
-        authorizationCode: "string",
-      }),
-      declined: fail({
-        declineCode: "string",
-        reason: optional("string"),
-      }),
-    },
-  })
-  Authorize() {}
-}
+Every Entity and ACL Event records a common public terminal contract in the
+Semantic IR: success can only be exposed as a View; fail requires a stable code,
+a safe message, and correlation identity. The IR does not expose raw exceptions
+or ACL payloads as public success responses.
 
-@Module({
-  entities: [Payment],
-  antiCorruptionLayers: [PaymentGateway],
-})
-class Payments {}
-```
+## Sagas
 
-The result names belong to the ubiquitous language at the boundary. Each one
-is interpreted as the Event's `success` or `fail` and can carry typed semantic
-data. An ACL Event must declare at least one interpretation of each terminal
-outcome. The Semantic IR records the stable identity
-`PaymentGateway.Authorize`; it does not contain endpoint, protocol,
-credentials, status codes, serialization, timeout, retry, or idempotency.
-Those mappings require ServiceConfiguration in compiler stage two.
-
-Sagas declare causal Event graphs. A step names an Event occurrence;
-`causedBy` creates directed causal edges without introducing `await` or an
-intermediate return value. Compensation references another existing Event:
+A Saga is a causal DAG of Entity or ACL Events. Steps do not return awaited
+intermediate values. Compensation references another known Event, every branch
+converges on one terminal step, and only the final View or fail is visible.
 
 ```ts
 @Saga({
   input: { orderId: "uuid" },
   steps: {
-    place: event(Order.Place, {
-      compensateWith: Order.Cancel,
+    place: event(Order, "Place", {
+      compensateWith: eventRef(Order, "Cancel"),
     }),
-    authorize: event(PaymentGateway.Authorize, {
+    authorize: event(PaymentGateway, "Authorize", {
       causedBy: ["place"],
     }),
-    capture: event(Payment.Capture, {
-      causedBy: ["authorize"],
-      compensateWith: Payment.Refund,
-    }),
   },
-  terminal: {
-    step: "capture",
-    view: PaymentReceipt,
-  },
+  terminal: { step: "authorize", view: PaymentReceipt },
 })
 class PlaceOrder {}
+```
 
-@Module({
-  entities: [Order, Payment],
-  views: [PaymentReceipt],
-  antiCorruptionLayers: [PaymentGateway],
-  sagas: [PlaceOrder],
-})
+The IR preserves causal identifiers, durable Saga state, terminal-only stream
+visibility, and internal intermediate results. A later materializer decides how
+to store and transport those guarantees.
+
+## Module composition
+
+Modules compose explicitly across source files:
+
+```ts
+@Module({ entities: [Customer] })
+class Core {}
+
+@Module({ imports: [Core], entities: [Order], views: [OrderDetails] })
 class Sales {}
 ```
 
-The compiler validates every Entity/ACL Event, compensation, causal predecessor,
-terminal step, and terminal View. Cycles are rejected. Every branch must
-converge on one sink, which must be the selected terminal step. The Semantic IR
-records the required causal identifiers and durable Saga state without choosing
-their provider. It also fixes Saga Stream visibility to the final View or
-terminal fail; intermediate steps, retries, and compensations remain internal.
+Use `compileProjectSources` for source files or `compileSemanticProject` for
+declarations. The project compiler rejects unknown, duplicate, self, and cyclic
+imports. Entity references, View relations, Saga Events, and terminal Views may
+resolve through the transitive import graph. Same-named visible concepts are
+rejected instead of selected by import order.
 
-Decorator configuration must consist of inline object and array literals,
-literal scalar values, Entity identifiers, and the recognized helper calls.
-Variables, spreads, shorthand properties, computed properties, and arbitrary
-function calls are rejected because interpreting them would require execution.
+## Determinism and failure model
 
-This grammar is deliberately provisional. It establishes the safe parser
-boundary and executable invariants; it does not freeze the final DSL ergonomics.
+Declarations are normalized before serialization. Semantically equivalent
+input order produces byte-identical output from `serializeSemanticIr` and
+`serializeSemanticProjectIr`.
 
-## Deliberately deferred
+Validation is all-or-nothing. Failures contain a stable code, semantic path,
+cause, likely correction, and source location when compiled from TypeScript.
+No failure exposes a partial IR to a downstream materializer.
 
-- persistence operation grammar;
-- View relation navigation and joins;
-- ServiceConfiguration and provider capability negotiation;
-- Runtime, Storage, Contract, and Infrastructure IRs.
+## Stage-two boundary
 
-Each item should enter the compiler only with executable invariants and tests.
+The following remain deliberately outside Semantic IR:
+
+- database schemas, migrations, transactions, locks, and provider capability;
+- HTTP, SSE, queues, serialization, status codes, and generated contracts;
+- ACL endpoints, credentials, timeout, retry, and idempotency mappings;
+- Saga storage engines, workers, schedules, and telemetry exporters;
+- runtime framework and infrastructure topology.
+
+They are not missing phase-one semantics. They are materialization decisions
+that cannot be compiled correctly before `ServiceConfiguration` exists.

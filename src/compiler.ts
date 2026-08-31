@@ -4,6 +4,7 @@ import type {
   EntityColumnReferenceDeclaration,
   EntityDeclaration,
   EventReferenceDeclaration,
+  JsonValue,
   ModuleDeclaration,
   RuleExpressionDeclaration,
   RuleValueDeclaration,
@@ -12,14 +13,18 @@ import type {
   ViewExpressionDeclaration,
   ViewOutputExpressionDeclaration,
   ViewPaginationValueDeclaration,
+  ViewRelationDeclaration,
   ViewValueDeclaration,
 } from "./declaration.js";
 import type { Diagnostic } from "./diagnostic.js";
 import {
   SEMANTIC_IR_VERSION,
+  SEMANTIC_PROJECT_IR_VERSION,
   type SemanticAntiCorruptionLayer,
   type SemanticEntity,
   type SemanticIr,
+  type SemanticModule,
+  type SemanticProjectIr,
   type SemanticSaga,
   type SemanticView,
 } from "./semantic-ir.js";
@@ -32,9 +37,37 @@ export type SemanticCompilationResult =
     }
   | { readonly success: false; readonly diagnostics: readonly Diagnostic[] };
 
+export type SemanticProjectCompilationResult =
+  | {
+      readonly success: true;
+      readonly ir: SemanticProjectIr;
+      readonly diagnostics: readonly [];
+    }
+  | { readonly success: false; readonly diagnostics: readonly Diagnostic[] };
+
 const NAME_PATTERN = /^[A-Za-z][A-Za-z0-9]*$/;
 
 export function compileSemanticIr(
+  declaration: ModuleDeclaration,
+): SemanticCompilationResult {
+  if ((declaration.imports?.length ?? 0) > 0) {
+    return {
+      success: false,
+      diagnostics: [
+        {
+          code: "VANE_SEM_IMPORT_CONTEXT",
+          path: ["module", "imports"],
+          message: `Module ${declaration.name} declares imports that cannot be resolved in isolation.`,
+          correction:
+            "Compile every participating Module together with compileSemanticProject.",
+        },
+      ],
+    };
+  }
+  return compileSemanticIrInternal(declaration);
+}
+
+function compileSemanticIrInternal(
   declaration: ModuleDeclaration,
 ): SemanticCompilationResult {
   const diagnostics: Diagnostic[] = [];
@@ -96,6 +129,7 @@ export function compileSemanticIr(
       version: SEMANTIC_IR_VERSION,
       module: {
         name: declaration.name,
+        imports: [...(declaration.imports ?? [])].sort(compare),
         entities: declaration.entities
           .map(toSemanticEntity)
           .sort((left, right) => compare(left.name, right.name)),
@@ -111,6 +145,192 @@ export function compileSemanticIr(
       },
     },
   };
+}
+
+export function compileSemanticProject(
+  declarations: readonly ModuleDeclaration[],
+): SemanticProjectCompilationResult {
+  const diagnostics: Diagnostic[] = [];
+  if (declarations.length === 0) {
+    return {
+      success: false,
+      diagnostics: [
+        {
+          code: "VANE_SEM_PROJECT_EMPTY",
+          path: ["project", "modules"],
+          message: "A semantic project must contain at least one Module.",
+          correction: "Compile one or more explicit Module declarations.",
+        },
+      ],
+    };
+  }
+  validateUniqueNames(
+    declarations,
+    ["project", "modules"],
+    "Module",
+    diagnostics,
+  );
+  const modulesByName = new Map(
+    declarations.map((declaration) => [declaration.name, declaration] as const),
+  );
+
+  for (const declaration of declarations) {
+    validateName(
+      declaration.name,
+      ["project", "modules", declaration.name, "name"],
+      "Module",
+      diagnostics,
+    );
+    const seen = new Set<string>();
+    for (const imported of declaration.imports ?? []) {
+      const path = [
+        "project",
+        "modules",
+        declaration.name,
+        "imports",
+        imported,
+      ];
+      if (seen.has(imported)) {
+        diagnostics.push({
+          code: "VANE_SEM_IMPORT_DUPLICATE",
+          path,
+          message: `Module ${declaration.name} imports Module ${imported} more than once.`,
+          correction: "Keep each Module import once.",
+        });
+      }
+      seen.add(imported);
+      if (imported === declaration.name) {
+        diagnostics.push({
+          code: "VANE_SEM_IMPORT_SELF",
+          path,
+          message: `Module ${declaration.name} imports itself.`,
+          correction: "Remove the self import.",
+        });
+      } else if (!modulesByName.has(imported)) {
+        diagnostics.push({
+          code: "VANE_SEM_IMPORT_UNKNOWN",
+          path,
+          message: `Module ${declaration.name} imports unknown Module ${imported}.`,
+          correction:
+            "Compile the imported Module in the same project or fix its name.",
+        });
+      }
+    }
+  }
+  validateModuleImportCycles(declarations, modulesByName, diagnostics);
+  if (diagnostics.length > 0) {
+    return { success: false, diagnostics: sortDiagnostics(diagnostics) };
+  }
+
+  const modules: SemanticModule[] = [];
+  for (const declaration of declarations) {
+    const visible = collectVisibleModules(declaration, modulesByName);
+    const combined: ModuleDeclaration = {
+      name: declaration.name,
+      ...(declaration.imports ? { imports: declaration.imports } : {}),
+      entities: visible.flatMap((module) => module.entities),
+      views: visible.flatMap((module) => module.views ?? []),
+      antiCorruptionLayers: visible.flatMap(
+        (module) => module.antiCorruptionLayers ?? [],
+      ),
+      sagas: visible.flatMap((module) => module.sagas ?? []),
+    };
+    const compiled = compileSemanticIrInternal(combined);
+    if (!compiled.success) {
+      diagnostics.push(
+        ...compiled.diagnostics.map((diagnostic) => ({
+          ...diagnostic,
+          path: [
+            "project",
+            "modules",
+            declaration.name,
+            ...diagnostic.path.slice(1),
+          ],
+        })),
+      );
+      continue;
+    }
+
+    const ownEntities = new Set(declaration.entities.map(({ name }) => name));
+    const ownViews = new Set((declaration.views ?? []).map(({ name }) => name));
+    const ownLayers = new Set(
+      (declaration.antiCorruptionLayers ?? []).map(({ name }) => name),
+    );
+    const ownSagas = new Set((declaration.sagas ?? []).map(({ name }) => name));
+    modules.push({
+      ...compiled.ir.module,
+      imports: [...(declaration.imports ?? [])].sort(compare),
+      entities: compiled.ir.module.entities.filter(({ name }) =>
+        ownEntities.has(name),
+      ),
+      views: compiled.ir.module.views.filter(({ name }) => ownViews.has(name)),
+      antiCorruptionLayers: compiled.ir.module.antiCorruptionLayers.filter(
+        ({ name }) => ownLayers.has(name),
+      ),
+      sagas: compiled.ir.module.sagas.filter(({ name }) => ownSagas.has(name)),
+    });
+  }
+
+  if (diagnostics.length > 0) {
+    return { success: false, diagnostics: sortDiagnostics(diagnostics) };
+  }
+  return {
+    success: true,
+    diagnostics: [],
+    ir: {
+      schema: "vane.semantic-project-ir",
+      version: SEMANTIC_PROJECT_IR_VERSION,
+      modules: modules.sort((left, right) => compare(left.name, right.name)),
+    },
+  };
+}
+
+function collectVisibleModules(
+  declaration: ModuleDeclaration,
+  modulesByName: ReadonlyMap<string, ModuleDeclaration>,
+): readonly ModuleDeclaration[] {
+  const visible = new Map<string, ModuleDeclaration>([
+    [declaration.name, declaration],
+  ]);
+  const visit = (name: string): void => {
+    if (visible.has(name)) return;
+    const imported = modulesByName.get(name);
+    if (!imported) return;
+    visible.set(name, imported);
+    for (const transitive of imported.imports ?? []) visit(transitive);
+  };
+  for (const imported of declaration.imports ?? []) visit(imported);
+  return [...visible.values()].sort((left, right) =>
+    compare(left.name, right.name),
+  );
+}
+
+function validateModuleImportCycles(
+  declarations: readonly ModuleDeclaration[],
+  modulesByName: ReadonlyMap<string, ModuleDeclaration>,
+  diagnostics: Diagnostic[],
+): void {
+  const visited = new Set<string>();
+  const visiting = new Set<string>();
+  const visit = (name: string, path: readonly string[]): void => {
+    if (visited.has(name)) return;
+    if (visiting.has(name)) {
+      diagnostics.push({
+        code: "VANE_SEM_IMPORT_CYCLE",
+        path: ["project", "modules", name, "imports"],
+        message: `Module import cycle detected: ${[...path, name].join(" -> ")}.`,
+        correction: "Make Module composition acyclic.",
+      });
+      return;
+    }
+    visiting.add(name);
+    for (const imported of modulesByName.get(name)?.imports ?? []) {
+      if (modulesByName.has(imported)) visit(imported, [...path, name]);
+    }
+    visiting.delete(name);
+    visited.add(name);
+  };
+  for (const declaration of declarations) visit(declaration.name, []);
 }
 
 function collectEventIdentities(declaration: ModuleDeclaration): Set<string> {
@@ -190,6 +410,7 @@ function validateEntity(
       "Column",
       diagnostics,
     );
+    validateColumnConstraints(entity.name, column, entityPath, diagnostics);
     if (column.references && !entitiesByName.has(column.references.entity)) {
       diagnostics.push({
         code: "VANE_SEM_REFERENCE_ENTITY",
@@ -285,6 +506,200 @@ function validateEntity(
       );
     }
   }
+}
+
+function validateColumnConstraints(
+  entityName: string,
+  column: EntityDeclaration["columns"][number],
+  entityPath: readonly string[],
+  diagnostics: Diagnostic[],
+): void {
+  const path = [...entityPath, "columns", column.name];
+  const issue = (suffix: string, message: string, correction: string): void => {
+    diagnostics.push({
+      code: "VANE_SEM_COLUMN_CONSTRAINT",
+      path: [...path, suffix],
+      message: `Column ${entityName}.${column.name} ${message}`,
+      correction,
+    });
+  };
+  if (column.identity && column.nullable) {
+    issue(
+      "nullable",
+      "cannot be both identity and nullable.",
+      "Make the identity Column non-nullable.",
+    );
+  }
+  if (column.generated && column.default !== undefined) {
+    issue(
+      "default",
+      "cannot combine generated and default values.",
+      "Choose generation or a default value, not both.",
+    );
+  }
+  if (column.generated === "uuid" && column.type !== "uuid") {
+    issue(
+      "generated",
+      "uses uuid generation with a non-uuid type.",
+      "Use type uuid or remove uuid generation.",
+    );
+  }
+  if (column.generated === "increment" && column.type !== "integer") {
+    issue(
+      "generated",
+      "uses increment generation with a non-integer type.",
+      "Use type integer or remove increment generation.",
+    );
+  }
+  if (
+    (column.minLength !== undefined || column.maxLength !== undefined) &&
+    column.type !== "string"
+  ) {
+    issue(
+      "minLength",
+      "declares length constraints for a non-string type.",
+      "Use length constraints only on string Columns.",
+    );
+  }
+  for (const [name, value] of [
+    ["minLength", column.minLength],
+    ["maxLength", column.maxLength],
+  ] as const) {
+    if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) {
+      issue(
+        name,
+        `declares invalid ${name} ${value}.`,
+        `Use a non-negative safe integer for ${name}.`,
+      );
+    }
+  }
+  if (
+    column.minLength !== undefined &&
+    column.maxLength !== undefined &&
+    column.minLength > column.maxLength
+  ) {
+    issue(
+      "minLength",
+      "declares minLength greater than maxLength.",
+      "Make minLength less than or equal to maxLength.",
+    );
+  }
+  if (
+    (column.minimum !== undefined || column.maximum !== undefined) &&
+    column.type !== "integer" &&
+    column.type !== "decimal"
+  ) {
+    issue(
+      "minimum",
+      "declares numeric bounds for a non-numeric type.",
+      "Use numeric bounds only on integer or decimal Columns.",
+    );
+  }
+  for (const [name, value] of [
+    ["minimum", column.minimum],
+    ["maximum", column.maximum],
+  ] as const) {
+    if (value !== undefined && !Number.isFinite(value)) {
+      issue(
+        name,
+        `declares non-finite ${name} ${String(value)}.`,
+        `Use a finite number for ${name}.`,
+      );
+    }
+    if (
+      value !== undefined &&
+      column.type === "integer" &&
+      !Number.isSafeInteger(value)
+    ) {
+      issue(
+        name,
+        `declares non-integer ${name} ${value} for an integer Column.`,
+        `Use a safe integer for ${name}.`,
+      );
+    }
+  }
+  if (
+    column.minimum !== undefined &&
+    column.maximum !== undefined &&
+    column.minimum > column.maximum
+  ) {
+    issue(
+      "minimum",
+      "declares minimum greater than maximum.",
+      "Make minimum less than or equal to maximum.",
+    );
+  }
+  if (column.default === null && !column.nullable) {
+    issue(
+      "default",
+      "uses null as the default while nullable is false.",
+      "Make the Column nullable or choose a non-null default.",
+    );
+  } else if (
+    column.default !== undefined &&
+    column.default !== null &&
+    !columnDefaultMatchesType(column.type, column.default)
+  ) {
+    issue(
+      "default",
+      `uses a default incompatible with type ${column.type}.`,
+      "Use a default value compatible with the Column type.",
+    );
+  }
+  if (typeof column.default === "string" && column.type === "string") {
+    if (
+      column.minLength !== undefined &&
+      column.default.length < column.minLength
+    ) {
+      issue(
+        "default",
+        "uses a default shorter than minLength.",
+        "Choose a default that satisfies the Column length constraints.",
+      );
+    }
+    if (
+      column.maxLength !== undefined &&
+      column.default.length > column.maxLength
+    ) {
+      issue(
+        "default",
+        "uses a default longer than maxLength.",
+        "Choose a default that satisfies the Column length constraints.",
+      );
+    }
+  }
+  if (
+    typeof column.default === "number" &&
+    (column.type === "integer" || column.type === "decimal")
+  ) {
+    if (column.minimum !== undefined && column.default < column.minimum) {
+      issue(
+        "default",
+        "uses a default below minimum.",
+        "Choose a default inside the declared numeric bounds.",
+      );
+    }
+    if (column.maximum !== undefined && column.default > column.maximum) {
+      issue(
+        "default",
+        "uses a default above maximum.",
+        "Choose a default inside the declared numeric bounds.",
+      );
+    }
+  }
+}
+
+function columnDefaultMatchesType(
+  type: ColumnType,
+  value: Exclude<JsonValue, null>,
+): boolean {
+  if (type === "json") return true;
+  if (type === "boolean") return typeof value === "boolean";
+  if (type === "integer")
+    return typeof value === "number" && Number.isSafeInteger(value);
+  if (type === "decimal")
+    return typeof value === "number" && Number.isFinite(value);
+  return typeof value === "string";
 }
 
 function validateAntiCorruptionLayer(
@@ -559,6 +974,12 @@ function validateView(
     "View output",
     diagnostics,
   );
+  validateUniqueNames(
+    view.query.relations ?? [],
+    [...viewPath, "query", "relations"],
+    "View relation",
+    diagnostics,
+  );
 
   if (view.output.length === 0) {
     diagnostics.push({
@@ -615,6 +1036,13 @@ function validateView(
       correction: "Use an Entity declared in the same Module as the View root.",
     });
   }
+  const reachableEntities = validateViewRelations(
+    view.query.root,
+    view.query.relations ?? [],
+    entitiesByName,
+    viewPath,
+    diagnostics,
+  );
 
   for (const output of view.output) {
     validateName(
@@ -625,7 +1053,7 @@ function validateView(
     );
     resolveViewOutputType(
       output.expression,
-      view.query.root,
+      reachableEntities,
       entitiesByName,
       [...viewPath, "output", output.name],
       diagnostics,
@@ -635,7 +1063,7 @@ function validateView(
   if (view.query.where) {
     validateViewExpression(
       view.query.where,
-      view.query.root,
+      reachableEntities,
       entitiesByName,
       inputsByName,
       [...viewPath, "query", "where"],
@@ -646,7 +1074,7 @@ function validateView(
   for (const [index, order] of (view.query.orderBy ?? []).entries()) {
     resolveViewColumnType(
       order.value,
-      view.query.root,
+      reachableEntities,
       entitiesByName,
       [...viewPath, "query", "orderBy", String(index)],
       diagnostics,
@@ -684,11 +1112,112 @@ function validateView(
   }
 }
 
+function validateViewRelations(
+  root: string,
+  relations: readonly ViewRelationDeclaration[],
+  entitiesByName: ReadonlyMap<string, EntityDeclaration>,
+  viewPath: readonly string[],
+  diagnostics: Diagnostic[],
+): ReadonlySet<string> {
+  const reachable = new Set<string>([root]);
+  const pending = [...relations];
+  for (const relation of relations) {
+    validateName(
+      relation.name,
+      [...viewPath, "query", "relations", relation.name],
+      "View relation",
+      diagnostics,
+    );
+    resolveViewColumnType(
+      relation.from,
+      new Set(entitiesByName.keys()),
+      entitiesByName,
+      [...viewPath, "query", "relations", relation.name, "from"],
+      diagnostics,
+    );
+    resolveViewColumnType(
+      relation.to,
+      new Set(entitiesByName.keys()),
+      entitiesByName,
+      [...viewPath, "query", "relations", relation.name, "to"],
+      diagnostics,
+    );
+    const fromType = entitiesByName
+      .get(relation.from.entity)
+      ?.columns.find(({ name }) => name === relation.from.column)?.type;
+    const toType = entitiesByName
+      .get(relation.to.entity)
+      ?.columns.find(({ name }) => name === relation.to.column)?.type;
+    const fromColumn = entitiesByName
+      .get(relation.from.entity)
+      ?.columns.find(({ name }) => name === relation.from.column);
+    const toColumn = entitiesByName
+      .get(relation.to.entity)
+      ?.columns.find(({ name }) => name === relation.to.column);
+    if (fromType && toType && fromType !== toType) {
+      diagnostics.push({
+        code: "VANE_SEM_VIEW_RELATION_TYPE",
+        path: [...viewPath, "query", "relations", relation.name],
+        message: `View relation ${relation.name} joins incompatible ${fromType} and ${toType} Columns.`,
+        correction: "Join Columns with compatible semantic types.",
+      });
+    }
+    const declaredReference =
+      (fromColumn?.references?.entity === relation.to.entity &&
+        fromColumn.references.column === relation.to.column) ||
+      (toColumn?.references?.entity === relation.from.entity &&
+        toColumn.references.column === relation.from.column);
+    if (fromColumn && toColumn && !declaredReference) {
+      diagnostics.push({
+        code: "VANE_SEM_VIEW_RELATION_REFERENCE",
+        path: [...viewPath, "query", "relations", relation.name],
+        message: `View relation ${relation.name} does not follow a declared Column reference.`,
+        correction:
+          "Join the referencing Column to the exact referenced Column.",
+      });
+    }
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const relation of pending) {
+      if (
+        reachable.has(relation.from.entity) &&
+        !reachable.has(relation.to.entity)
+      ) {
+        reachable.add(relation.to.entity);
+        changed = true;
+      } else if (
+        reachable.has(relation.to.entity) &&
+        !reachable.has(relation.from.entity)
+      ) {
+        reachable.add(relation.from.entity);
+        changed = true;
+      }
+    }
+  }
+  for (const relation of relations) {
+    if (
+      reachable.has(relation.from.entity) &&
+      reachable.has(relation.to.entity)
+    )
+      continue;
+    diagnostics.push({
+      code: "VANE_SEM_VIEW_RELATION_PATH",
+      path: [...viewPath, "query", "relations", relation.name],
+      message: `View relation ${relation.name} is not connected to root Entity ${root}.`,
+      correction:
+        "Declare an explicit relation chain beginning at the View root.",
+    });
+  }
+  return reachable;
+}
+
 type ResolvedViewType = ColumnType | "number" | "null";
 
 function validateViewExpression(
   expression: ViewExpressionDeclaration,
-  rootEntity: string,
+  reachableEntities: ReadonlySet<string>,
   entitiesByName: ReadonlyMap<string, EntityDeclaration>,
   inputsByName: ReadonlyMap<
     string,
@@ -700,7 +1229,7 @@ function validateViewExpression(
   if (expression.kind === "not") {
     validateViewExpression(
       expression.operand,
-      rootEntity,
+      reachableEntities,
       entitiesByName,
       inputsByName,
       [...path, "operand"],
@@ -720,7 +1249,7 @@ function validateViewExpression(
     for (const [index, operand] of expression.operands.entries()) {
       validateViewExpression(
         operand,
-        rootEntity,
+        reachableEntities,
         entitiesByName,
         inputsByName,
         [...path, String(index)],
@@ -732,7 +1261,7 @@ function validateViewExpression(
 
   const left = resolveViewValueType(
     expression.left,
-    rootEntity,
+    reachableEntities,
     entitiesByName,
     inputsByName,
     [...path, "left"],
@@ -740,7 +1269,7 @@ function validateViewExpression(
   );
   const right = resolveViewValueType(
     expression.right,
-    rootEntity,
+    reachableEntities,
     entitiesByName,
     inputsByName,
     [...path, "right"],
@@ -772,7 +1301,7 @@ function validateViewExpression(
 
 function resolveViewValueType(
   value: ViewValueDeclaration,
-  rootEntity: string,
+  reachableEntities: ReadonlySet<string>,
   entitiesByName: ReadonlyMap<string, EntityDeclaration>,
   inputsByName: ReadonlyMap<
     string,
@@ -784,7 +1313,7 @@ function resolveViewValueType(
   if (value.kind === "column") {
     return resolveViewColumnType(
       value,
-      rootEntity,
+      reachableEntities,
       entitiesByName,
       path,
       diagnostics,
@@ -819,7 +1348,7 @@ function resolveViewValueType(
 
 function resolveViewColumnType(
   reference: EntityColumnReferenceDeclaration,
-  rootEntity: string,
+  reachableEntities: ReadonlySet<string>,
   entitiesByName: ReadonlyMap<string, EntityDeclaration>,
   path: readonly string[],
   diagnostics: Diagnostic[],
@@ -846,13 +1375,13 @@ function resolveViewColumnType(
     });
     return undefined;
   }
-  if (reference.entity !== rootEntity) {
+  if (!reachableEntities.has(reference.entity)) {
     diagnostics.push({
       code: "VANE_SEM_VIEW_ROOT_SCOPE",
       path,
-      message: `View rooted at ${rootEntity} cannot yet project ${reference.entity}.${reference.column} without an explicit relation path.`,
+      message: `View cannot reach ${reference.entity}.${reference.column} from its root without an explicit relation path.`,
       correction:
-        "Reference a root Entity Column in this slice; relation navigation will require a validated relation declaration.",
+        "Declare a validated relation chain from the View root to this Entity.",
     });
   }
   return column.type;
@@ -860,7 +1389,7 @@ function resolveViewColumnType(
 
 function resolveViewOutputType(
   expression: ViewOutputExpressionDeclaration,
-  rootEntity: string,
+  reachableEntities: ReadonlySet<string>,
   entitiesByName: ReadonlyMap<string, EntityDeclaration>,
   path: readonly string[],
   diagnostics: Diagnostic[],
@@ -868,7 +1397,7 @@ function resolveViewOutputType(
   if (expression.kind === "column") {
     return resolveViewColumnType(
       expression,
-      rootEntity,
+      reachableEntities,
       entitiesByName,
       path,
       diagnostics,
@@ -876,7 +1405,7 @@ function resolveViewOutputType(
   }
   const type = resolveViewColumnType(
     expression.value,
-    rootEntity,
+    reachableEntities,
     entitiesByName,
     path,
     diagnostics,
@@ -983,6 +1512,13 @@ function toSemanticView(
       .sort((left, right) => compare(left.name, right.name)),
     query: {
       root: view.query.root,
+      relations: (view.query.relations ?? [])
+        .map((relation) => ({
+          name: relation.name,
+          from: { ...relation.from },
+          to: { ...relation.to },
+        }))
+        .sort((left, right) => compare(left.name, right.name)),
       where: view.query.where
         ? canonicalizeViewExpression(view.query.where)
         : null,
@@ -1102,6 +1638,15 @@ function toSemanticEntity(entity: EntityDeclaration): SemanticEntity {
         nullable: column.nullable ?? false,
         unique: column.unique ?? false,
         generated: column.generated ?? null,
+        minLength: column.minLength ?? null,
+        maxLength: column.maxLength ?? null,
+        minimum: column.minimum ?? null,
+        maximum: column.maximum ?? null,
+        default:
+          column.default === undefined
+            ? null
+            : canonicalizeJsonValue(column.default),
+        hasDefault: column.default !== undefined,
         references: column.references
           ? {
               entity: column.references.entity,
@@ -1130,9 +1675,29 @@ function toSemanticEntity(entity: EntityDeclaration): SemanticEntity {
             optional: input.optional ?? false,
           }))
           .sort((left, right) => compare(left.name, right.name)),
+        publicResult: {
+          success: "viewOnly" as const,
+          fail: {
+            code: "stable" as const,
+            message: "safe" as const,
+            correlationId: true as const,
+          },
+        },
       }))
       .sort((left, right) => compare(left.identity, right.identity)),
   };
+}
+
+function canonicalizeJsonValue(value: JsonValue): JsonValue {
+  if (Array.isArray(value)) return value.map(canonicalizeJsonValue);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => compare(left, right))
+        .map(([key, nested]) => [key, canonicalizeJsonValue(nested)]),
+    );
+  }
+  return value;
 }
 
 function toSemanticAntiCorruptionLayer(
@@ -1156,6 +1721,14 @@ function toSemanticAntiCorruptionLayer(
             data: toSemanticEventFields(result.data),
           }))
           .sort((left, right) => compare(left.name, right.name)),
+        publicResult: {
+          success: "viewOnly" as const,
+          fail: {
+            code: "stable" as const,
+            message: "safe" as const,
+            correlationId: true as const,
+          },
+        },
       }))
       .sort((left, right) => compare(left.identity, right.identity)),
   };

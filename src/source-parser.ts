@@ -1,5 +1,5 @@
 import ts from "typescript";
-import { compileSemanticIr } from "./compiler.js";
+import { compileSemanticIr, compileSemanticProject } from "./compiler.js";
 import {
   type AntiCorruptionLayerDeclaration,
   type AntiCorruptionLayerEventDeclaration,
@@ -12,6 +12,7 @@ import {
   type EntityDeclaration,
   type EntityEventDeclaration,
   type EventInputDeclaration,
+  type JsonValue,
   type ModuleDeclaration,
   type RuleDeclaration,
   type RuleExpressionDeclaration,
@@ -27,10 +28,12 @@ import {
   type ViewPaginationDeclaration,
   type ViewPaginationValueDeclaration,
   type ViewQueryDeclaration,
+  type ViewRelationDeclaration,
   type ViewValueDeclaration,
 } from "./declaration.js";
 import type { Diagnostic, SourceLocation } from "./diagnostic.js";
 import type { SemanticIr } from "./semantic-ir.js";
+import type { SemanticProjectIr } from "./semantic-ir.js";
 
 const VANE_MODULE = "@lilka/vane";
 const DSL_SYMBOLS = new Set([
@@ -65,6 +68,10 @@ const DSL_SYMBOLS = new Set([
   "success",
   "fail",
   "event",
+  "eventRef",
+  "field",
+  "reference",
+  "relation",
 ]);
 const COMPARISON_OPERATORS = new Set(["eq", "neq", "gt", "gte", "lt", "lte"]);
 const VIEW_AGGREGATES = new Set(["count", "sum", "avg", "min", "max"]);
@@ -91,9 +98,18 @@ export type ModuleSourceCompilationResult =
     }
   | { readonly success: false; readonly diagnostics: readonly Diagnostic[] };
 
+export type ProjectSourceCompilationResult =
+  | {
+      readonly success: true;
+      readonly ir: SemanticProjectIr;
+      readonly diagnostics: readonly [];
+    }
+  | { readonly success: false; readonly diagnostics: readonly Diagnostic[] };
+
 interface ParserContext {
   readonly sourceFile: ts.SourceFile;
   readonly bindings: ReadonlyMap<string, string>;
+  readonly semanticBindings: ReadonlyMap<string, string>;
   readonly diagnostics: Diagnostic[];
   readonly sourceLocations: Map<string, SourceLocation>;
 }
@@ -132,6 +148,7 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   const context: ParserContext = {
     sourceFile,
     bindings,
+    semanticBindings: collectSemanticBindings(sourceFile),
     diagnostics,
     sourceLocations: new Map(),
   };
@@ -170,6 +187,34 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   };
 }
 
+function collectSemanticBindings(
+  sourceFile: ts.SourceFile,
+): ReadonlyMap<string, string> {
+  const bindings = new Map<string, string>();
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isImportDeclaration(statement) ||
+      !statement.importClause?.namedBindings ||
+      !ts.isNamedImports(statement.importClause.namedBindings) ||
+      (ts.isStringLiteral(statement.moduleSpecifier) &&
+        statement.moduleSpecifier.text === VANE_MODULE)
+    ) {
+      continue;
+    }
+    for (const element of statement.importClause.namedBindings.elements) {
+      bindings.set(
+        element.name.text,
+        (element.propertyName ?? element.name).text,
+      );
+    }
+  }
+  return bindings;
+}
+
+function semanticName(context: ParserContext, localName: string): string {
+  return context.semanticBindings.get(localName) ?? localName;
+}
+
 export function compileModuleSource(
   input: ModuleSourceParserInput,
 ): ModuleSourceCompilationResult {
@@ -183,6 +228,42 @@ export function compileModuleSource(
       ...diagnostic,
       ...locationForPath(parsed.sourceLocations, diagnostic.path),
     })),
+  };
+}
+
+export function compileProjectSources(
+  inputs: readonly ModuleSourceParserInput[],
+): ProjectSourceCompilationResult {
+  const parsed = inputs.map(parseModuleSourceInternal);
+  const parseDiagnostics = parsed.flatMap((result) =>
+    result.success ? [] : result.diagnostics,
+  );
+  if (parseDiagnostics.length > 0) {
+    return { success: false, diagnostics: sortDiagnostics(parseDiagnostics) };
+  }
+  const successful = parsed.filter(
+    (result): result is Extract<typeof result, { readonly success: true }> =>
+      result.success,
+  );
+  const compiled = compileSemanticProject(
+    successful.map(({ declaration }) => declaration),
+  );
+  if (compiled.success) return compiled;
+  return {
+    success: false,
+    diagnostics: compiled.diagnostics.map((diagnostic) => {
+      const moduleName = diagnostic.path[2];
+      const source = successful.find(
+        ({ declaration }) => declaration.name === moduleName,
+      );
+      const localPath = ["module", ...diagnostic.path.slice(3)];
+      return source
+        ? {
+            ...diagnostic,
+            ...locationForPath(source.sourceLocations, localPath),
+          }
+        : diagnostic;
+    }),
   };
 }
 
@@ -249,9 +330,37 @@ function parseModuleClass(
     rejectUnknownOptions(
       context,
       options,
-      new Set(["entities", "views", "antiCorruptionLayers", "sagas"]),
+      new Set([
+        "imports",
+        "entities",
+        "views",
+        "antiCorruptionLayers",
+        "sagas",
+      ]),
       ["module"],
     );
+  }
+  const importsExpression = options?.get("imports");
+  const imports = importsExpression
+    ? parseStaticIdentifierArray(
+        context,
+        importsExpression,
+        ["module", "imports"],
+        "Module imports",
+      )
+    : [];
+  if (importsExpression && !imports) return undefined;
+  if (importsExpression && ts.isArrayLiteralExpression(importsExpression)) {
+    recordLocation(context, ["module", "imports"], importsExpression);
+    for (const element of importsExpression.elements) {
+      if (ts.isIdentifier(element)) {
+        recordLocation(
+          context,
+          ["module", "imports", semanticName(context, element.text)],
+          element,
+        );
+      }
+    }
   }
   const entitiesExpression = options?.get("entities");
   if (!entitiesExpression || !ts.isArrayLiteralExpression(entitiesExpression)) {
@@ -483,7 +592,14 @@ function parseModuleClass(
     }
   }
 
-  return { name, entities, views, antiCorruptionLayers, sagas };
+  return {
+    name,
+    ...(imports && imports.length > 0 ? { imports } : {}),
+    entities,
+    views,
+    antiCorruptionLayers,
+    sagas,
+  };
 }
 
 function parseEntityClass(
@@ -689,35 +805,41 @@ function parseSagaSteps(
   for (const [name, expression] of object) {
     const stepPath = [...path, name];
     const call = dslCall(context, expression);
-    if (
-      !call ||
-      call.symbol !== "event" ||
-      (call.expression.arguments.length !== 1 &&
-        call.expression.arguments.length !== 2)
-    ) {
+    if (!call || call.symbol !== "event") {
       context.diagnostics.push(
         staticDiagnostic(
           context,
           stepPath,
           "Saga steps",
           expression,
-          "Use event(Owner.Event) or event(Owner.Event, { causedBy: [...], compensateWith: Owner.Event }).",
+          'Use event(Owner, "Event") or the legacy event(Owner.Event) form.',
         ),
       );
       continue;
     }
-    const eventExpression = call.expression.arguments[0];
-    const eventReference = eventExpression
-      ? parseEventReference(eventExpression)
-      : undefined;
+    const [ownerOrReference, eventNameOrOptions, typedOptions] =
+      call.expression.arguments;
+    const typedForm =
+      ownerOrReference &&
+      ts.isIdentifier(ownerOrReference) &&
+      eventNameOrOptions &&
+      ts.isStringLiteral(eventNameOrOptions);
+    const eventReference = typedForm
+      ? {
+          owner: semanticName(context, ownerOrReference.text),
+          event: eventNameOrOptions.text,
+        }
+      : ownerOrReference
+        ? parseEventReference(context, ownerOrReference)
+        : undefined;
     if (!eventReference) {
       context.diagnostics.push(
         staticDiagnostic(
           context,
           [...stepPath, "event"],
           "Saga Event references",
-          eventExpression ?? expression,
-          "Use an Owner.Event property reference.",
+          ownerOrReference ?? expression,
+          'Use an Owner.Event reference or event(Owner, "Event").',
         ),
       );
       continue;
@@ -725,7 +847,7 @@ function parseSagaSteps(
 
     let causedBy: readonly string[] = [];
     let compensateWith: SagaStepDeclaration["compensateWith"];
-    const optionsExpression = call.expression.arguments[1];
+    const optionsExpression = typedForm ? typedOptions : eventNameOrOptions;
     if (optionsExpression) {
       const options = staticObject(
         context,
@@ -753,7 +875,7 @@ function parseSagaSteps(
       }
       const compensationExpression = options.get("compensateWith");
       if (compensationExpression) {
-        compensateWith = parseEventReference(compensationExpression);
+        compensateWith = parseEventReference(context, compensationExpression);
         if (!compensateWith) {
           context.diagnostics.push(
             staticDiagnostic(
@@ -761,7 +883,7 @@ function parseSagaSteps(
               [...stepPath, "compensateWith"],
               "Saga compensation Event references",
               compensationExpression,
-              "Use an Owner.Event property reference.",
+              'Use eventRef(Owner, "Event") or an Owner.Event property reference.',
             ),
           );
           continue;
@@ -806,7 +928,10 @@ function parseSagaTerminal(
     );
     return undefined;
   }
-  return { step: stepExpression.text, view: viewExpression.text };
+  return {
+    step: stepExpression.text,
+    view: semanticName(context, viewExpression.text),
+  };
 }
 
 function parseViewClass(
@@ -904,7 +1029,7 @@ function parseViewOutputExpression(
   node: ts.Expression,
   path: readonly string[],
 ): ViewOutputExpressionDeclaration | undefined {
-  const column = parseEntityColumnReference(node);
+  const column = parseTypedColumnReference(context, node);
   if (column) return { kind: "column", ...column };
 
   const call = dslCall(context, node);
@@ -913,7 +1038,9 @@ function parseViewOutputExpression(
       return undefined;
     }
     const argument = call.expression.arguments[0];
-    const value = argument ? parseEntityColumnReference(argument) : undefined;
+    const value = argument
+      ? parseTypedColumnReference(context, argument)
+      : undefined;
     if (value) {
       return {
         kind: "aggregate",
@@ -945,7 +1072,7 @@ function parseViewQuery(
   rejectUnknownOptions(
     context,
     object,
-    new Set(["root", "where", "orderBy", "pagination"]),
+    new Set(["root", "relations", "where", "orderBy", "pagination"]),
     path,
   );
 
@@ -968,6 +1095,10 @@ function parseViewQuery(
   const where = whereExpression
     ? parseViewExpression(context, whereExpression, [...path, "where"])
     : undefined;
+  const relationsExpression = object.get("relations");
+  const relations = relationsExpression
+    ? parseViewRelations(context, relationsExpression, [...path, "relations"])
+    : [];
   const orderByExpression = object.get("orderBy");
   const parsedOrderBy = orderByExpression
     ? parseViewOrderBy(context, orderByExpression, [...path, "orderBy"])
@@ -982,6 +1113,7 @@ function parseViewQuery(
 
   if (
     (whereExpression && !where) ||
+    (relationsExpression && !relations) ||
     (orderByExpression && !parsedOrderBy) ||
     (paginationExpression && !pagination)
   ) {
@@ -989,11 +1121,62 @@ function parseViewQuery(
   }
   const orderBy = parsedOrderBy ?? [];
   return {
-    root: rootExpression.text,
+    root: semanticName(context, rootExpression.text),
+    ...(relations && relations.length > 0 ? { relations } : {}),
     ...(where ? { where } : {}),
     ...(orderBy.length > 0 ? { orderBy } : {}),
     ...(pagination ? { pagination } : {}),
   };
+}
+
+function parseViewRelations(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+): readonly ViewRelationDeclaration[] | undefined {
+  const object = staticObject(context, node, path, "View relations");
+  if (!object) return undefined;
+  const relations: ViewRelationDeclaration[] = [];
+  for (const [name, expression] of object) {
+    const call = dslCall(context, expression);
+    if (
+      !call ||
+      call.symbol !== "relation" ||
+      call.expression.arguments.length !== 2
+    ) {
+      context.diagnostics.push(
+        staticDiagnostic(
+          context,
+          [...path, name],
+          "View relation",
+          expression,
+          'Use relation(field(Entity, "column"), field(Related, "column")).',
+        ),
+      );
+      continue;
+    }
+    const [fromExpression, toExpression] = call.expression.arguments;
+    const from = fromExpression
+      ? parseTypedColumnReference(context, fromExpression)
+      : undefined;
+    const to = toExpression
+      ? parseTypedColumnReference(context, toExpression)
+      : undefined;
+    if (!from || !to) {
+      context.diagnostics.push(
+        staticDiagnostic(
+          context,
+          [...path, name],
+          "View relation Columns",
+          expression,
+          "Pass two static Column references to relation(...).",
+        ),
+      );
+      continue;
+    }
+    relations.push({ name, from, to });
+  }
+  return relations;
 }
 
 function parseViewExpression(
@@ -1091,7 +1274,7 @@ function parseViewValue(
   path: readonly string[],
 ): ViewValueDeclaration | undefined {
   if (!node) return undefined;
-  const column = parseEntityColumnReference(node);
+  const column = parseTypedColumnReference(context, node);
   if (column) return { kind: "column", ...column };
 
   const call = dslCall(context, node);
@@ -1171,7 +1354,9 @@ function parseViewOrderBy(
       continue;
     }
     const argument = call.expression.arguments[0];
-    const value = argument ? parseEntityColumnReference(argument) : undefined;
+    const value = argument
+      ? parseTypedColumnReference(context, argument)
+      : undefined;
     if (!value) {
       context.diagnostics.push(
         staticDiagnostic(
@@ -1246,22 +1431,71 @@ function parsePaginationValue(
 }
 
 function parseEntityColumnReference(
+  context: ParserContext,
   node: ts.Expression,
 ): EntityColumnReferenceDeclaration | undefined {
   return ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
     ts.isIdentifier(node.name)
-    ? { entity: node.expression.text, column: node.name.text }
+    ? {
+        entity: semanticName(context, node.expression.text),
+        column: node.name.text,
+      }
     : undefined;
 }
 
+function parseTypedColumnReference(
+  context: ParserContext,
+  node: ts.Expression,
+): EntityColumnReferenceDeclaration | undefined {
+  const legacy = parseEntityColumnReference(context, node);
+  if (legacy) return legacy;
+  const call = dslCall(context, node);
+  if (
+    call &&
+    (call.symbol === "field" || call.symbol === "reference") &&
+    call.expression.arguments.length === 2
+  ) {
+    const [entity, column] = call.expression.arguments;
+    if (
+      entity &&
+      ts.isIdentifier(entity) &&
+      column &&
+      ts.isStringLiteral(column)
+    ) {
+      return {
+        entity: semanticName(context, entity.text),
+        column: column.text,
+      };
+    }
+  }
+  return undefined;
+}
+
 function parseEventReference(
+  context: ParserContext,
   node: ts.Expression,
 ): SagaStepDeclaration["event"] | undefined {
-  return ts.isPropertyAccessExpression(node) &&
+  const legacy =
+    ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
     ts.isIdentifier(node.name)
-    ? { owner: node.expression.text, event: node.name.text }
+      ? {
+          owner: semanticName(context, node.expression.text),
+          event: node.name.text,
+        }
+      : undefined;
+  if (legacy) return legacy;
+  const call = dslCall(context, node);
+  if (call?.symbol !== "eventRef" || call.expression.arguments.length !== 2) {
+    return undefined;
+  }
+  const [owner, eventName] = call.expression.arguments;
+  return owner &&
+    ts.isIdentifier(owner) &&
+    eventName &&
+    ts.isStringLiteral(eventName)
+    ? { owner: semanticName(context, owner.text), event: eventName.text }
     : undefined;
 }
 
@@ -1287,6 +1521,32 @@ function parseStaticStringArray(
     return undefined;
   }
   return node.elements.map((element) => (element as ts.StringLiteral).text);
+}
+
+function parseStaticIdentifierArray(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+  subject: string,
+): readonly string[] | undefined {
+  if (
+    !ts.isArrayLiteralExpression(node) ||
+    node.elements.some((element) => !ts.isIdentifier(element))
+  ) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        path,
+        subject,
+        node,
+        "Use an array of static class identifiers.",
+      ),
+    );
+    return undefined;
+  }
+  return node.elements.map((element) =>
+    semanticName(context, (element as ts.Identifier).text),
+  );
 }
 
 function parseColumn(
@@ -1316,6 +1576,11 @@ function parseColumn(
       "nullable",
       "unique",
       "generated",
+      "minLength",
+      "maxLength",
+      "minimum",
+      "maximum",
+      "default",
       "references",
     ]),
     path,
@@ -1333,6 +1598,25 @@ function parseColumn(
     new Set(["uuid", "increment"]),
     path,
   ) as "uuid" | "increment" | undefined;
+  const minLength = optionalNumber(context, options, "minLength", path);
+  const maxLength = optionalNumber(context, options, "maxLength", path);
+  const minimum = optionalNumber(context, options, "minimum", path);
+  const maximum = optionalNumber(context, options, "maximum", path);
+  const defaultExpression = options.get("default");
+  const parsedDefault = defaultExpression
+    ? parseJsonValue(context, defaultExpression, [...path, "default"])
+    : { matched: false as const };
+  if (defaultExpression && !parsedDefault.matched) {
+    context.diagnostics.push(
+      staticDiagnostic(
+        context,
+        [...path, "default"],
+        "Column default",
+        defaultExpression,
+        "Use a static JSON value: null, boolean, finite number, string, array, or object.",
+      ),
+    );
+  }
   const referencesExpression = options.get("references");
   const references = referencesExpression
     ? parseReference(context, referencesExpression, [...path, "references"])
@@ -1345,8 +1629,45 @@ function parseColumn(
     ...(nullable === undefined ? {} : { nullable }),
     ...(unique === undefined ? {} : { unique }),
     ...(generated === undefined ? {} : { generated }),
+    ...(minLength === undefined ? {} : { minLength }),
+    ...(maxLength === undefined ? {} : { maxLength }),
+    ...(minimum === undefined ? {} : { minimum }),
+    ...(maximum === undefined ? {} : { maximum }),
+    ...(parsedDefault.matched ? { default: parsedDefault.value } : {}),
     ...(references === undefined ? {} : { references }),
   };
+}
+
+function parseJsonValue(
+  context: ParserContext,
+  node: ts.Expression,
+  path: readonly string[],
+):
+  | { readonly matched: true; readonly value: JsonValue }
+  | { readonly matched: false } {
+  const scalar = parseLiteral(node);
+  if (scalar.matched) return scalar;
+  if (ts.isArrayLiteralExpression(node)) {
+    const values: JsonValue[] = [];
+    for (const [index, element] of node.elements.entries()) {
+      const value = parseJsonValue(context, element, [...path, String(index)]);
+      if (!value.matched) return value;
+      values.push(value.value);
+    }
+    return { matched: true, value: values };
+  }
+  if (ts.isObjectLiteralExpression(node)) {
+    const object = staticObject(context, node, path, "JSON default");
+    if (!object) return { matched: false };
+    const value: Record<string, JsonValue> = {};
+    for (const [name, expression] of object) {
+      const nested = parseJsonValue(context, expression, [...path, name]);
+      if (!nested.matched) return nested;
+      value[name] = nested.value;
+    }
+    return { matched: true, value };
+  }
+  return { matched: false };
 }
 
 function parseReference(
@@ -1354,6 +1675,8 @@ function parseReference(
   node: ts.Expression,
   path: readonly string[],
 ): ColumnReferenceDeclaration | undefined {
+  const typed = parseTypedColumnReference(context, node);
+  if (typed) return typed;
   if (
     ts.isPropertyAccessExpression(node) &&
     ts.isIdentifier(node.expression) &&
@@ -1370,7 +1693,7 @@ function parseReference(
   const entity =
     entityNode &&
     (ts.isIdentifier(entityNode) || ts.isStringLiteral(entityNode))
-      ? entityNode.text
+      ? semanticName(context, entityNode.text)
       : undefined;
   const column =
     columnNode && ts.isStringLiteral(columnNode) ? columnNode.text : undefined;
@@ -1882,6 +2205,29 @@ function optionalBoolean(
       property,
       node,
       "Use true or false.",
+    ),
+  );
+  return undefined;
+}
+
+function optionalNumber(
+  context: ParserContext,
+  options: ReadonlyMap<string, ts.Expression>,
+  property: string,
+  path: readonly string[],
+): number | undefined {
+  const node = options.get(property);
+  if (!node) return undefined;
+  const literal = parseLiteral(node);
+  if (literal.matched && typeof literal.value === "number")
+    return literal.value;
+  context.diagnostics.push(
+    staticDiagnostic(
+      context,
+      [...path, property],
+      property,
+      node,
+      "Use a finite numeric literal.",
     ),
   );
   return undefined;
