@@ -56,10 +56,10 @@ generation, string length, numeric bounds, and static defaults. Contradictions
 such as nullable identities, an incompatible generator, `minLength >
 maxLength`, or generation combined with a default fail semantic compilation.
 
-## Typed references
+## Statically validated references
 
-Column and Event factories return opaque semantic member types. Vane uses those
-types to make helpers accept only declared semantic members:
+Column and Event factories return opaque semantic member types and preserve
+their option contracts. Reference helpers require a class and a string name:
 
 ```ts
 customerId = Column({ type: "uuid", references: reference(Customer, "id") });
@@ -71,9 +71,14 @@ event(Order, "Place", {
 });
 ```
 
-The parser continues to understand the earlier `Customer.id` and `Order.Place`
-forms for source compatibility, but the helper form is the public, type-checked
-grammar.
+TypeScript validates the helper shape, while the static compiler is authoritative
+for member existence, ownership, and kind. This split is deliberate: TypeScript's
+structural type system can copy an inferred value type with `typeof`, but cannot
+prove that a property originated from a particular initializer expression. The
+compiler reads that expression from the AST and rejects unknown, ordinary,
+private, static, or wrong-kind members. The parser continues to understand the
+earlier `Customer.id` and `Order.Place` forms for source compatibility, but the
+helper form is the public grammar.
 
 ## Views and explicit relations
 

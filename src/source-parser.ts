@@ -166,7 +166,7 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
       readonly sourceLocations: ReadonlyMap<string, SourceLocation>;
       readonly fileName: string;
       readonly semanticImportUses: readonly SemanticImportUse[];
-      readonly exportedClassNames: ReadonlySet<string>;
+      readonly exportedClassBindings: ReadonlyMap<string, string>;
     }
   | { readonly success: false; readonly diagnostics: readonly Diagnostic[] } {
   const sourceFile = ts.createSourceFile(
@@ -242,7 +242,7 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
         return binding ? [{ ...binding, expectations }] : [];
       },
     ),
-    exportedClassNames: collectExportedClassNames(sourceFile, classes),
+    exportedClassBindings: collectExportedClassBindings(sourceFile, classes),
   };
 }
 
@@ -422,16 +422,16 @@ function collectLocalSemanticClassKinds(
   }
 }
 
-function collectExportedClassNames(
+function collectExportedClassBindings(
   sourceFile: ts.SourceFile,
   classes: readonly ts.ClassDeclaration[],
-): ReadonlySet<string> {
+): ReadonlyMap<string, string> {
   const classNames = new Set(
     classes.flatMap((candidate) =>
       candidate.name ? [candidate.name.text] : [],
     ),
   );
-  const exported = new Set<string>();
+  const exported = new Map<string, string>();
   for (const candidate of classes) {
     if (
       candidate.name &&
@@ -442,7 +442,7 @@ function collectExportedClassNames(
         (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
       )
     ) {
-      exported.add(candidate.name.text);
+      exported.set(candidate.name.text, candidate.name.text);
     }
   }
   for (const statement of sourceFile.statements) {
@@ -458,8 +458,8 @@ function collectExportedClassNames(
     for (const element of statement.exportClause.elements) {
       if (element.isTypeOnly) continue;
       const localName = (element.propertyName ?? element.name).text;
-      if (classNames.has(localName) && element.name.text === localName) {
-        exported.add(localName);
+      if (classNames.has(localName)) {
+        exported.set(element.name.text, localName);
       }
     }
   }
@@ -527,7 +527,8 @@ export function compileProjectSources(
       diagnostics: sortDiagnostics(duplicateModuleDiagnostics),
     };
   }
-  const semanticImportDiagnostics = validateSemanticImportSources(successful);
+  const resolved = resolveSemanticImportAliases(successful);
+  const semanticImportDiagnostics = validateSemanticImportSources(resolved);
   if (semanticImportDiagnostics.length > 0) {
     return {
       success: false,
@@ -535,14 +536,14 @@ export function compileProjectSources(
     };
   }
   const compiled = compileSemanticProject(
-    successful.map(({ declaration }) => declaration),
+    resolved.map(({ declaration }) => declaration),
   );
   if (compiled.success) return compiled;
   return {
     success: false,
     diagnostics: compiled.diagnostics.map((diagnostic) => {
       const moduleName = diagnostic.path[2];
-      const source = successful.find(
+      const source = resolved.find(
         ({ declaration }) => declaration.name === moduleName,
       );
       const localPath = ["module", ...diagnostic.path.slice(3)];
@@ -561,7 +562,7 @@ function validateSemanticImportSources(
     readonly fileName: string;
     readonly declaration: ModuleDeclaration;
     readonly semanticImportUses: readonly SemanticImportUse[];
-    readonly exportedClassNames: ReadonlySet<string>;
+    readonly exportedClassBindings: ReadonlyMap<string, string>;
   }[],
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
@@ -583,11 +584,16 @@ function validateSemanticImportSources(
         binding.moduleSpecifier,
         sourcesByFileName,
       );
-      const targetKinds = target
-        ? semanticClassKinds(target.declaration, binding.semanticName)
-        : new Set<SemanticClassKind>();
+      const targetSemanticName = target?.exportedClassBindings.get(
+        binding.semanticName,
+      );
+      const targetKinds =
+        target && targetSemanticName
+          ? semanticClassKinds(target.declaration, targetSemanticName)
+          : new Set<SemanticClassKind>();
       if (
-        target?.exportedClassNames.has(binding.semanticName) &&
+        target &&
+        targetSemanticName &&
         binding.expectations.every((expectedKinds) =>
           expectedKinds.some((kind) => targetKinds.has(kind)),
         ) &&
@@ -606,6 +612,74 @@ function validateSemanticImportSources(
     }
   }
   return diagnostics;
+}
+
+function resolveSemanticImportAliases<
+  Source extends {
+    readonly fileName: string;
+    readonly declaration: ModuleDeclaration;
+    readonly semanticImportUses: readonly SemanticImportUse[];
+    readonly exportedClassBindings: ReadonlyMap<string, string>;
+  },
+>(sources: readonly Source[]): readonly Source[] {
+  const sourcesByFileName = new Map(
+    sources.map((source) => [normalizeSourceFileName(source.fileName), source]),
+  );
+  return sources.map((source) => {
+    const aliases = new Map<string, string>();
+    const conflicts = new Set<string>();
+    for (const binding of source.semanticImportUses) {
+      const target = resolveSemanticImportSource(
+        source.fileName,
+        binding.moduleSpecifier,
+        sourcesByFileName,
+      );
+      const localSemanticName = target?.exportedClassBindings.get(
+        binding.semanticName,
+      );
+      if (!localSemanticName || conflicts.has(binding.semanticName)) continue;
+      const previous = aliases.get(binding.semanticName);
+      if (previous && previous !== localSemanticName) {
+        aliases.delete(binding.semanticName);
+        conflicts.add(binding.semanticName);
+      } else {
+        aliases.set(binding.semanticName, localSemanticName);
+      }
+    }
+    return {
+      ...source,
+      declaration: remapSemanticDeclaration(source.declaration, aliases),
+    };
+  });
+}
+
+function remapSemanticDeclaration(
+  declaration: ModuleDeclaration,
+  aliases: ReadonlyMap<string, string>,
+): ModuleDeclaration {
+  const semanticNameKeys = new Set(["entity", "owner", "root", "view"]);
+  const visit = (value: unknown, key?: string): unknown => {
+    if (typeof value === "string") {
+      return key && semanticNameKeys.has(key)
+        ? (aliases.get(value) ?? value)
+        : value;
+    }
+    if (Array.isArray(value)) {
+      return value.map((item) =>
+        key === "imports" && typeof item === "string"
+          ? (aliases.get(item) ?? item)
+          : visit(item),
+      );
+    }
+    if (!value || typeof value !== "object") return value;
+    return Object.fromEntries(
+      Object.entries(value).map(([entryKey, entryValue]) => [
+        entryKey,
+        visit(entryValue, entryKey),
+      ]),
+    );
+  };
+  return visit(declaration) as ModuleDeclaration;
 }
 
 function normalizeSourceFileName(fileName: string): string {

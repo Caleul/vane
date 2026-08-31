@@ -364,4 +364,36 @@ describe("compileModuleSource", () => {
     assert.equal(result.diagnostics[0]?.location?.fileName, "rule.vane.ts");
     assert.equal(result.diagnostics[0]?.location?.start.line, 7);
   });
+
+  it("does not treat a copied inferred token type as declaration provenance", () => {
+    const result = compileModuleSource({
+      fileName: "copied-token.vane.ts",
+      sourceText: `
+        import { Module, Entity, Column, View, field } from "@lilka/vane";
+        const token = Column({ type: "uuid" });
+        @Entity()
+        class Order {
+          id = Column({ type: "uuid", identity: true });
+          fake!: typeof token;
+        }
+        @View({
+          input: {},
+          output: { fake: field(Order, "fake") },
+          query: { root: Order },
+        })
+        class FakeOrderView {}
+        @Module({ entities: [Order], views: [FakeOrderView] }) class Sales {}
+      `,
+    });
+
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code, location }) =>
+          code === "VANE_SEM_VIEW_COLUMN" &&
+          location?.fileName === "copied-token.vane.ts",
+      ),
+    );
+  });
 });

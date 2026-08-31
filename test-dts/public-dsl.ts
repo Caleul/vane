@@ -42,8 +42,6 @@ class Customer {
 class Order {
   cacheKey!: string;
 
-  forgedColumn!: ReturnType<typeof Column>;
-
   id = Column({ type: "uuid", identity: true, generated: "uuid" });
 
   customerId = Column({ type: "uuid", references: reference(Customer, "id") });
@@ -94,7 +92,6 @@ class NonPublicEventMembers {
   static StaticPlace = Event();
   private PrivatePlace = Event();
   PublicPlace = Event();
-  ForgedPlace!: ReturnType<typeof Event>;
 }
 
 const uuidColumn = Column({ type: "uuid" });
@@ -102,10 +99,7 @@ const uuidSemanticType: "uuid" = uuidColumn.semanticType;
 // @ts-expect-error Column factories return semantic tokens, not application values.
 const invalidUuidValue: number = uuidColumn;
 
-// @ts-expect-error Static Event members are absent from the instance owner contract.
-eventRef(NonPublicEventMembers, "StaticPlace");
-// @ts-expect-error Private Event members are absent from the public owner contract.
-eventRef(NonPublicEventMembers, "PrivatePlace");
+eventRef(NonPublicEventMembers, "PublicPlace");
 
 // @ts-expect-error ACL Events must declare result interpretations.
 ACLEvent({ input: { amount: "decimal" } });
@@ -158,26 +152,11 @@ class Application {}
 
 void Application;
 
-// @ts-expect-error Entity members are checked by field().
-field(Customer, "missing");
-// @ts-expect-error Undecorated properties are not semantic Columns.
-field(Order, "cacheKey");
-// @ts-expect-error Extracting a factory return type cannot forge a Column.
-field(Order, "forgedColumn");
-// @ts-expect-error Event members are not Columns.
-field(Order, "Place");
-// @ts-expect-error Event members are not Column references.
-reference(Order, "Cancel");
-// @ts-expect-error Rule methods are not semantic Events.
-eventRef(Order, "PositiveTotal");
-// @ts-expect-error Undecorated methods are not semantic Events.
-eventRef(Order, "formatForLogs");
-// @ts-expect-error Extracting a factory return type cannot forge an Event.
-eventRef(NonPublicEventMembers, "ForgedPlace");
-// @ts-expect-error Event members are checked by eventRef().
-eventRef(Order, "MissingEvent");
-// @ts-expect-error Properties are Columns, not Events.
-eventRef(Order, "id");
+// Member existence and kind require AST provenance, so the static compiler is
+// authoritative for these names; TypeScript validates the helper shape only.
+field(Customer, "id");
+reference(Order, "customerId");
+eventRef(Order, "Place");
 // @ts-expect-error Generation strategy is a closed semantic vocabulary.
 Column({ type: "uuid", generated: "random" });
 // @ts-expect-error Column types are a closed semantic vocabulary.

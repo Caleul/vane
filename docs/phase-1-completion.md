@@ -11,9 +11,9 @@ type tests.
 | --- | --- | --- |
 | Public TypeScript DSL | Complete | `src/dsl.ts`; `test-dts/public-dsl.ts`; `npm run test:types` |
 | Static AST/declarations | Complete | `parseModuleSource`; `compileProjectSources`; parser tests prove user code is never executed |
-| Entity, Column, Rule, Event | Complete | inferred `Column(...)`, `Event(...)`, and `ACLEvent(...)` member initializers correlate options with opaque semantic member types and distinguish them from ordinary properties, Rules, and arbitrary methods; ownership, identity, references, full constraints, persistence and terminal guarantees in Semantic IR v5 |
+| Entity, Column, Rule, Event | Complete | inferred `Column(...)`, `Event(...)`, and `ACLEvent(...)` member initializers correlate options with opaque semantic member types; the AST compiler—not copyable structural types—proves member existence, ownership, and kind; identity, references, full constraints, persistence and terminal guarantees are preserved in Semantic IR v5 |
 | View and query | Complete | typed projection, filters, aggregates, ordering, pagination, explicit relation paths, no persistence |
-| ACL Event | Complete | owner-specific `ACLEvent(...)` member factory, semantic input/result interpretations, mandatory success/fail, no technical policy |
+| ACL Event | Complete | `ACLEvent(...)` member factory plus compiler-validated ACL ownership, semantic input/result interpretations, mandatory success/fail, no technical policy |
 | Saga and Saga Stream | Complete | causal DAG, compensation, single terminal sink, durable/causal guarantees, terminal-only visibility |
 | Module composition | Complete | explicit imports, transitive visibility, unknown/duplicate/self/cycle/ambiguity rejection |
 | Deterministic IR | Complete | canonical module/project ordering and byte-identical serialization tests |

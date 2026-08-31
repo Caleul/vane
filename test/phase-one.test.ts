@@ -511,7 +511,9 @@ describe("phase one completion gate", () => {
       {
         fileName: "application.vane.ts",
         sourceText: `
-          import { Module, Entity, Column, reference } from "@lilka/vane";
+          import {
+            Module, Entity, Column, View, field, reference
+          } from "@lilka/vane";
           import { Core, Customer } from "./core.vane.js";
           import { Customer } from "./core.vane.js";
           @Entity() class Order {
@@ -1028,6 +1030,63 @@ describe("phase one completion gate", () => {
       result.ir.modules.map(({ name }) => name),
       ["Core", "Sales"],
     );
+  });
+
+  it("resolves renamed exports to their local semantic declarations", () => {
+    const result = compileProjectSources([
+      {
+        fileName: "core.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() class Customer {
+            id = Column({ type: "uuid", identity: true });
+          }
+          @Module({ entities: [Customer] }) class Core {}
+          export { Customer as Buyer, Core as Foundation };
+        `,
+      },
+      {
+        fileName: "sales.vane.ts",
+        sourceText: `
+          import {
+            Module, Entity, Column, View, field, reference
+          } from "@lilka/vane";
+          import {
+            Buyer as Customer, Foundation as Core
+          } from "./core.vane.js";
+          @Entity() class Order {
+            id = Column({ type: "uuid", identity: true });
+            customerId = Column({
+              type: "uuid", references: reference(Customer, "id")
+            });
+          }
+          @View({
+            input: {},
+            output: { customerId: field(Customer, "id") },
+            query: { root: Customer },
+          }) class BuyerView {}
+          @Module({
+            imports: [Core], entities: [Order], views: [BuyerView]
+          }) class Sales {}
+        `,
+      },
+    ]);
+
+    assert.equal(result.success, true);
+    if (!result.success) return;
+    assert.deepEqual(result.ir.modules[1]?.imports, ["Core"]);
+    assert.deepEqual(
+      result.ir.modules[1]?.entities[0]?.columns[0]?.references,
+      {
+        entity: "Customer",
+        column: "id",
+      },
+    );
+    const expression = result.ir.modules[1]?.views[0]?.output[0]?.expression;
+    assert.equal(expression?.kind, "column");
+    if (expression?.kind === "column") {
+      assert.equal(expression.entity, "Customer");
+    }
   });
 
   it("parses typed Column, relation and Saga references end to end", () => {
