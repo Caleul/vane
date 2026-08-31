@@ -47,7 +47,7 @@ class Sales {}
 `;
 
 describe("parseModuleSource", () => {
-  it("turns the provisional decorator grammar into a ModuleDeclaration", () => {
+  it("turns the public static decorator grammar into a ModuleDeclaration", () => {
     const result = parseModuleSource({
       fileName: "sales.vane.ts",
       sourceText: validSource,

@@ -106,7 +106,8 @@ class OrderDetails {}
 ```
 
 Every relation must follow an actual Column reference, use compatible types,
-and form a connected path from the query root. Vane does not infer joins.
+and form one unique, acyclic path from the query root to each Entity. Vane does
+not infer joins or choose between two instances of the same Entity.
 Filters use typed Columns, declared inputs, literals, comparison operators, and
 logical composition. Ordering and pagination remain ordered query properties.
 

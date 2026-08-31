@@ -416,7 +416,8 @@ function validateEntity(
         code: "VANE_SEM_REFERENCE_ENTITY",
         path: [...entityPath, "columns", column.name, "references", "entity"],
         message: `Column ${entity.name}.${column.name} references unknown Entity ${column.references.entity}.`,
-        correction: "Reference an Entity declared in the same Module.",
+        correction:
+          "Reference an Entity declared by this Module or one of its imports.",
       });
     } else if (column.references) {
       const referencedEntity = entitiesByName.get(column.references.entity);
@@ -646,6 +647,17 @@ function validateColumnConstraints(
       "Use a default value compatible with the Column type.",
     );
   }
+  if (column.default !== undefined) {
+    for (const nestedPath of collectNonFiniteJsonNumberPaths(column.default)) {
+      diagnostics.push({
+        code: "VANE_SEM_COLUMN_CONSTRAINT",
+        path: [...path, "default", ...nestedPath],
+        message: `Column ${entityName}.${column.name} contains a non-finite number in its default value.`,
+        correction:
+          "Use only finite JSON numbers so serialization preserves the default exactly.",
+      });
+    }
+  }
   if (typeof column.default === "string" && column.type === "string") {
     if (
       column.minLength !== undefined &&
@@ -687,6 +699,26 @@ function validateColumnConstraints(
       );
     }
   }
+}
+
+function collectNonFiniteJsonNumberPaths(
+  value: JsonValue,
+  path: readonly string[] = [],
+): readonly (readonly string[])[] {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? [] : [path];
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap((nested, index) =>
+      collectNonFiniteJsonNumberPaths(nested, [...path, String(index)]),
+    );
+  }
+  if (value && typeof value === "object") {
+    return Object.entries(value).flatMap(([key, nested]) =>
+      collectNonFiniteJsonNumberPaths(nested, [...path, key]),
+    );
+  }
+  return [];
 }
 
 function columnDefaultMatchesType(
@@ -878,7 +910,7 @@ function validateSaga(
       code: "VANE_SEM_SAGA_TERMINAL_VIEW",
       path: [...sagaPath, "terminal", "view"],
       message: `Saga ${saga.name} references unknown terminal View ${saga.terminal.view}.`,
-      correction: "Use a View declared in the same Module.",
+      correction: "Use a View declared by this Module or one of its imports.",
     });
   }
 
@@ -913,7 +945,7 @@ function validateSagaEventReference(
     path,
     message: `Saga references unknown Event ${identity}.`,
     correction:
-      "Reference an Event owned by an Entity or Anti-Corruption Layer in the same Module.",
+      "Reference an Event visible through this Module's explicit import graph.",
   });
 }
 
@@ -1002,7 +1034,7 @@ function validateView(
       path: [...viewPath, "output"],
       message: `View ${view.name} mixes aggregate and scalar projections without grouping semantics.`,
       correction:
-        "Use only aggregate outputs in this slice, or split scalar projections into another View.",
+        "Use only aggregate outputs without grouping, or split scalar projections into another View.",
     });
   }
   if (hasAggregateOutput && (view.query.orderBy?.length ?? 0) > 0) {
@@ -1033,7 +1065,8 @@ function validateView(
       code: "VANE_SEM_VIEW_ROOT",
       path: [...viewPath, "query", "root"],
       message: `View ${view.name} references unknown root Entity ${view.query.root}.`,
-      correction: "Use an Entity declared in the same Module as the View root.",
+      correction:
+        "Use an Entity visible through the View owner's explicit import graph.",
     });
   }
   const reachableEntities = validateViewRelations(
@@ -1176,6 +1209,35 @@ function validateViewRelations(
           "Join the referencing Column to the exact referenced Column.",
       });
     }
+  }
+  const parents = new Map<string, string>();
+  const find = (entity: string): string => {
+    const parent = parents.get(entity);
+    if (!parent) {
+      parents.set(entity, entity);
+      return entity;
+    }
+    if (parent === entity) return entity;
+    const rootParent = find(parent);
+    parents.set(entity, rootParent);
+    return rootParent;
+  };
+  for (const relation of [...relations].sort((left, right) =>
+    compare(left.name, right.name),
+  )) {
+    const fromRoot = find(relation.from.entity);
+    const toRoot = find(relation.to.entity);
+    if (fromRoot === toRoot) {
+      diagnostics.push({
+        code: "VANE_SEM_VIEW_RELATION_AMBIGUOUS",
+        path: [...viewPath, "query", "relations", relation.name],
+        message: `View relation ${relation.name} creates an ambiguous path between Entity instances.`,
+        correction:
+          "Keep one acyclic relation path from the View root to each Entity; relation aliases are not implicit.",
+      });
+      continue;
+    }
+    parents.set(toRoot, fromRoot);
   }
   let changed = true;
   while (changed) {
@@ -1359,7 +1421,8 @@ function resolveViewColumnType(
       code: "VANE_SEM_VIEW_ENTITY",
       path,
       message: `View references unknown Entity ${reference.entity}.`,
-      correction: "Reference an Entity declared in the same Module.",
+      correction:
+        "Reference an Entity declared by this Module or one of its imports.",
     });
     return undefined;
   }

@@ -238,6 +238,55 @@ describe("phase one completion gate", () => {
     assert.deepEqual(first.ir, second.ir);
   });
 
+  it("rejects non-finite numbers anywhere in a JSON default", () => {
+    const declarationResult = compileSemanticIr({
+      name: "Configuration",
+      entities: [
+        {
+          name: "Profile",
+          columns: [
+            { name: "id", type: "uuid", identity: true },
+            {
+              name: "settings",
+              type: "json",
+              default: { nested: [1, Number.POSITIVE_INFINITY] },
+            },
+          ],
+        },
+      ],
+    });
+    assert.equal(declarationResult.success, false);
+    if (declarationResult.success) return;
+    assert.ok(
+      declarationResult.diagnostics.some(
+        ({ code, path }) =>
+          code === "VANE_SEM_COLUMN_CONSTRAINT" &&
+          path.slice(-2).join(".") === "nested.1",
+      ),
+    );
+
+    const sourceResult = compileProjectSources([
+      {
+        fileName: "configuration.vane.ts",
+        sourceText: `
+          import { Module, Entity, Column } from "@lilka/vane";
+          @Entity() class Profile {
+            @Column({ type: "uuid", identity: true }) id!: string;
+            @Column({ type: "json", default: { nested: 1e400 } }) settings!: unknown;
+          }
+          @Module({ entities: [Profile] }) class Configuration {}
+        `,
+      },
+    ]);
+    assert.equal(sourceResult.success, false);
+    if (sourceResult.success) return;
+    assert.ok(
+      sourceResult.diagnostics.some(
+        ({ code }) => code === "VANE_SEM_COLUMN_CONSTRAINT",
+      ),
+    );
+  });
+
   it("requires project context when a single Module declares imports", () => {
     const result = compileSemanticIr({
       name: "Sales",
@@ -385,6 +434,69 @@ describe("phase one completion gate", () => {
     assert.ok(
       result.diagnostics.some(
         ({ code }) => code === "VANE_SEM_VIEW_RELATION_REFERENCE",
+      ),
+    );
+  });
+
+  it("rejects multiple relation paths to the same Entity identity", () => {
+    const result = compileSemanticIr({
+      name: "Commerce",
+      entities: [
+        customer,
+        {
+          name: "Order",
+          columns: [
+            { name: "id", type: "uuid", identity: true },
+            {
+              name: "billingId",
+              type: "uuid",
+              references: { entity: "Customer", column: "id" },
+            },
+            {
+              name: "shippingId",
+              type: "uuid",
+              references: { entity: "Customer", column: "id" },
+            },
+          ],
+        },
+      ],
+      views: [
+        {
+          name: "Addresses",
+          input: [],
+          output: [
+            {
+              name: "customerName",
+              expression: {
+                kind: "column",
+                entity: "Customer",
+                column: "name",
+              },
+            },
+          ],
+          query: {
+            root: "Order",
+            relations: [
+              {
+                name: "billing",
+                from: { entity: "Order", column: "billingId" },
+                to: { entity: "Customer", column: "id" },
+              },
+              {
+                name: "shipping",
+                from: { entity: "Order", column: "shippingId" },
+                to: { entity: "Customer", column: "id" },
+              },
+            ],
+          },
+        },
+      ],
+    });
+    assert.equal(result.success, false);
+    if (result.success) return;
+    assert.ok(
+      result.diagnostics.some(
+        ({ code }) => code === "VANE_SEM_VIEW_RELATION_AMBIGUOUS",
       ),
     );
   });
