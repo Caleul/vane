@@ -649,6 +649,18 @@ function normalizeCatalogExpression(value: string | null): string | null {
       "",
     ),
   );
+  normalized = transformUnquotedCatalogSegments(normalized, (segment) => {
+    let canonical = segment;
+    let previous = "";
+    while (previous !== canonical) {
+      previous = canonical;
+      canonical = canonical.replace(
+        /\(([-+]?\d+(?:\.\d+)?|true|false|null)\)/giu,
+        "$1",
+      );
+    }
+    return canonical;
+  });
   while (hasSingleOuterParentheses(normalized)) {
     normalized = normalized.slice(1, -1);
   }

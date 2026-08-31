@@ -506,11 +506,16 @@ describe("PostgreSQL Module runtime", () => {
     const storage = storageFor(module);
     const database = new MemoryPostgreSqlPool(storage);
     for (const constraint of database.constraintRows) {
-      if (!constraint.check_expression?.includes(" IN (")) continue;
-      constraint.check_expression = `(${constraint.check_expression
-        .replace(" IN (", " = ANY (ARRAY[")
-        .replace(/'([^']*)'/gu, "'$1'::text")
-        .replace(/\)$/u, "])")})`;
+      if (constraint.check_expression?.includes(" IN ("))
+        constraint.check_expression = `(${constraint.check_expression
+          .replace(" IN (", " = ANY (ARRAY[")
+          .replace(/'([^']*)'/gu, "'$1'::text")
+          .replace(/\)$/u, "])")})`;
+      else if (constraint.check_expression?.includes("> 0"))
+        constraint.check_expression = `(${constraint.check_expression.replace(
+          "> 0",
+          "> (0)::bigint",
+        )})`;
     }
 
     const runtime = new PostgreSqlModuleRuntime({
