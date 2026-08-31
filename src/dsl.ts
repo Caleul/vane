@@ -13,6 +13,7 @@ export type VaneClass<T = object> = abstract new (...args: never[]) => T;
 type TypedField = ColumnType | OptionalField;
 declare const eventMemberBrand: unique symbol;
 declare const columnMemberBrand: unique symbol;
+declare const factoryReturnTypeBrand: unique symbol;
 
 interface ColumnMember<Type extends ColumnType = ColumnType> {
   readonly [columnMemberBrand]: "column";
@@ -21,6 +22,10 @@ interface ColumnMember<Type extends ColumnType = ColumnType> {
 
 interface EventMember {
   readonly [eventMemberBrand]: "event";
+}
+
+interface FactoryReturnTypeOnly {
+  readonly [factoryReturnTypeBrand]: "not-a-semantic-member";
 }
 
 type ColumnName<T> = Extract<
@@ -146,16 +151,29 @@ export function ACL(): ClassDecorator {
 }
 export function Column<const Type extends ColumnType>(
   options: ColumnOptions<Type>,
-): ColumnMember<Type> {
-  return { semanticType: options.type } as ColumnMember<Type>;
+): ColumnMember<Type>;
+export function Column(options: ColumnOptions): FactoryReturnTypeOnly;
+export function Column(
+  options: ColumnOptions,
+): ColumnMember | FactoryReturnTypeOnly {
+  return { semanticType: options.type } as ColumnMember;
 }
 export function Rule(_options: RuleOptions): MethodDecorator {
   return methodDecorator;
 }
-export function Event(_options: EntityEventOptions = {}): EventMember {
+export function Event(): EventMember;
+export function Event(options: EntityEventOptions): EventMember;
+export function Event(options?: EntityEventOptions): FactoryReturnTypeOnly;
+export function Event(
+  _options: EntityEventOptions = {},
+): EventMember | FactoryReturnTypeOnly {
   return {} as EventMember;
 }
-export function ACLEvent(_options: ACLEventOptions): EventMember {
+export function ACLEvent(_options: ACLEventOptions): EventMember;
+export function ACLEvent(options: ACLEventOptions): FactoryReturnTypeOnly;
+export function ACLEvent(
+  _options: ACLEventOptions,
+): EventMember | FactoryReturnTypeOnly {
   return {} as EventMember;
 }
 export function View(_options: ViewOptions): ClassDecorator {
@@ -171,7 +189,7 @@ function className<T>(value: VaneClass<T>): string {
 
 export function field<T>(
   entity: VaneClass<T>,
-  name: ColumnName<T>,
+  name: ColumnName<NoInfer<T>>,
 ): ColumnToken {
   return { kind: "column", entity: className(entity), column: name };
 }
@@ -184,14 +202,14 @@ export function relation(from: ColumnToken, to: ColumnToken): RelationToken {
 
 export function eventRef<T>(
   owner: VaneClass<T>,
-  name: EventName<T>,
+  name: EventName<NoInfer<T>>,
 ): EventToken {
   return { owner: className(owner), event: name };
 }
 
 export function event<T>(
   owner: VaneClass<T>,
-  name: EventName<T>,
+  name: EventName<NoInfer<T>>,
   options: SagaStepOptions = {},
 ): SagaStepToken {
   return {

@@ -42,6 +42,8 @@ class Customer {
 class Order {
   cacheKey!: string;
 
+  forgedColumn!: ReturnType<typeof Column>;
+
   id = Column({ type: "uuid", identity: true, generated: "uuid" });
 
   customerId = Column({ type: "uuid", references: reference(Customer, "id") });
@@ -92,6 +94,7 @@ class NonPublicEventMembers {
   static StaticPlace = Event();
   private PrivatePlace = Event();
   PublicPlace = Event();
+  ForgedPlace!: ReturnType<typeof Event>;
 }
 
 const uuidColumn = Column({ type: "uuid" });
@@ -159,6 +162,8 @@ void Application;
 field(Customer, "missing");
 // @ts-expect-error Undecorated properties are not semantic Columns.
 field(Order, "cacheKey");
+// @ts-expect-error Extracting a factory return type cannot forge a Column.
+field(Order, "forgedColumn");
 // @ts-expect-error Event members are not Columns.
 field(Order, "Place");
 // @ts-expect-error Event members are not Column references.
@@ -167,6 +172,8 @@ reference(Order, "Cancel");
 eventRef(Order, "PositiveTotal");
 // @ts-expect-error Undecorated methods are not semantic Events.
 eventRef(Order, "formatForLogs");
+// @ts-expect-error Extracting a factory return type cannot forge an Event.
+eventRef(NonPublicEventMembers, "ForgedPlace");
 // @ts-expect-error Event members are checked by eventRef().
 eventRef(Order, "MissingEvent");
 // @ts-expect-error Properties are Columns, not Events.
