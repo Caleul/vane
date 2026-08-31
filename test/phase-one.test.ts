@@ -441,6 +441,88 @@ describe("phase one completion gate", () => {
     assert.deepEqual(JSON.parse(serializeSemanticIr(result.ir)), result.ir);
   });
 
+  it("normalizes negative zero throughout the complete Semantic IR", () => {
+    const result = compileSemanticIr({
+      name: "Analytics",
+      entities: [
+        {
+          name: "Metric",
+          columns: [
+            { name: "id", type: "uuid", identity: true },
+            { name: "label", type: "string", minLength: -0 },
+            { name: "value", type: "decimal", minimum: -0 },
+            { name: "baseline", type: "decimal", maximum: -0 },
+          ],
+          rules: [
+            {
+              name: "NonNegative",
+              expression: {
+                kind: "logical",
+                operator: "and",
+                operands: [
+                  {
+                    kind: "comparison",
+                    operator: "gte",
+                    left: { kind: "column", column: "value" },
+                    right: { kind: "literal", value: -0 },
+                  },
+                  {
+                    kind: "comparison",
+                    operator: "lte",
+                    left: { kind: "column", column: "baseline" },
+                    right: { kind: "literal", value: -0 },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+      views: [
+        {
+          name: "Metrics",
+          input: [],
+          output: [
+            {
+              name: "value",
+              expression: {
+                kind: "column",
+                entity: "Metric",
+                column: "value",
+              },
+            },
+          ],
+          query: {
+            root: "Metric",
+            where: {
+              kind: "comparison",
+              operator: "gte",
+              left: {
+                kind: "column",
+                entity: "Metric",
+                column: "value",
+              },
+              right: { kind: "literal", value: -0 },
+            },
+            pagination: { offset: { kind: "literal", value: -0 } },
+          },
+        },
+      ],
+    });
+    assert.equal(result.success, true);
+    if (!result.success) return;
+    const containsNegativeZero = (value: unknown): boolean =>
+      typeof value === "number"
+        ? Object.is(value, -0)
+        : Array.isArray(value)
+          ? value.some(containsNegativeZero)
+          : value !== null && typeof value === "object"
+            ? Object.values(value).some(containsNegativeZero)
+            : false;
+    assert.equal(containsNegativeZero(result.ir), false);
+    assert.deepEqual(JSON.parse(serializeSemanticIr(result.ir)), result.ir);
+  });
+
   it("preserves special JSON object keys as data properties", () => {
     const result = compileProjectSources([
       {
@@ -633,6 +715,11 @@ describe("phase one completion gate", () => {
       column: "id",
       undeclared: "must-not-enter-ir",
     } as const;
+    const limit = {
+      kind: "literal",
+      value: 10,
+      undeclared: "must-not-enter-ir",
+    } as const;
     const result = compileSemanticIr({
       name: "Commerce",
       entities: [customer, order],
@@ -653,6 +740,7 @@ describe("phase one completion gate", () => {
           query: {
             root: "Order",
             relations: [{ name: "customer", from, to }],
+            pagination: { limit },
           },
         },
       ],
@@ -665,6 +753,9 @@ describe("phase one completion gate", () => {
       column: "customerId",
     });
     assert.deepEqual(relation?.to, { entity: "Customer", column: "id" });
+    assert.deepEqual(result.ir.module.views[0]?.query.pagination, {
+      limit: { kind: "literal", value: 10 },
+    });
   });
 
   it("rejects multiple relation paths to the same Entity identity", () => {

@@ -1770,16 +1770,34 @@ function canonicalizeViewValue(
   }
   return value.kind === "input"
     ? { kind: "input", input: value.input }
-    : { kind: "literal", value: value.value };
+    : {
+        kind: "literal",
+        value:
+          typeof value.value === "number"
+            ? canonicalizeNumber(value.value)
+            : value.value,
+      };
 }
 
 function canonicalizePagination(
   pagination: NonNullable<ViewDeclaration["query"]["pagination"]>,
 ): NonNullable<ViewDeclaration["query"]["pagination"]> {
   return {
-    ...(pagination.limit ? { limit: { ...pagination.limit } } : {}),
-    ...(pagination.offset ? { offset: { ...pagination.offset } } : {}),
+    ...(pagination.limit
+      ? { limit: canonicalizePaginationValue(pagination.limit) }
+      : {}),
+    ...(pagination.offset
+      ? { offset: canonicalizePaginationValue(pagination.offset) }
+      : {}),
   };
+}
+
+function canonicalizePaginationValue(
+  value: ViewPaginationValueDeclaration,
+): ViewPaginationValueDeclaration {
+  return value.kind === "input"
+    ? { kind: "input", input: value.input }
+    : { kind: "literal", value: canonicalizeNumber(value.value) };
 }
 
 function toSemanticEntity(entity: EntityDeclaration): SemanticEntity {
@@ -1799,10 +1817,22 @@ function toSemanticEntity(entity: EntityDeclaration): SemanticEntity {
         nullable: column.nullable ?? false,
         unique: column.unique ?? false,
         generated: column.generated ?? null,
-        minLength: column.minLength ?? null,
-        maxLength: column.maxLength ?? null,
-        minimum: column.minimum ?? null,
-        maximum: column.maximum ?? null,
+        minLength:
+          column.minLength === undefined
+            ? null
+            : canonicalizeNumber(column.minLength),
+        maxLength:
+          column.maxLength === undefined
+            ? null
+            : canonicalizeNumber(column.maxLength),
+        minimum:
+          column.minimum === undefined
+            ? null
+            : canonicalizeNumber(column.minimum),
+        maximum:
+          column.maximum === undefined
+            ? null
+            : canonicalizeNumber(column.maximum),
         default:
           column.default === undefined
             ? null
@@ -1850,7 +1880,7 @@ function toSemanticEntity(entity: EntityDeclaration): SemanticEntity {
 }
 
 function canonicalizeJsonValue(value: JsonValue): JsonValue {
-  if (typeof value === "number" && Object.is(value, -0)) return 0;
+  if (typeof value === "number") return canonicalizeNumber(value);
   if (Array.isArray(value)) return value.map(canonicalizeJsonValue);
   if (value && typeof value === "object") {
     return Object.fromEntries(
@@ -2025,7 +2055,17 @@ function canonicalizeRuleValue(
 ): RuleValueDeclaration {
   return value.kind === "column"
     ? { kind: "column", column: value.column }
-    : { kind: "literal", value: value.value };
+    : {
+        kind: "literal",
+        value:
+          typeof value.value === "number"
+            ? canonicalizeNumber(value.value)
+            : value.value,
+      };
+}
+
+function canonicalizeNumber(value: number): number {
+  return Object.is(value, -0) ? 0 : value;
 }
 
 function validateName(
