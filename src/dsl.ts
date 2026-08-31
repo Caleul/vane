@@ -14,12 +14,12 @@ type TypedField = ColumnType | OptionalField;
 declare const eventMemberBrand: unique symbol;
 declare const columnMemberBrand: unique symbol;
 
-export interface ColumnMember<Value = unknown> {
+interface ColumnMember<Type extends ColumnType = ColumnType> {
   readonly [columnMemberBrand]: "column";
-  readonly value?: Value;
+  readonly semanticType: Type;
 }
 
-export interface EventMember {
+interface EventMember {
   readonly [eventMemberBrand]: "event";
 }
 
@@ -36,18 +36,6 @@ export type EventName<T> = Extract<
   }[keyof T],
   string
 >;
-
-export type ColumnMemberDecorator = <T extends object>(
-  target: T & (T extends VaneClass ? never : unknown),
-  propertyKey: ColumnName<T>,
-  descriptor?: never,
-) => void;
-
-export type EventMemberDecorator = <T extends object>(
-  target: T & (T extends VaneClass ? never : unknown),
-  propertyKey: EventName<T>,
-  descriptor?: never,
-) => void;
 
 export interface OptionalField {
   readonly kind: "optional";
@@ -80,8 +68,8 @@ export interface ModuleOptions {
   readonly sagas?: readonly VaneClass[];
 }
 
-export interface ColumnOptions {
-  readonly type: ColumnType;
+export interface ColumnOptions<Type extends ColumnType = ColumnType> {
+  readonly type: Type;
   readonly identity?: boolean;
   readonly nullable?: boolean;
   readonly unique?: boolean;
@@ -146,8 +134,6 @@ export interface SagaOptions {
 
 const classDecorator: ClassDecorator = () => undefined;
 const methodDecorator: MethodDecorator = () => undefined;
-const columnMemberDecorator: ColumnMemberDecorator = () => undefined;
-const eventMemberDecorator: EventMemberDecorator = () => undefined;
 
 export function Module(_options: ModuleOptions): ClassDecorator {
   return classDecorator;
@@ -158,17 +144,19 @@ export function Entity(): ClassDecorator {
 export function ACL(): ClassDecorator {
   return classDecorator;
 }
-export function Column(_options: ColumnOptions): ColumnMemberDecorator {
-  return columnMemberDecorator;
+export function Column<const Type extends ColumnType>(
+  options: ColumnOptions<Type>,
+): ColumnMember<Type> {
+  return { semanticType: options.type } as ColumnMember<Type>;
 }
 export function Rule(_options: RuleOptions): MethodDecorator {
   return methodDecorator;
 }
-export function Event(_options: EntityEventOptions = {}): EventMemberDecorator {
-  return eventMemberDecorator;
+export function Event(_options: EntityEventOptions = {}): EventMember {
+  return {} as EventMember;
 }
-export function ACLEvent(_options: ACLEventOptions): EventMemberDecorator {
-  return eventMemberDecorator;
+export function ACLEvent(_options: ACLEventOptions): EventMember {
+  return {} as EventMember;
 }
 export function View(_options: ViewOptions): ClassDecorator {
   return classDecorator;

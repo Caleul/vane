@@ -367,16 +367,16 @@ describe("View source parser", () => {
       fileName: "order-details.vane.ts",
       sourceText: `
         import {
-          Module, Entity, Column, type ColumnMember, View, optional, input, literal,
+          Module, Entity, Column, View, optional, input, literal,
           eq, gt, and, desc
         } from "@lilka/vane";
 
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
-          @Column({ type: "uuid" }) customerId!: ColumnMember<string>;
-          @Column({ type: "decimal" }) total!: ColumnMember<number>;
-          @Column({ type: "datetime" }) createdAt!: ColumnMember<Date>;
+          id = Column({ type: "uuid", identity: true });
+          customerId = Column({ type: "uuid" });
+          total = Column({ type: "decimal" });
+          createdAt = Column({ type: "datetime" });
         }
 
         @View({
@@ -429,11 +429,11 @@ describe("View source parser", () => {
     const result = compileModuleSource({
       fileName: "dynamic-view.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, type ColumnMember, View } from "@lilka/vane";
+        import { Module, Entity, Column, View } from "@lilka/vane";
         const dynamicQuery = loadQuery();
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+          id = Column({ type: "uuid", identity: true });
         }
         @View({ input: {}, output: { id: Order.id }, query: dynamicQuery })
         class OrderDetails {}
@@ -453,14 +453,14 @@ describe("View source parser", () => {
     const result = compileModuleSource({
       fileName: "persistent-view.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, type ColumnMember, View } from "@lilka/vane";
+        import { Module, Entity, Column, View } from "@lilka/vane";
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+          id = Column({ type: "uuid", identity: true });
         }
         @View({ input: {}, output: { id: Order.id }, query: { root: Order } })
         class OrderDetails {
-          @Column({ type: "string" }) forbidden!: ColumnMember<string>;
+          forbidden = Column({ type: "string" });
         }
         @Module({ entities: [Order], views: [OrderDetails] }) class Sales {}
       `,

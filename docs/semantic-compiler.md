@@ -12,7 +12,7 @@ credential, retry policy, or deployment topology. Those choices require a
 
 ## Public TypeScript DSL
 
-`@lilka/vane` exports the decorators and helpers accepted by the static parser.
+`@lilka/vane` exports the decorators, member factories, and helpers accepted by the static parser.
 The same API is checked by TypeScript fixtures, so examples cannot drift away
 from the package surface.
 
@@ -26,23 +26,19 @@ import {
   column,
   gt,
   optional,
-  type ColumnMember,
-  type EventMember,
 } from "@lilka/vane";
 
 @Entity()
 class Subscription {
-  @Column({ type: "uuid", identity: true, generated: "uuid" })
-  id!: ColumnMember<string>;
+  id = Column({ type: "uuid", identity: true, generated: "uuid" });
 
-  @Column({ type: "date" }) startDate!: ColumnMember<Date>;
-  @Column({ type: "date" }) endDate!: ColumnMember<Date>;
+  startDate = Column({ type: "date" });
+  endDate = Column({ type: "date" });
 
   @Rule({ expression: gt(column("endDate"), column("startDate")) })
   EndsAfterStart() {}
 
-  @Event({ input: { startDate: "date", couponCode: optional("string") } })
-  CreateSubscription!: EventMember;
+  CreateSubscription = Event({ input: { startDate: "date", couponCode: optional("string") } });
 }
 
 @Module({ entities: [Subscription] })
@@ -50,7 +46,7 @@ class Sales {}
 ```
 
 The parser reads the TypeScript AST directly. It never imports, transpiles, or
-executes the user's source. Decorator configuration must therefore consist of
+executes the user's source. Declaration configuration must therefore consist of
 inline objects and arrays, literal values, class identifiers, and recognized
 helper calls. Variables, spreads, shorthand properties, computed properties,
 and arbitrary function calls are rejected with source locations.
@@ -62,12 +58,11 @@ maxLength`, or generation combined with a default fail semantic compilation.
 
 ## Typed references
 
-TypeScript cannot infer static properties from property decorators. Vane uses
-helpers that check member names against the referenced class instead:
+Column and Event factories return opaque semantic member types. Vane uses those
+types to make helpers accept only declared semantic members:
 
 ```ts
-@Column({ type: "uuid", references: reference(Customer, "id") })
-customerId!: ColumnMember<string>;
+customerId = Column({ type: "uuid", references: reference(Customer, "id") });
 
 field(Order, "customerId");
 eventRef(Order, "Cancel");

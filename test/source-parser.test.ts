@@ -10,41 +10,32 @@ const validSource = `
 import {
   Module,
   Entity,
-  Column, type ColumnMember,
+  Column,
   Rule,
   Event,
-  type EventMember as ImportedEventMember,
   column,
   gt,
   optional,
 } from "@lilka/vane";
 
-type SemanticEvent<Payload = never> = ImportedEventMember & {
-  readonly payload?: Payload;
-};
-
 @Entity()
 class Subscription {
-  @Column({ type: "uuid", identity: true, generated: "uuid" })
-  id!: ColumnMember<string>;
+  id = Column({ type: "uuid", identity: true, generated: "uuid" });
 
-  @Column({ type: "date" })
-  startDate!: ColumnMember<Date>;
+  startDate = Column({ type: "date" });
 
-  @Column({ type: "date" })
-  endDate!: ColumnMember<Date>;
+  endDate = Column({ type: "date" });
 
   @Rule({ expression: gt(column("endDate"), column("startDate")) })
   EndsAfterStart() {}
 
-  @Event({
+  CreateSubscription = Event({
     input: {
       startDate: "date",
       endDate: "date",
       couponCode: optional("string"),
     },
-  })
-  CreateSubscription!: SemanticEvent<string>;
+  });
 }
 
 @Module({ entities: [Subscription] })
@@ -52,7 +43,7 @@ class Sales {}
 `;
 
 describe("parseModuleSource", () => {
-  it("turns the public static decorator grammar into a ModuleDeclaration", () => {
+  it("turns the public static declaration grammar into a ModuleDeclaration", () => {
     const result = parseModuleSource({
       fileName: "sales.vane.ts",
       sourceText: validSource,
@@ -118,12 +109,11 @@ describe("parseModuleSource", () => {
       fileName: "alias.vane.ts",
       sourceText: `
         import {
-          Module as M, Entity as E, Column as C,
-          type ColumnMember as SemanticColumn
+          Module as M, Entity as E, Column as C
         } from "@lilka/vane";
         @E()
         class Customer {
-          @C({ type: "uuid", identity: true }) id!: SemanticColumn<string>;
+          id = C({ type: "uuid", identity: true });
         }
         @M({ entities: [Customer] })
         class CRM {}
@@ -136,17 +126,17 @@ describe("parseModuleSource", () => {
     assert.equal(result.declaration.entities[0]?.name, "Customer");
   });
 
-  it("requires public instance ColumnMember declarations", () => {
+  it("requires inferred public instance member initializers", () => {
     const result = parseModuleSource({
       fileName: "invalid-columns.vane.ts",
       sourceText: `
         import {
-          Module, Entity, Column, type ColumnMember
+          Module, Entity, Column
         } from "@lilka/vane";
         @Entity()
         class Customer {
-          @Column({ type: "uuid", identity: true }) id!: string;
-          @Column({ type: "string" }) static cache!: ColumnMember<string>;
+          id: string = Column({ type: "uuid", identity: true });
+          static cache = Column({ type: "string" });
         }
         @Module({ entities: [Customer] }) class CRM {}
       `,
@@ -154,15 +144,11 @@ describe("parseModuleSource", () => {
 
     assert.equal(result.success, false);
     if (result.success) return;
-    assert.ok(
-      result.diagnostics.some(
-        ({ code }) => code === "VANE_PARSE_COLUMN_MEMBER_TYPE",
-      ),
-    );
-    assert.ok(
-      result.diagnostics.some(
-        ({ code }) => code === "VANE_PARSE_COLUMN_MEMBER_DECLARATION",
-      ),
+    assert.equal(
+      result.diagnostics.filter(
+        ({ code }) => code === "VANE_PARSE_MEMBER_DECLARATION",
+      ).length,
+      2,
     );
   });
 
@@ -171,18 +157,18 @@ describe("parseModuleSource", () => {
       fileName: "orders.vane.ts",
       sourceText: `
         import {
-          Module, Entity, Column, type ColumnMember, Rule, column, literal, eq, gte, and, not
+          Module, Entity, Column, Rule, column, literal, eq, gte, and, not
         } from "@lilka/vane";
         @Entity()
         class Customer {
-          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+          id = Column({ type: "uuid", identity: true });
         }
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
-          @Column({ type: "uuid", references: Customer.id }) customerId!: ColumnMember<string>;
-          @Column({ type: "decimal" }) minimum!: ColumnMember<number>;
-          @Column({ type: "decimal" }) total!: ColumnMember<number>;
+          id = Column({ type: "uuid", identity: true });
+          customerId = Column({ type: "uuid", references: Customer.id });
+          minimum = Column({ type: "decimal" });
+          total = Column({ type: "decimal" });
           @Rule({
             expression: and(
               gte(column("total"), column("minimum")),
@@ -211,11 +197,11 @@ describe("parseModuleSource", () => {
     const result = parseModuleSource({
       fileName: "dynamic.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, type ColumnMember } from "@lilka/vane";
+        import { Module, Entity, Column } from "@lilka/vane";
         const columnOptions = { type: "uuid", identity: true };
         @Entity()
         class Customer {
-          @Column(columnOptions) id!: ColumnMember<string>;
+          id = Column(columnOptions);
         }
         @Module({ entities: [Customer] })
         class CRM {}
@@ -254,10 +240,10 @@ describe("parseModuleSource", () => {
     const result = parseModuleSource({
       fileName: "wrong-targets.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, type ColumnMember, Rule, Event, column, eq } from "@lilka/vane";
+        import { Module, Entity, Column, Rule, Event, column, eq } from "@lilka/vane";
         @Entity()
         class Customer {
-          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
+          id = Column({ type: "uuid", identity: true });
           @Event() BadEvent() {}
           @Column({ type: "string" }) BadColumn() {}
           @Rule({ expression: eq(column("id"), column("id")) }) BadRule!: unknown;
@@ -319,11 +305,11 @@ describe("compileModuleSource", () => {
     const result = compileModuleSource({
       fileName: "rule.vane.ts",
       sourceText: `
-        import { Module, Entity, Column, type ColumnMember, Rule, column, literal, gt } from "@lilka/vane";
+        import { Module, Entity, Column, Rule, column, literal, gt } from "@lilka/vane";
         @Entity()
         class Order {
-          @Column({ type: "uuid", identity: true }) id!: ColumnMember<string>;
-          @Column({ type: "decimal" }) total!: ColumnMember<number>;
+          id = Column({ type: "uuid", identity: true });
+          total = Column({ type: "decimal" });
           @Rule({ expression: gt(column("total"), literal(0)) }) PositiveTotal() {}
         }
         @Module({ entities: [Order] }) class Sales {}

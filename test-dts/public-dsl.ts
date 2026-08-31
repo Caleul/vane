@@ -2,7 +2,6 @@ import {
   ACL,
   ACLEvent,
   Column,
-  type ColumnMember,
   Entity,
   Event,
   Module,
@@ -28,95 +27,82 @@ import {
   success,
 } from "../src/index.js";
 import type {
-  EventMember,
   RuleExpressionDeclaration,
   ViewExpressionDeclaration,
 } from "../src/index.js";
 
 @Entity()
 class Customer {
-  @Column({ type: "uuid", identity: true, generated: "uuid" })
-  id!: ColumnMember<string>;
+  id = Column({ type: "uuid", identity: true, generated: "uuid" });
 
-  @Column({ type: "string", minLength: 1, maxLength: 120 })
-  name!: ColumnMember<string>;
+  name = Column({ type: "string", minLength: 1, maxLength: 120 });
 }
 
 @Entity()
 class Order {
   cacheKey!: string;
 
-  @Column({ type: "uuid", identity: true, generated: "uuid" })
-  id!: ColumnMember<string>;
+  id = Column({ type: "uuid", identity: true, generated: "uuid" });
 
-  @Column({ type: "uuid", references: reference(Customer, "id") })
-  customerId!: ColumnMember<string>;
+  customerId = Column({ type: "uuid", references: reference(Customer, "id") });
 
-  @Column({ type: "decimal", minimum: 0, default: 0 })
-  total!: ColumnMember<number>;
+  total = Column({ type: "decimal", minimum: 0, default: 0 });
 
-  @Column({ type: "json", default: { source: "web", flags: ["new"] } })
-  metadata!: ColumnMember<unknown>;
+  metadata = Column({
+    type: "json",
+    default: { source: "web", flags: ["new"] },
+  });
 
   @Rule({ expression: gt(column("total"), column("discount")) })
   PositiveTotal() {}
 
-  @Column({ type: "decimal", minimum: 0, default: 0 })
-  discount!: ColumnMember<number>;
+  discount = Column({ type: "decimal", minimum: 0, default: 0 });
 
-  @Event({ input: { customerId: "uuid", coupon: optional("string") } })
-  Place!: EventMember;
+  Place = Event({ input: { customerId: "uuid", coupon: optional("string") } });
 
-  @Event()
-  Cancel!: EventMember;
+  Cancel = Event();
 
   formatForLogs() {}
 }
 
 @ACL()
 class PaymentGateway {
-  @ACLEvent({
+  Authorize = ACLEvent({
     input: { amount: "decimal" },
     results: {
       approved: success({ transactionId: "string" }),
       declined: fail({ code: "string", reason: optional("string") }),
     },
-  })
-  Authorize!: EventMember;
+  });
 }
 
 @Entity()
 class InvalidEntityEventOptions {
   // @ts-expect-error ACL result interpretations require @ACLEvent, not @Event.
-  @Event({ results: { approved: success({}), declined: fail({}) } })
-  Authorize!: EventMember;
+  Authorize = Event({ results: { approved: success({}), declined: fail({}) } });
 }
 
 class InvalidEventMemberKind {
-  // @ts-expect-error Events are declarative EventMember properties, not arbitrary methods.
+  // @ts-expect-error Event is a member factory, not a method decorator.
   @Event()
   Place() {}
 }
 
-class InvalidEventMemberType {
-  // @ts-expect-error Event decorators require an EventMember-typed property.
-  @Event()
-  Place!: string;
+class NonPublicEventMembers {
+  static StaticPlace = Event();
+  private PrivatePlace = Event();
+  PublicPlace = Event();
 }
 
-class InvalidEventMemberDeclarations {
-  // @ts-expect-error Static Event members cannot be referenced through the instance owner.
-  @Event()
-  static StaticPlace: EventMember;
+const uuidColumn = Column({ type: "uuid" });
+const uuidSemanticType: "uuid" = uuidColumn.semanticType;
+// @ts-expect-error Column factories return semantic tokens, not application values.
+const invalidUuidValue: number = uuidColumn;
 
-  // @ts-expect-error Private Event members are absent from the public owner contract.
-  @Event()
-  private PrivatePlace!: EventMember;
-
-  // @ts-expect-error Optional Event members are not guaranteed semantic declarations.
-  @Event()
-  MaybePlace?: EventMember;
-}
+// @ts-expect-error Static Event members are absent from the instance owner contract.
+eventRef(NonPublicEventMembers, "StaticPlace");
+// @ts-expect-error Private Event members are absent from the public owner contract.
+eventRef(NonPublicEventMembers, "PrivatePlace");
 
 // @ts-expect-error ACL Events must declare result interpretations.
 ACLEvent({ input: { amount: "decimal" } });
@@ -227,3 +213,5 @@ void sharedNegationRule;
 void sharedNegationView;
 void sharedRuleExpression;
 void sharedViewExpression;
+void uuidSemanticType;
+void invalidUuidValue;

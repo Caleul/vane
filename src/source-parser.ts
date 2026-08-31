@@ -111,8 +111,6 @@ export type ProjectSourceCompilationResult =
 interface ParserContext {
   readonly sourceFile: ts.SourceFile;
   readonly bindings: ReadonlyMap<string, string>;
-  readonly columnMemberTypeBindings: SemanticMemberTypeBindings;
-  readonly eventMemberTypeBindings: SemanticMemberTypeBindings;
   readonly semanticBindings: ReadonlyMap<string, string>;
   readonly semanticImportBindings: ReadonlyMap<string, SemanticImportBinding>;
   readonly usedSemanticImports: Map<string, (readonly SemanticClassKind[])[]>;
@@ -127,16 +125,6 @@ interface ParserContext {
   readonly diagnostics: Diagnostic[];
   readonly sourceLocations: Map<string, SourceLocation>;
 }
-
-interface SemanticMemberTypeBinding {
-  readonly minimumTypeArguments: number;
-  readonly maximumTypeArguments: number;
-}
-
-type SemanticMemberTypeBindings = ReadonlyMap<
-  string,
-  SemanticMemberTypeBinding
->;
 
 interface SemanticImportBinding {
   readonly localName: string;
@@ -193,24 +181,12 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   appendRuntimeBindingDiagnostics(sourceFile, diagnostics);
 
   const bindings = collectDslBindings(sourceFile, diagnostics);
-  const columnMemberTypeBindings = collectSemanticMemberTypeBindings(
-    sourceFile,
-    "ColumnMember",
-    { minimumTypeArguments: 0, maximumTypeArguments: 1 },
-  );
-  const eventMemberTypeBindings = collectSemanticMemberTypeBindings(
-    sourceFile,
-    "EventMember",
-    { minimumTypeArguments: 0, maximumTypeArguments: 0 },
-  );
   const classes = sourceFile.statements.filter(ts.isClassDeclaration);
   const semanticImportBindings = collectSemanticImportBindings(sourceFile);
   const localSemanticClassKinds = new Map<string, Set<SemanticClassKind>>();
   const context: ParserContext = {
     sourceFile,
     bindings,
-    columnMemberTypeBindings,
-    eventMemberTypeBindings,
     semanticBindings: new Map(
       [...semanticImportBindings].map(([localName, binding]) => [
         localName,
@@ -761,109 +737,6 @@ function collectDslBindings(
   return bindings;
 }
 
-function collectSemanticMemberTypeBindings(
-  sourceFile: ts.SourceFile,
-  exportedName: "ColumnMember" | "EventMember",
-  exportedBinding: SemanticMemberTypeBinding,
-): SemanticMemberTypeBindings {
-  const bindings = new Map<string, SemanticMemberTypeBinding>();
-  for (const statement of sourceFile.statements) {
-    if (
-      !ts.isImportDeclaration(statement) ||
-      !ts.isStringLiteral(statement.moduleSpecifier) ||
-      statement.moduleSpecifier.text !== VANE_MODULE
-    ) {
-      continue;
-    }
-    const namedBindings = statement.importClause?.namedBindings;
-    if (!namedBindings || !ts.isNamedImports(namedBindings)) continue;
-    for (const element of namedBindings.elements) {
-      if ((element.propertyName ?? element.name).text === exportedName) {
-        bindings.set(element.name.text, exportedBinding);
-      }
-    }
-  }
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const statement of sourceFile.statements) {
-      const derived = ts.isTypeAliasDeclaration(statement)
-        ? isSemanticMemberTypeNode(statement.type, bindings)
-          ? { name: statement.name.text, ...typeParameterRange(statement) }
-          : undefined
-        : ts.isInterfaceDeclaration(statement) &&
-            (statement.heritageClauses ?? []).some((clause) =>
-              clause.types.some((type) =>
-                isSemanticMemberHeritageType(type, bindings),
-              ),
-            )
-          ? { name: statement.name.text, ...typeParameterRange(statement) }
-          : undefined;
-      if (derived && !bindings.has(derived.name)) {
-        bindings.set(derived.name, derived);
-        changed = true;
-      }
-    }
-  }
-  return bindings;
-}
-
-function typeParameterRange(
-  node: ts.TypeAliasDeclaration | ts.InterfaceDeclaration,
-): SemanticMemberTypeBinding {
-  const parameters = node.typeParameters ?? [];
-  return {
-    minimumTypeArguments: parameters.filter(
-      (parameter) => parameter.default === undefined,
-    ).length,
-    maximumTypeArguments: parameters.length,
-  };
-}
-
-function acceptsSemanticMemberTypeArguments(
-  binding: SemanticMemberTypeBinding | undefined,
-  count: number,
-): boolean {
-  return (
-    binding !== undefined &&
-    count >= binding.minimumTypeArguments &&
-    count <= binding.maximumTypeArguments
-  );
-}
-
-function isSemanticMemberHeritageType(
-  node: ts.ExpressionWithTypeArguments,
-  bindings: SemanticMemberTypeBindings,
-): boolean {
-  return (
-    ts.isIdentifier(node.expression) &&
-    acceptsSemanticMemberTypeArguments(
-      bindings.get(node.expression.text),
-      node.typeArguments?.length ?? 0,
-    )
-  );
-}
-
-function isSemanticMemberTypeNode(
-  node: ts.TypeNode,
-  bindings: SemanticMemberTypeBindings,
-): boolean {
-  if (ts.isParenthesizedTypeNode(node)) {
-    return isSemanticMemberTypeNode(node.type, bindings);
-  }
-  if (ts.isIntersectionTypeNode(node)) {
-    return node.types.some((type) => isSemanticMemberTypeNode(type, bindings));
-  }
-  return (
-    ts.isTypeReferenceNode(node) &&
-    ts.isIdentifier(node.typeName) &&
-    acceptsSemanticMemberTypeArguments(
-      bindings.get(node.typeName.text),
-      node.typeArguments?.length ?? 0,
-    )
-  );
-}
-
 function parseModuleClass(
   context: ParserContext,
   node: ts.ClassDeclaration,
@@ -1178,7 +1051,7 @@ function parseEntityClass(
   const events: EntityEventDeclaration[] = [];
   for (const member of node.members) {
     const memberDecorators = ["Column", "Rule", "Event", "ACLEvent"].filter(
-      (symbol) => hasDecorator(context, member, symbol),
+      (symbol) => hasSemanticMemberMarker(context, member, symbol),
     );
     if (memberDecorators.length === 0) continue;
     if (memberDecorators.length > 1) {
@@ -1188,7 +1061,7 @@ function parseEntityClass(
           "VANE_PARSE_DECORATOR_TARGET",
           ["entity", name, "members"],
           `Entity member combines incompatible DSL decorators: ${memberDecorators.map((symbol) => `@${symbol}`).join(", ")}.`,
-          "Apply exactly one of @Column, @Rule, or @Event to each Entity member; @ACLEvent is reserved for @ACL classes.",
+          "Use one semantic member declaration at a time: Column(...) or Event(...) in @Entity; ACLEvent(...) is reserved for @ACL classes.",
           member,
         ),
       );
@@ -1196,15 +1069,17 @@ function parseEntityClass(
     }
 
     const memberDecorator = memberDecorators[0];
-    if (memberDecorator === "Column" && ts.isPropertyDeclaration(member)) {
+    if (
+      memberDecorator === "Column" &&
+      ts.isPropertyDeclaration(member) &&
+      hasDslInitializer(context, member, "Column")
+    ) {
       if (
-        requireSemanticMemberType(
-          context,
-          member,
-          ["entity", name, "columns"],
-          "Column",
-          context.columnMemberTypeBindings,
-        )
+        requireSemanticInitializerDeclaration(context, member, [
+          "entity",
+          name,
+          "columns",
+        ])
       ) {
         const column = parseColumn(context, name, member);
         if (column) columns.push(column);
@@ -1214,16 +1089,15 @@ function parseEntityClass(
       if (rule) rules.push(rule);
     } else if (
       memberDecorator === "Event" &&
-      ts.isPropertyDeclaration(member)
+      ts.isPropertyDeclaration(member) &&
+      hasDslInitializer(context, member, "Event")
     ) {
       if (
-        requireSemanticMemberType(
-          context,
-          member,
-          ["entity", name, "events"],
-          "Event",
-          context.eventMemberTypeBindings,
-        )
+        requireSemanticInitializerDeclaration(context, member, [
+          "entity",
+          name,
+          "events",
+        ])
       ) {
         const event = parseEvent(context, name, member);
         if (event) events.push(event);
@@ -1236,9 +1110,9 @@ function parseEntityClass(
           ["entity", name, "members"],
           `@${memberDecorator} cannot decorate this kind of Entity member.`,
           memberDecorator === "Column"
-            ? "Apply @Column to a property declaration."
+            ? "Declare a Column property with `name = Column(options)`."
             : memberDecorator === "Event"
-              ? "Apply @Event to a property typed as EventMember."
+              ? "Declare an Event property with `name = Event(options)`."
               : `Apply @${memberDecorator} to a method declaration.`,
           member,
         ),
@@ -1267,22 +1141,21 @@ function parseAntiCorruptionLayerClass(
   const events: AntiCorruptionLayerEventDeclaration[] = [];
   for (const member of node.members) {
     const decorators = ["Column", "Rule", "Event", "ACLEvent"].filter(
-      (symbol) => hasDecorator(context, member, symbol),
+      (symbol) => hasSemanticMemberMarker(context, member, symbol),
     );
     if (decorators.length === 0) continue;
     if (
       decorators.length === 1 &&
       decorators[0] === "ACLEvent" &&
-      ts.isPropertyDeclaration(member)
+      ts.isPropertyDeclaration(member) &&
+      hasDslInitializer(context, member, "ACLEvent")
     ) {
       if (
-        requireSemanticMemberType(
-          context,
-          member,
-          ["antiCorruptionLayer", name, "events"],
-          "Event",
-          context.eventMemberTypeBindings,
-        )
+        requireSemanticInitializerDeclaration(context, member, [
+          "antiCorruptionLayer",
+          name,
+          "events",
+        ])
       ) {
         const event = parseAntiCorruptionLayerEvent(context, name, member);
         if (event) events.push(event);
@@ -1294,8 +1167,8 @@ function parseAntiCorruptionLayerClass(
         context,
         "VANE_PARSE_DECORATOR_TARGET",
         [...path, "members"],
-        `@ACL members may only be ACLEvent properties; found ${decorators.map((symbol) => `@${symbol}`).join(", ")}.`,
-        "Apply exactly one @ACLEvent decorator to a property typed as EventMember.",
+        `@ACL members may only be ACLEvent properties; found ${decorators.join(", ")}.`,
+        "Declare the property with `name = ACLEvent(options)`.",
         member,
       ),
     );
@@ -1304,12 +1177,10 @@ function parseAntiCorruptionLayerClass(
   return { name, events };
 }
 
-function requireSemanticMemberType(
+function requireSemanticInitializerDeclaration(
   context: ParserContext,
   node: ts.PropertyDeclaration,
   path: readonly string[],
-  kind: "Column" | "Event",
-  bindings: SemanticMemberTypeBindings,
 ): boolean {
   const forbiddenModifier = node.modifiers?.find(
     ({ kind }) =>
@@ -1317,34 +1188,29 @@ function requireSemanticMemberType(
       kind === ts.SyntaxKind.PrivateKeyword ||
       kind === ts.SyntaxKind.ProtectedKeyword,
   );
-  if (forbiddenModifier || node.questionToken) {
+  if (
+    forbiddenModifier ||
+    node.questionToken ||
+    node.exclamationToken ||
+    node.type
+  ) {
     context.diagnostics.push(
       createDiagnostic(
         context,
-        `VANE_PARSE_${kind.toUpperCase()}_MEMBER_DECLARATION`,
+        "VANE_PARSE_MEMBER_DECLARATION",
         [...path, staticPropertyName(node.name) ?? "unknown"],
-        `A semantic ${kind} must be a required public instance property.`,
-        `Remove static, private, protected, or optional modifiers from the ${kind}Member property.`,
-        forbiddenModifier ?? node.questionToken ?? node.name,
+        "A semantic member initializer must be an inferred, required public instance property.",
+        "Remove static, private, protected, optional, definite-assignment, and explicit type annotations from the property.",
+        forbiddenModifier ??
+          node.questionToken ??
+          node.exclamationToken ??
+          node.type ??
+          node.name,
       ),
     );
     return false;
   }
-  const type = node.type;
-  if (type && isSemanticMemberTypeNode(type, bindings)) {
-    return true;
-  }
-  context.diagnostics.push(
-    createDiagnostic(
-      context,
-      `VANE_PARSE_${kind.toUpperCase()}_MEMBER_TYPE`,
-      [...path, staticPropertyName(node.name) ?? "unknown", "type"],
-      `A semantic ${kind} property must use the ${kind}Member type imported from @lilka/vane.`,
-      `Import ${kind}Member with a named type specifier and annotate the property as ${kind}Member.`,
-      type ?? node.name,
-    ),
-  );
-  return false;
+  return true;
 }
 
 function parseSagaClass(
@@ -1358,7 +1224,7 @@ function parseSagaClass(
 
   for (const member of node.members) {
     const forbidden = ["Column", "Rule", "Event", "ACLEvent"].filter((symbol) =>
-      hasDecorator(context, member, symbol),
+      hasSemanticMemberMarker(context, member, symbol),
     );
     if (forbidden.length === 0) continue;
     context.diagnostics.push(
@@ -1605,7 +1471,7 @@ function parseViewClass(
 
   for (const member of node.members) {
     const forbidden = ["Column", "Rule", "Event", "ACLEvent"].filter((symbol) =>
-      hasDecorator(context, member, symbol),
+      hasSemanticMemberMarker(context, member, symbol),
     );
     if (forbidden.length === 0) continue;
     context.diagnostics.push(
@@ -2249,12 +2115,17 @@ function parseColumn(
     "columns",
   ]);
   const path = ["entity", entityName, "columns", name ?? "unknown"];
-  const decorator = oneDecorator(context, node, "Column", path);
-  if (!name || !decorator) return undefined;
+  const initializer = node.initializer
+    ? dslCall(context, node.initializer)
+    : undefined;
+  const call =
+    initializer?.symbol === "Column" ? initializer.expression : undefined;
+  if (!name || !call || !requireArgumentCount(context, call, 1, path, "Column"))
+    return undefined;
   const semanticPath = ["module", "entities", entityName, "columns", name];
   recordLocation(context, semanticPath, node);
   recordLocation(context, [...semanticPath, "type"], node);
-  const options = decoratorObject(context, decorator, path, "Column");
+  const options = decoratorObject(context, call, path, "Column");
   if (!options) return undefined;
   rejectUnknownOptions(
     context,
@@ -2589,13 +2460,21 @@ function parseEvent(
 ): EntityEventDeclaration | undefined {
   const name = memberName(context, node.name, ["entity", entityName, "events"]);
   const path = ["entity", entityName, "events", name ?? "unknown"];
-  const decorator = oneDecorator(context, node, "Event", path);
-  if (!name || !decorator) return undefined;
+  const initializer = node.initializer
+    ? dslCall(context, node.initializer)
+    : undefined;
+  const call =
+    initializer?.symbol === "Event" ? initializer.expression : undefined;
+  if (!name || !call) return undefined;
+  if (call.arguments.length > 1) {
+    requireArgumentCount(context, call, 1, path, "Event");
+    return undefined;
+  }
   const semanticPath = ["module", "entities", entityName, "events", name];
   recordLocation(context, semanticPath, node);
   recordLocation(context, [...semanticPath, "name"], node.name);
-  if (decorator.arguments.length === 0) return { name, input: [] };
-  const options = decoratorObject(context, decorator, path, "Event");
+  if (call.arguments.length === 0) return { name, input: [] };
+  const options = decoratorObject(context, call, path, "Event");
   if (!options) return undefined;
   rejectUnknownOptions(context, options, new Set(["input"]), path);
   const inputExpression = options.get("input");
@@ -2621,8 +2500,17 @@ function parseAntiCorruptionLayerEvent(
     "events",
   ]);
   const path = ["antiCorruptionLayer", layerName, "events", name ?? "unknown"];
-  const decorator = oneDecorator(context, node, "ACLEvent", path);
-  if (!name || !decorator) return undefined;
+  const initializer = node.initializer
+    ? dslCall(context, node.initializer)
+    : undefined;
+  const call =
+    initializer?.symbol === "ACLEvent" ? initializer.expression : undefined;
+  if (
+    !name ||
+    !call ||
+    !requireArgumentCount(context, call, 1, path, "ACLEvent")
+  )
+    return undefined;
 
   const semanticPath = [
     "module",
@@ -2633,7 +2521,7 @@ function parseAntiCorruptionLayerEvent(
   ];
   recordLocation(context, semanticPath, node);
   recordLocation(context, [...semanticPath, "name"], node.name);
-  const options = decoratorObject(context, decorator, path, "ACL Event");
+  const options = decoratorObject(context, call, path, "ACL Event");
   if (!options) return undefined;
   rejectUnknownOptions(context, options, new Set(["input", "results"]), path);
 
@@ -2647,7 +2535,7 @@ function parseAntiCorruptionLayerEvent(
         [...path, "results"],
         `ACL Event ${layerName}.${name} must declare static result interpretations.`,
         "Declare results such as { approved: success({...}), declined: fail({...}) }.",
-        decorator,
+        call,
       ),
     );
     return undefined;
@@ -3014,6 +2902,29 @@ function hasDecorator(
       context.bindings.get(expression.expression.text) === symbol
     );
   });
+}
+
+function hasDslInitializer(
+  context: ParserContext,
+  node: ts.Node,
+  symbol: string,
+): node is ts.PropertyDeclaration {
+  return (
+    ts.isPropertyDeclaration(node) &&
+    node.initializer !== undefined &&
+    dslCall(context, node.initializer)?.symbol === symbol
+  );
+}
+
+function hasSemanticMemberMarker(
+  context: ParserContext,
+  node: ts.Node,
+  symbol: string,
+): boolean {
+  return (
+    hasDecorator(context, node, symbol) ||
+    (symbol !== "Rule" && hasDslInitializer(context, node, symbol))
+  );
 }
 
 function oneDecorator(
