@@ -605,16 +605,64 @@ describe("phase 3 PostgreSQL View runtime", () => {
 
 describe("phase 3 public HTTP boundary", () => {
   it("cancels terminal waits and bounds in-memory retention", async () => {
-    const store = new InMemoryTerminalResultStore({ maxEntries: 1 });
+    const store = new InMemoryTerminalResultStore({
+      maxEntries: 1,
+      retentionMs: 10,
+    });
     await store.register(ID);
     const controller = new AbortController();
     const waiting = store.wait(ID, controller.signal);
     controller.abort();
     await assert.rejects(waiting, { name: "AbortError" });
 
-    await store.register(SAGA);
+    await assert.rejects(store.register(SAGA), /at capacity/u);
+    assert.equal(await store.has(ID), true);
+    await store.publish(ID, {
+      kind: "fail",
+      fail: { code: "FAIL", message: "safe", correlationId: CORRELATION },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
     assert.equal(await store.has(ID), false);
+    await store.register(SAGA);
     assert.equal(await store.has(SAGA), true);
+  });
+
+  it("handles failure of fallback terminal publication", async () => {
+    const failingStore: TerminalResultStore = {
+      async register() {},
+      async has() {
+        return true;
+      },
+      async publish() {
+        throw new Error("store unavailable");
+      },
+      async wait() {
+        throw new Error("must not wait");
+      },
+    };
+    const ids = [CORRELATION, ID, SAGA];
+    const runtime = new PublicHttpRuntime({
+      contract: successfulContract(),
+      terminals: failingStore,
+      uuid: () => ids.shift() ?? randomId(),
+      events: {
+        async dispatch(value) {
+          return { kind: "success", eventId: value.eventId, revision: "1" };
+        },
+      },
+      views: {
+        async execute() {
+          throw new Error("terminal View failed");
+        },
+      },
+    });
+    const accepted = await runtime.handle({
+      method: "POST",
+      path: "/api/events/Order.Place",
+      body: { id: ID, customerId: CORRELATION, total: 1 },
+    });
+    assert.equal(accepted.status, 202);
+    await new Promise((resolve) => setImmediate(resolve));
   });
 
   it("maps runtime failures to a safe HTTP 500", async () => {

@@ -46,7 +46,7 @@ export interface InMemoryTerminalResultStoreOptions {
 }
 
 export class InMemoryTerminalResultStore implements TerminalResultStore {
-  readonly #known = new Map<string, ReturnType<typeof setTimeout>>();
+  readonly #known = new Map<string, ReturnType<typeof setTimeout> | null>();
   readonly #results = new Map<string, PublicTerminalResult>();
   readonly #waiters = new Map<
     string,
@@ -70,7 +70,10 @@ export class InMemoryTerminalResultStore implements TerminalResultStore {
   }
 
   async register(sagaId: string): Promise<void> {
-    this.#retain(sagaId);
+    if (this.#known.has(sagaId)) return;
+    if (this.#known.size >= this.#maxEntries)
+      throw new Error("The terminal result store is at capacity.");
+    this.#known.set(sagaId, null);
   }
 
   async has(sagaId: string): Promise<boolean> {
@@ -78,7 +81,7 @@ export class InMemoryTerminalResultStore implements TerminalResultStore {
   }
 
   async publish(sagaId: string, result: PublicTerminalResult): Promise<void> {
-    this.#retain(sagaId);
+    if (!this.#known.has(sagaId)) await this.register(sagaId);
     if (this.#results.has(sagaId)) return;
     this.#results.set(sagaId, result);
     for (const waiter of this.#waiters.get(sagaId) ?? []) {
@@ -86,6 +89,7 @@ export class InMemoryTerminalResultStore implements TerminalResultStore {
       waiter.resolve(result);
     }
     this.#waiters.delete(sagaId);
+    this.#retainResult(sagaId);
   }
 
   wait(sagaId: string, signal?: AbortSignal): Promise<PublicTerminalResult> {
@@ -109,16 +113,11 @@ export class InMemoryTerminalResultStore implements TerminalResultStore {
     });
   }
 
-  #retain(sagaId: string): void {
+  #retainResult(sagaId: string): void {
     const previous = this.#known.get(sagaId);
     if (previous) clearTimeout(previous);
-    else if (this.#known.size >= this.#maxEntries) {
-      const oldest = this.#known.keys().next().value as string | undefined;
-      if (oldest) this.#expire(oldest);
-    }
     const timer = setTimeout(() => this.#expire(sagaId), this.#retentionMs);
     timer.unref();
-    this.#known.delete(sagaId);
     this.#known.set(sagaId, timer);
   }
 
@@ -266,14 +265,19 @@ export class PublicHttpRuntime {
       payload: input.value,
     });
     void this.#finishEvent(operation, envelope, sagaId).catch(async () => {
-      await this.#terminals.publish(sagaId, {
-        kind: "fail",
-        fail: safeFail(
-          "VANE_PUBLIC_INTERNAL",
-          "The Event could not be completed.",
-          correlationId,
-        ),
-      });
+      try {
+        await this.#terminals.publish(sagaId, {
+          kind: "fail",
+          fail: safeFail(
+            "VANE_PUBLIC_INTERNAL",
+            "The Event could not be completed.",
+            correlationId,
+          ),
+        });
+      } catch {
+        // The public request is already accepted and no additional safe
+        // channel exists when the terminal store itself is unavailable.
+      }
     });
     return response(202, { sagaId });
   }
