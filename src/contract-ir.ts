@@ -331,6 +331,9 @@ function resolvePath(
         "Public paths cannot contain query, fragment or template syntax.",
       );
     }
+    if (new URL(resolved, "http://vane.local").pathname !== resolved) {
+      throw new Error("Public paths cannot contain dot segments.");
+    }
     return resolved;
   } catch (error) {
     diagnostics.push({
@@ -382,7 +385,7 @@ function matchesType(value: JsonValue, type: ColumnType): boolean {
   if (type === "uuid")
     return (
       typeof value === "string" &&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(
         value,
       )
     );
@@ -390,6 +393,9 @@ function matchesType(value: JsonValue, type: ColumnType): boolean {
   if (type === "datetime")
     return (
       typeof value === "string" &&
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(
+        value,
+      ) &&
       isIsoDate(value.slice(0, 10)) &&
       Number.isFinite(Date.parse(value))
     );

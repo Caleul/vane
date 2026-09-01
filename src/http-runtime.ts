@@ -309,10 +309,11 @@ function terminalInput(
   payload: Readonly<Record<string, JsonValue>>,
 ): Readonly<Record<string, JsonValue>> {
   return Object.fromEntries(
-    Object.entries(mapping).map(([name, source]) => [
-      name,
-      source.kind === "eventInput" ? payload[source.input] : source.value,
-    ]),
+    Object.entries(mapping).flatMap(([name, source]) => {
+      const value =
+        source.kind === "eventInput" ? payload[source.input] : source.value;
+      return value === undefined ? [] : [[name, value]];
+    }),
   ) as Readonly<Record<string, JsonValue>>;
 }
 
@@ -371,6 +372,9 @@ function matches(value: unknown, type: ContractField["type"]): boolean {
   if (type === "datetime")
     return (
       typeof value === "string" &&
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(
+        value,
+      ) &&
       isIsoDate(value.slice(0, 10)) &&
       Number.isFinite(Date.parse(value))
     );
@@ -414,8 +418,7 @@ function streamParameter(template: string, path: string): string | null {
   return path.slice(template.indexOf("{sagaId}"));
 }
 
-const UUID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 function isIsoDate(value: string): boolean {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/u.exec(value);

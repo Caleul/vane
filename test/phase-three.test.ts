@@ -20,6 +20,7 @@ import {
 const ID = "11111111-1111-4111-8111-111111111111";
 const CORRELATION = "22222222-2222-4222-8222-222222222222";
 const SAGA = "33333333-3333-4333-8333-333333333333";
+const UUID_V7 = "01890f47-2f9c-7cc1-98d8-f7c31c1b4a21";
 
 const module: SemanticModule = {
   name: "Sales",
@@ -168,6 +169,46 @@ describe("phase 3 Contract IR and OpenAPI", () => {
     );
   });
 
+  it("rejects non-canonical paths and incomplete datetime literals", () => {
+    const badPath = materializeContract(module, {
+      views: [{ view: "OrderDetails", path: "/api/../orders" }],
+    });
+    assert.equal(badPath.success, false);
+    if (!badPath.success)
+      assert.equal(badPath.diagnostics[0]?.code, "VANE_CONTRACT_PATH_INVALID");
+
+    const dateModule: SemanticModule = {
+      ...module,
+      views: module.views.map((view) => ({
+        ...view,
+        input: [
+          ...view.input,
+          { name: "at", type: "datetime" as const, optional: false },
+        ],
+      })),
+    };
+    const badDatetime = materializeContract(dateModule, {
+      events: [
+        {
+          event: "Order.Place",
+          terminal: {
+            view: "OrderDetails",
+            input: {
+              id: { kind: "eventInput", input: "id" },
+              at: { kind: "literal", value: "2026-09-01" },
+            },
+          },
+        },
+      ],
+    });
+    assert.equal(badDatetime.success, false);
+    if (!badDatetime.success)
+      assert.equal(
+        badDatetime.diagnostics[0]?.code,
+        "VANE_CONTRACT_TERMINAL_LITERAL_TYPE",
+      );
+  });
+
   it("generates byte-identical OpenAPI with typed View, Event and SSE contracts", () => {
     const materialized = materializeContract(module, contractConfiguration);
     assert.equal(materialized.success, true);
@@ -206,7 +247,7 @@ describe("phase 3 PostgreSQL View runtime", () => {
     const runtime = new PostgreSqlViewRuntime(module, pool, storage);
     const result = await runtime.execute({
       view: "OrderDetails",
-      input: { id: ID },
+      input: { id: UUID_V7 },
     });
     assert.deepEqual(result, {
       kind: "view",
@@ -216,7 +257,7 @@ describe("phase 3 PostgreSQL View runtime", () => {
     assert.deepEqual(queries, [
       {
         text: 'SELECT "v0"."id" AS "id", "v0"."total" AS "total" FROM "public"."sales_order" AS "v0" WHERE ("v0"."id" = $1::uuid)',
-        values: [ID],
+        values: [UUID_V7],
       },
     ]);
   });
@@ -404,6 +445,94 @@ describe("phase 3 PostgreSQL View runtime", () => {
 });
 
 describe("phase 3 public HTTP boundary", () => {
+  it("accepts canonical UUIDv7 input through the public boundary", async () => {
+    const terminals = new InMemoryTerminalResultStore();
+    const runtime = new PublicHttpRuntime({
+      contract: successfulContract(),
+      terminals,
+      events: {
+        async dispatch() {
+          throw new Error("must not dispatch");
+        },
+      },
+      views: {
+        async execute(request) {
+          assert.deepEqual(request.input, { id: UUID_V7 });
+          return { kind: "view", view: request.view, rows: [] };
+        },
+      },
+    });
+    const result = await runtime.handle({
+      method: "POST",
+      path: "/api/views/OrderDetails",
+      body: { id: UUID_V7 },
+    });
+    assert.equal(result.status, 200);
+  });
+
+  it("omits absent optional Event inputs from terminal View input", async () => {
+    const optionalModule: SemanticModule = {
+      ...module,
+      entities: module.entities.map((entity) => ({
+        ...entity,
+        events: entity.events.map((event) => ({
+          ...event,
+          input: [
+            ...event.input,
+            { name: "note", type: "string" as const, optional: true },
+          ],
+        })),
+      })),
+      views: module.views.map((view) => ({
+        ...view,
+        input: [
+          ...view.input,
+          { name: "note", type: "string" as const, optional: true },
+        ],
+      })),
+    };
+    const materialized = materializeContract(optionalModule, {
+      events: [
+        {
+          event: "Order.Place",
+          terminal: {
+            view: "OrderDetails",
+            input: {
+              id: { kind: "eventInput", input: "id" },
+              note: { kind: "eventInput", input: "note" },
+            },
+          },
+        },
+      ],
+    });
+    assert.equal(materialized.success, true);
+    if (!materialized.success) return;
+    const ids = [CORRELATION, ID, SAGA];
+    const runtime = new PublicHttpRuntime({
+      contract: materialized.ir,
+      terminals: new InMemoryTerminalResultStore(),
+      uuid: () => ids.shift() ?? randomId(),
+      events: {
+        async dispatch(value) {
+          return { kind: "success", eventId: value.eventId, revision: "1" };
+        },
+      },
+      views: {
+        async execute(request) {
+          assert.deepEqual(request.input, { id: ID });
+          assert.equal(Object.hasOwn(request.input, "note"), false);
+          return { kind: "view", view: request.view, rows: [] };
+        },
+      },
+    });
+    const accepted = await runtime.handle({
+      method: "POST",
+      path: "/events/Order.Place",
+      body: { id: ID, customerId: CORRELATION, total: 1 },
+    });
+    assert.equal(accepted.status, 202);
+  });
+
   it("returns 202 and exposes only the terminal View through SSE", async () => {
     const contract = successfulContract();
     const terminals = new InMemoryTerminalResultStore();
