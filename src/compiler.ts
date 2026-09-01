@@ -1861,19 +1861,6 @@ function resolveViewOutputType(
     });
     return undefined;
   }
-  if (
-    (expression.function === "min" || expression.function === "max") &&
-    (type === "uuid" || type === "boolean" || type === "json")
-  ) {
-    diagnostics.push({
-      code: "VANE_SEM_VIEW_AGGREGATE",
-      path,
-      message: `${expression.function} cannot aggregate a ${type} Column for PostgreSQL.`,
-      correction:
-        "Use min or max with a string, integer, decimal, date or datetime Column.",
-    });
-    return undefined;
-  }
   return expression.function === "avg" ? "decimal" : type;
 }
 

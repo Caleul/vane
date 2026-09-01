@@ -164,11 +164,13 @@ export {
 export {
   InMemoryTerminalResultStore,
   PublicHttpRuntime,
+  TerminalResultNotFoundError,
   createNodeHttpHandler,
   type PublicFail,
   type PublicHttpRequest,
   type PublicHttpResponse,
   type PublicHttpRuntimeOptions,
   type PublicTerminalResult,
+  type InMemoryTerminalResultStoreOptions,
   type TerminalResultStore,
 } from "./http-runtime.js";

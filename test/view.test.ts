@@ -360,7 +360,7 @@ describe("View Semantic IR", () => {
     );
   });
 
-  it("rejects PostgreSQL-unsupported min and max aggregate types", () => {
+  it("keeps provider-specific min and max support out of Semantic IR", () => {
     const view = moduleWithView.views?.[0];
     assert.ok(view);
     const result = compileSemanticIr({
@@ -382,9 +382,7 @@ describe("View Semantic IR", () => {
         },
       ],
     });
-    assert.equal(result.success, false);
-    if (!result.success)
-      assert.equal(result.diagnostics[0]?.code, "VANE_SEM_VIEW_AGGREGATE");
+    assert.equal(result.success, true);
   });
 });
 

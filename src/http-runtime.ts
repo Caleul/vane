@@ -41,6 +41,14 @@ export interface TerminalResultStore {
   wait(sagaId: string, signal?: AbortSignal): Promise<PublicTerminalResult>;
 }
 
+export class TerminalResultNotFoundError extends Error {
+  readonly code = "VANE_SAGA_NOT_FOUND" as const;
+  constructor(readonly sagaId: string) {
+    super(`Saga ${sagaId} has no retained terminal result.`);
+    this.name = "TerminalResultNotFoundError";
+  }
+}
+
 export interface InMemoryTerminalResultStoreOptions {
   readonly retentionMs?: number;
   readonly maxEntries?: number;
@@ -96,6 +104,8 @@ export class InMemoryTerminalResultStore implements TerminalResultStore {
   wait(sagaId: string, signal?: AbortSignal): Promise<PublicTerminalResult> {
     const result = this.#results.get(sagaId);
     if (result) return Promise.resolve(result);
+    if (!this.#known.has(sagaId))
+      return Promise.reject(new TerminalResultNotFoundError(sagaId));
     if (signal?.aborted) return Promise.reject(abortError());
     return new Promise((resolve, reject) => {
       const waiters = this.#waiters.get(sagaId) ?? [];
@@ -129,7 +139,7 @@ export class InMemoryTerminalResultStore implements TerminalResultStore {
     this.#results.delete(sagaId);
     for (const waiter of this.#waiters.get(sagaId) ?? []) {
       waiter.signal?.removeEventListener("abort", waiter.abort);
-      waiter.reject(new Error("The terminal result retention period expired."));
+      waiter.reject(new TerminalResultNotFoundError(sagaId));
     }
     this.#waiters.delete(sagaId);
   }
@@ -324,17 +334,21 @@ export class PublicHttpRuntime {
         ),
       );
     }
-    if (!(await this.#terminals.has(sagaId))) {
-      return response(
-        404,
-        safeFail(
-          "VANE_SAGA_NOT_FOUND",
-          "The saga was not found.",
-          this.#uuid(),
-        ),
-      );
+    let terminal: PublicTerminalResult;
+    try {
+      terminal = await this.#terminals.wait(sagaId, signal);
+    } catch (error) {
+      if (error instanceof TerminalResultNotFoundError)
+        return response(
+          404,
+          safeFail(
+            "VANE_SAGA_NOT_FOUND",
+            "The saga was not found.",
+            this.#uuid(),
+          ),
+        );
+      throw error;
     }
-    const terminal = await this.#terminals.wait(sagaId, signal);
     return {
       status: 200,
       headers: {

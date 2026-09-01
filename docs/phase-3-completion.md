@@ -35,6 +35,6 @@ VANE_TEST_DATABASE_URL=postgresql://user:password@localhost:5432/vane \
   npm run test:integration
 ```
 
-The unit gate contains 167 tests. The PostgreSQL gate contains 13 tests and
+The unit gate contains 168 tests. The PostgreSQL gate contains 13 tests and
 uses PostgreSQL 16.15 for the complete Event → persistence → terminal View →
 public contract flow.

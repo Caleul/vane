@@ -309,6 +309,10 @@ function valueSql(
       aliases,
       storage,
     );
+  if (value.kind === "literal" && !isPostgreSqlJsonCompatible(value.value))
+    throw new PostgreSqlViewRuntimeConfigurationError(
+      `View ${view.name} query contains a PostgreSQL-incompatible literal.`,
+    );
   values.push(value.kind === "input" ? input[value.input] : value.value);
   if (value.kind === "input") {
     const type = view.input.find((field) => field.name === value.input)?.type;

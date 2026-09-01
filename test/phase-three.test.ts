@@ -698,6 +698,72 @@ describe("phase 3 PostgreSQL View runtime", () => {
     );
     assert.equal(connected, false);
   });
+
+  it("rejects PostgreSQL-incompatible query literals before connecting", async () => {
+    const owner = module.entities[0];
+    const totalColumn = owner?.columns[2];
+    assert.ok(owner && totalColumn);
+    const literalStorage: PostgreSqlStorageIr = {
+      ...storage,
+      tables: storage.tables.map((table) => ({
+        ...table,
+        columns: [
+          ...table.columns,
+          physical("Sales.Order.note", "note", "text"),
+        ],
+      })),
+    };
+    let connected = false;
+    const pool: PostgreSqlPoolLike = {
+      async connect() {
+        connected = true;
+        throw new Error("must not connect");
+      },
+    };
+    for (const literal of ["invalid\0text", "\ud800"]) {
+      const literalModule: SemanticModule = {
+        ...module,
+        entities: [
+          {
+            ...owner,
+            columns: [
+              ...owner.columns,
+              {
+                ...totalColumn,
+                name: "note",
+                type: "string",
+                identity: false,
+              },
+            ],
+          },
+        ],
+        views: module.views.map((view) => ({
+          ...view,
+          query: {
+            ...view.query,
+            where: {
+              kind: "comparison" as const,
+              operator: "eq" as const,
+              left: {
+                kind: "column" as const,
+                entity: "Order",
+                column: "note",
+              },
+              right: { kind: "literal" as const, value: literal },
+            },
+          },
+        })),
+      };
+      await assert.rejects(
+        new PostgreSqlViewRuntime(literalModule, pool, literalStorage).execute({
+          view: "OrderDetails",
+          input: { id: ID },
+        }),
+        { code: "VANE_VIEW_RUNTIME_CONFIGURATION" },
+      );
+    }
+    assert.equal(connected, false);
+  });
 });
 
 describe("phase 3 public HTTP boundary", () => {
@@ -1185,7 +1251,11 @@ const storage: PostgreSqlStorageIr = {
   ],
 };
 
-function physical(semanticId: string, name: string, type: "uuid" | "numeric") {
+function physical(
+  semanticId: string,
+  name: string,
+  type: "uuid" | "numeric" | "text",
+) {
   return {
     semanticId,
     name,
