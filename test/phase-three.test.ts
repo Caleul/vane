@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
-import { createServer } from "node:http";
+import { createServer, request as httpRequest } from "node:http";
 import { describe, it } from "node:test";
 import type { ContractIr } from "../src/contract-ir.js";
 import {
@@ -277,6 +277,35 @@ describe("phase 3 Contract IR and OpenAPI", () => {
     );
     assert.equal(new Set(operationIds).size, operationIds.length);
   });
+
+  it("declares JavaScript safe-integer bounds in OpenAPI", () => {
+    const integerInputModule: SemanticModule = {
+      ...module,
+      views: module.views.map((view) => ({
+        ...view,
+        input: [
+          ...view.input,
+          { name: "limit", type: "integer" as const, optional: false },
+        ],
+      })),
+    };
+    const materialized = materializeContract(integerInputModule, {
+      views: [{ view: "OrderDetails" }],
+    });
+    assert.equal(materialized.success, true);
+    if (!materialized.success) return;
+    const schema = generateOpenApi(materialized.ir).components.schemas
+      .View_OrderDetails_Input as {
+      readonly properties: {
+        readonly limit: { readonly minimum: number; readonly maximum: number };
+      };
+    };
+    assert.deepEqual(schema.properties.limit, {
+      type: "integer",
+      minimum: Number.MIN_SAFE_INTEGER,
+      maximum: Number.MAX_SAFE_INTEGER,
+    });
+  });
 });
 
 describe("phase 3 PostgreSQL View runtime", () => {
@@ -484,6 +513,43 @@ describe("phase 3 PostgreSQL View runtime", () => {
       { code: "VANE_VIEW_RUNTIME_CONFIGURATION" },
     );
     assert.equal(connected, false);
+  });
+
+  it("fits long semantic output names to PostgreSQL aliases", async () => {
+    const outputName = `total${"Value".repeat(20)}`;
+    const totalOutput = module.views[0]?.output[1];
+    assert.ok(totalOutput);
+    const longOutputModule: SemanticModule = {
+      ...module,
+      views: module.views.map((view) => ({
+        ...view,
+        output: [{ ...totalOutput, name: outputName }],
+      })),
+    };
+    let physicalAlias = "";
+    const pool: PostgreSqlPoolLike = {
+      async connect() {
+        return {
+          async query<Row extends object>(text: string) {
+            const match = / AS "([^"]+)" FROM/u.exec(text);
+            assert.ok(match?.[1]);
+            physicalAlias = match[1];
+            return {
+              rows: [{ [physicalAlias]: "42.5" }] as unknown as Row[],
+              rowCount: 1,
+            };
+          },
+          release() {},
+        };
+      },
+    };
+    const result = await new PostgreSqlViewRuntime(
+      longOutputModule,
+      pool,
+      storage,
+    ).execute({ view: "OrderDetails", input: { id: ID } });
+    assert.ok(Buffer.byteLength(physicalAlias, "utf8") <= 63);
+    assert.deepEqual(result.rows, [{ [outputName]: 42.5 }]);
   });
 
   it("compiles null equality as SQL null predicates", async () => {
@@ -712,6 +778,68 @@ describe("phase 3 public HTTP boundary", () => {
       );
       assert.equal(result.status, 500);
       assert.equal((await result.json()).code, "VANE_PUBLIC_INTERNAL");
+    } finally {
+      server.close();
+      await once(server, "close");
+    }
+  });
+
+  it("rejects malformed UTF-8 before JSON parsing", async () => {
+    const runtime = new PublicHttpRuntime({
+      contract: successfulContract(),
+      terminals: new InMemoryTerminalResultStore(),
+      events: {
+        async dispatch() {
+          throw new Error("must not dispatch");
+        },
+      },
+      views: {
+        async execute() {
+          throw new Error("must not execute");
+        },
+      },
+    });
+    const server = createServer(createNodeHttpHandler(runtime));
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+    try {
+      const address = server.address();
+      assert.ok(address && typeof address === "object");
+      const payload = Buffer.concat([
+        Buffer.from('{"id":"'),
+        Buffer.from([0xc3, 0x28]),
+        Buffer.from(`","customerId":"${CORRELATION}","total":1}`),
+      ]);
+      const result = await new Promise<{ status: number; body: string }>(
+        (resolve, reject) => {
+          const request = httpRequest(
+            {
+              host: "127.0.0.1",
+              port: address.port,
+              path: "/api/events/Order.Place",
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                "content-length": payload.length,
+              },
+            },
+            (response) => {
+              const chunks: Buffer[] = [];
+              response.on("data", (chunk: Buffer) => chunks.push(chunk));
+              response.on("end", () =>
+                resolve({
+                  status: response.statusCode ?? 0,
+                  body: Buffer.concat(chunks).toString("utf8"),
+                }),
+              );
+            },
+          );
+          request.on("error", reject);
+          request.end(payload);
+        },
+      );
+      assert.equal(result.status, 400);
+      assert.equal(JSON.parse(result.body).code, "VANE_HTTP_REQUEST_INVALID");
     } finally {
       server.close();
       await once(server, "close");

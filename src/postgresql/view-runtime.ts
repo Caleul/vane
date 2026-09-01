@@ -6,7 +6,10 @@ import type {
   ViewValueDeclaration,
 } from "../declaration.js";
 import type { SemanticModule, SemanticView } from "../semantic-ir.js";
-import { quotePostgreSqlIdentifier } from "./identifiers.js";
+import {
+  fitPostgreSqlIdentifier,
+  quotePostgreSqlIdentifier,
+} from "./identifiers.js";
 import type { PostgreSqlPoolLike } from "./runtime.js";
 import type { PostgreSqlStorageIr, PostgreSqlTable } from "./storage-ir.js";
 
@@ -149,6 +152,7 @@ function buildViewSql(
   }
 
   const values: unknown[] = [];
+  const outputAliases = new Map<string, string>();
   const select = view.output.map((output) => {
     const expression = output.expression;
     if (
@@ -174,7 +178,14 @@ function buildViewSql(
       expression.kind === "aggregate"
         ? `${expression.function.toUpperCase()}(${sql})`
         : sql;
-    return `${projected} AS ${quotePostgreSqlIdentifier(output.name)}`;
+    const outputAlias = fitPostgreSqlIdentifier(output.name);
+    const previous = outputAliases.get(outputAlias);
+    if (previous)
+      throw new PostgreSqlViewRuntimeConfigurationError(
+        `View outputs ${previous} and ${output.name} map to the same PostgreSQL alias ${outputAlias}.`,
+      );
+    outputAliases.set(outputAlias, output.name);
+    return `${projected} AS ${quotePostgreSqlIdentifier(outputAlias)}`;
   });
   const where = view.query.where
     ? ` WHERE ${expressionSql(view.query.where, view, entityModules, aliases, storage, input, values)}`
@@ -538,7 +549,7 @@ function normalizeViewRow(
 ): Readonly<Record<string, unknown>> {
   return Object.fromEntries(
     view.output.map((field) => {
-      const value = row[field.name];
+      const value = row[fitPostgreSqlIdentifier(field.name)];
       if (value === null && field.nullable) return [field.name, null];
       if (value === null || value === undefined) {
         throw new PostgreSqlViewRuntimeConfigurationError(

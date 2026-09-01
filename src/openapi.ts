@@ -153,7 +153,12 @@ function schemaFor(field: ContractField): unknown {
 }
 
 function scalar(type: ColumnType): Record<string, unknown> {
-  if (type === "integer") return { type: "integer" };
+  if (type === "integer")
+    return {
+      type: "integer",
+      minimum: Number.MIN_SAFE_INTEGER,
+      maximum: Number.MAX_SAFE_INTEGER,
+    };
   if (type === "decimal") return { type: "number" };
   if (type === "boolean") return { type: "boolean" };
   if (type === "json") return {};

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { TextDecoder } from "node:util";
 import type {
   ContractEventOperation,
   ContractField,
@@ -424,7 +425,10 @@ async function readJsonBody(request: IncomingMessage): Promise<unknown> {
     chunks.push(buffer);
   }
   if (chunks.length === 0) return {};
-  return JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown;
+  const text = new TextDecoder("utf-8", { fatal: true }).decode(
+    Buffer.concat(chunks),
+  );
+  return JSON.parse(text) as unknown;
 }
 
 function terminalInput(
