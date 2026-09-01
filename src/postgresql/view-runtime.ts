@@ -151,6 +151,17 @@ function buildViewSql(
   const values: unknown[] = [];
   const select = view.output.map((output) => {
     const expression = output.expression;
+    if (
+      expression.kind === "aggregate" &&
+      (expression.function === "min" || expression.function === "max") &&
+      (output.type === "uuid" ||
+        output.type === "boolean" ||
+        output.type === "json")
+    ) {
+      throw new PostgreSqlViewRuntimeConfigurationError(
+        `${expression.function} cannot aggregate a PostgreSQL ${output.type} Column.`,
+      );
+    }
     const column = expression.kind === "column" ? expression : expression.value;
     const sql = columnSql(
       entityModules,
@@ -391,11 +402,7 @@ function resolveVisibleEntityModules(
   const visit = (name: string): void => {
     if (visible.has(name)) return;
     const module = modulesByName.get(name);
-    if (!module) {
-      throw new PostgreSqlViewRuntimeConfigurationError(
-        `View runtime is missing imported Module ${name}.`,
-      );
-    }
+    if (!module) return;
     visible.add(name);
     for (const imported of module.imports) visit(imported);
   };

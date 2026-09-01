@@ -415,6 +415,73 @@ describe("phase 3 PostgreSQL View runtime", () => {
     assert.match(sql, /FROM "public"\."catalog_product"/u);
   });
 
+  it("does not require unused imported Modules at runtime", async () => {
+    const ownerWithUnusedImport: SemanticModule = {
+      ...module,
+      imports: ["UnusedCatalog"],
+    };
+    let connected = false;
+    const pool: PostgreSqlPoolLike = {
+      async connect() {
+        connected = true;
+        return {
+          async query<Row extends object>() {
+            return {
+              rows: [{ id: ID, total: "1" }] as unknown as Row[],
+              rowCount: 1,
+            };
+          },
+          release() {},
+        };
+      },
+    };
+    const result = await new PostgreSqlViewRuntime(
+      ownerWithUnusedImport,
+      pool,
+      storage,
+    ).execute({ view: "OrderDetails", input: { id: ID } });
+    assert.equal(connected, true);
+    assert.equal(result.kind, "view");
+  });
+
+  it("rejects unsupported PostgreSQL aggregate types before connecting", async () => {
+    const aggregateModule: SemanticModule = {
+      ...module,
+      views: module.views.map((view) => ({
+        ...view,
+        input: [],
+        output: [
+          {
+            name: "minimumId",
+            type: "uuid" as const,
+            nullable: false,
+            expression: {
+              kind: "aggregate" as const,
+              function: "min" as const,
+              value: { kind: "column" as const, entity: "Order", column: "id" },
+            },
+          },
+        ],
+        query: { ...view.query, where: null, orderBy: [] },
+      })),
+    };
+    let connected = false;
+    const pool: PostgreSqlPoolLike = {
+      async connect() {
+        connected = true;
+        throw new Error("must not connect");
+      },
+    };
+    await assert.rejects(
+      new PostgreSqlViewRuntime(aggregateModule, pool, storage).execute({
+        view: "OrderDetails",
+        input: {},
+      }),
+      { code: "VANE_VIEW_RUNTIME_CONFIGURATION" },
+    );
+    assert.equal(connected, false);
+  });
+
   it("compiles null equality as SQL null predicates", async () => {
     const nullableView: SemanticModule = {
       ...module,
