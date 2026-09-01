@@ -359,6 +359,31 @@ describe("View Semantic IR", () => {
       ["VANE_SEM_VIEW_AGGREGATE", "VANE_SEM_VIEW_PAGINATION_TYPE"],
     );
   });
+
+  it("keeps provider-specific min and max support out of Semantic IR", () => {
+    const view = moduleWithView.views?.[0];
+    assert.ok(view);
+    const result = compileSemanticIr({
+      ...moduleWithView,
+      views: [
+        {
+          ...view,
+          output: [
+            {
+              name: "minimumCustomer",
+              expression: {
+                kind: "aggregate",
+                function: "min",
+                value: { entity: "Order", column: "customerId" },
+              },
+            },
+          ],
+          query: { ...view.query, orderBy: [] },
+        },
+      ],
+    });
+    assert.equal(result.success, true);
+  });
 });
 
 describe("View source parser", () => {

@@ -50,6 +50,14 @@ export {
   type PostgreSqlModuleRuntimeState,
 } from "./module-runtime.js";
 export {
+  PostgreSqlViewNotFoundError,
+  PostgreSqlViewRuntime,
+  PostgreSqlViewRuntimeConfigurationError,
+  ViewInputError,
+  type ExecuteViewInput,
+  type ViewExecutionResult,
+} from "./view-runtime.js";
+export {
   InvalidOutboxClaimError,
   LostOutboxLeaseError,
   PostgreSqlOutboxDispatcher,

@@ -229,3 +229,69 @@ export function phaseTwoProject(): SemanticProjectIr {
     ],
   };
 }
+
+export function phaseThreeProject(): SemanticProjectIr {
+  const project = phaseTwoProject();
+  return {
+    ...project,
+    modules: project.modules.map((module) => ({
+      ...module,
+      views: [
+        {
+          name: "StockItemDetails",
+          input: [{ name: "id", type: "uuid", optional: false }],
+          output: [
+            {
+              name: "id",
+              type: "uuid",
+              nullable: false,
+              expression: {
+                kind: "column",
+                entity: "StockItem",
+                column: "id",
+              },
+            },
+            {
+              name: "name",
+              type: "string",
+              nullable: false,
+              expression: {
+                kind: "column",
+                entity: "StockItem",
+                column: "name",
+              },
+            },
+            {
+              name: "price",
+              type: "decimal",
+              nullable: false,
+              expression: {
+                kind: "column",
+                entity: "StockItem",
+                column: "price",
+              },
+            },
+          ],
+          query: {
+            root: "StockItem",
+            relations: [],
+            where: {
+              kind: "comparison",
+              operator: "eq",
+              left: {
+                kind: "column",
+                entity: "StockItem",
+                column: "id",
+              },
+              right: { kind: "input", input: "id" },
+            },
+            orderBy: [],
+            pagination: null,
+          },
+          persistence: { allowed: false },
+          publicResult: { kind: "view" },
+        },
+      ],
+    })),
+  };
+}

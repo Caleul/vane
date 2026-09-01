@@ -4,16 +4,17 @@ Vane is the reference implementation of **Entity Event**: a model and framework
 for defining software through persistent Entities and the Events that happen to
 them.
 
-Vane currently implements the semantic compiler and the PostgreSQL persistence
-boundary:
+Vane currently implements the semantic compiler, PostgreSQL persistence and
+the first public View/HTTP contract boundary:
 
 ```text
 declarative module -> semantic validation -> deterministic Semantic IR
 Semantic IR -> PostgreSQL Storage IR -> schema / migrations / runtime
+Semantic IR + exposure -> Contract IR -> View SQL / HTTP / OpenAPI / terminal SSE
 ```
 
-Views/contracts, ACL/Saga orchestration, ServiceConfiguration and production
-hardening continue in phases 3–6.
+ACL/Saga orchestration, ServiceConfiguration and production hardening continue
+in phases 4–6.
 
 ## Current guarantees
 
@@ -43,6 +44,14 @@ hardening continue in phases 3–6.
 - mailbox deduplication, owner mutation and outbox append share a transaction;
 - outbox claims use recoverable leases and honestly provide at-least-once
   delivery.
+- PostgreSQL executes each View-owned query with validated input and
+  parameterized filters, joins, ordering and pagination;
+- versioned Contract IR preserves internal identities while mapping explicit
+  public paths and terminal Views;
+- deterministic OpenAPI describes typed Event, View, safe fail and terminal SSE
+  contracts;
+- public Events return only `202` plus `sagaId`; their terminal stream exposes
+  only the final View or safe fail, never revisions or operational progress.
 
 ## Development
 
@@ -64,4 +73,6 @@ See [the semantic compiler boundary](docs/semantic-compiler.md) for the public
 grammar, [the phase 1 completion matrix](docs/phase-1-completion.md) for the
 semantic baseline, and [the phase 2 completion gate](docs/phase-2-completion.md)
 for PostgreSQL/runtime traceability. The [PostgreSQL guide](docs/postgresql.md)
-covers materialization, migrations, dispatch and outbox delivery.
+covers materialization, migrations, dispatch and outbox delivery. The
+[phase 3 completion gate](docs/phase-3-completion.md) covers executable Views,
+HTTP, OpenAPI and terminal-only public results.
