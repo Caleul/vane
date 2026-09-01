@@ -207,6 +207,37 @@ describe("phase 3 Contract IR and OpenAPI", () => {
         badDatetime.diagnostics[0]?.code,
         "VANE_CONTRACT_TERMINAL_LITERAL_TYPE",
       );
+
+    const jsonModule: SemanticModule = {
+      ...module,
+      views: module.views.map((view) => ({
+        ...view,
+        input: [
+          ...view.input,
+          { name: "filter", type: "json" as const, optional: false },
+        ],
+      })),
+    };
+    const badJson = materializeContract(jsonModule, {
+      events: [
+        {
+          event: "Order.Place",
+          terminal: {
+            view: "OrderDetails",
+            input: {
+              id: { kind: "eventInput", input: "id" },
+              filter: { kind: "literal", value: { value: "\ud800" } },
+            },
+          },
+        },
+      ],
+    });
+    assert.equal(badJson.success, false);
+    if (!badJson.success)
+      assert.equal(
+        badJson.diagnostics[0]?.code,
+        "VANE_CONTRACT_TERMINAL_LITERAL_TYPE",
+      );
   });
 
   it("generates byte-identical OpenAPI with typed View, Event and SSE contracts", () => {
@@ -464,7 +495,7 @@ describe("phase 3 PostgreSQL View runtime", () => {
     assert.equal(connected, false);
   });
 
-  it("rejects PostgreSQL-incompatible strings before connecting", async () => {
+  it("rejects PostgreSQL-incompatible text before connecting", async () => {
     const stringInputModule: SemanticModule = {
       ...module,
       views: module.views.map((view) => ({
@@ -472,6 +503,7 @@ describe("phase 3 PostgreSQL View runtime", () => {
         input: [
           ...view.input,
           { name: "note", type: "string" as const, optional: false },
+          { name: "filter", type: "json" as const, optional: true },
         ],
       })),
     };
@@ -486,6 +518,13 @@ describe("phase 3 PostgreSQL View runtime", () => {
       new PostgreSqlViewRuntime(stringInputModule, pool, storage).execute({
         view: "OrderDetails",
         input: { id: ID, note: "invalid\0text" },
+      }),
+      { code: "VANE_VIEW_INPUT_INVALID" },
+    );
+    await assert.rejects(
+      new PostgreSqlViewRuntime(stringInputModule, pool, storage).execute({
+        view: "OrderDetails",
+        input: { id: ID, note: "valid", filter: { value: "\ud800" } },
       }),
       { code: "VANE_VIEW_INPUT_INVALID" },
     );
@@ -518,7 +557,7 @@ describe("phase 3 public HTTP boundary", () => {
     assert.equal(JSON.parse(result.body).code, "VANE_SAGA_NOT_FOUND");
   });
 
-  it("rejects PostgreSQL-incompatible View strings at HTTP admission", async () => {
+  it("rejects PostgreSQL-incompatible View text at HTTP admission", async () => {
     const stringInputModule: SemanticModule = {
       ...module,
       views: module.views.map((view) => ({
@@ -526,6 +565,7 @@ describe("phase 3 public HTTP boundary", () => {
         input: [
           ...view.input,
           { name: "note", type: "string" as const, optional: false },
+          { name: "filter", type: "json" as const, optional: true },
         ],
       })),
     };
@@ -556,6 +596,13 @@ describe("phase 3 public HTTP boundary", () => {
       body: { id: ID, note: "invalid\0text" },
     });
     assert.equal(result.status, 400);
+    assert.equal(executed, false);
+    const malformedJson = await runtime.handle({
+      method: "POST",
+      path: "/views/OrderDetails",
+      body: { id: ID, note: "valid", filter: { value: "\ud800" } },
+    });
+    assert.equal(malformedJson.status, 400);
     assert.equal(executed, false);
   });
 
