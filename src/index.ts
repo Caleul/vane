@@ -141,3 +141,34 @@ export {
   type SemanticViewOutput,
 } from "./semantic-ir.js";
 export * from "./postgresql/index.js";
+export {
+  CONTRACT_IR_VERSION,
+  materializeContract,
+  serializeContractIr,
+  type ContractDiagnostic,
+  type ContractEventOperation,
+  type ContractField,
+  type ContractIr,
+  type ContractMaterializationResult,
+  type ContractMaterializerConfiguration,
+  type ContractViewOperation,
+  type PublicEventExposure,
+  type PublicViewExposure,
+  type TerminalViewInputMapping,
+} from "./contract-ir.js";
+export {
+  generateOpenApi,
+  serializeOpenApi,
+  type OpenApiDocument,
+} from "./openapi.js";
+export {
+  InMemoryTerminalResultStore,
+  PublicHttpRuntime,
+  createNodeHttpHandler,
+  type PublicFail,
+  type PublicHttpRequest,
+  type PublicHttpResponse,
+  type PublicHttpRuntimeOptions,
+  type PublicTerminalResult,
+  type TerminalResultStore,
+} from "./http-runtime.js";
