@@ -28,9 +28,9 @@ export function generateOpenApi(ir: ContractIr): OpenApiDocument {
     ]),
     VaneEventAccepted: objectSchema([field("sagaId", "uuid")]),
   };
-  for (const operation of ir.operations) {
-    if (operation.kind === "view") addView(operation, paths, schemas);
-    else addEvent(operation, paths, schemas);
+  for (const [index, operation] of ir.operations.entries()) {
+    if (operation.kind === "view") addView(operation, index, paths, schemas);
+    else addEvent(operation, index, paths, schemas);
   }
   const streamPath = ir.operations.find(
     (operation): operation is ContractEventOperation =>
@@ -80,6 +80,7 @@ export function serializeOpenApi(document: OpenApiDocument): string {
 
 function addView(
   operation: ContractViewOperation,
+  index: number,
   paths: Record<string, unknown>,
   schemas: Record<string, unknown>,
 ): void {
@@ -92,7 +93,7 @@ function addView(
   };
   paths[operation.path] = {
     post: {
-      operationId: `query${operation.identity}`,
+      operationId: `query${operation.identity}_${index + 1}`,
       requestBody: jsonBody(ref(inputName)),
       responses: {
         "200": {
@@ -108,6 +109,7 @@ function addView(
 
 function addEvent(
   operation: ContractEventOperation,
+  index: number,
   paths: Record<string, unknown>,
   schemas: Record<string, unknown>,
 ): void {
@@ -115,7 +117,7 @@ function addEvent(
   schemas[inputName] = objectSchema(operation.input);
   paths[operation.path] = {
     post: {
-      operationId: `dispatch${operation.identity.replace(".", "_")}`,
+      operationId: `dispatch${operation.identity.replace(".", "_")}_${index + 1}`,
       requestBody: jsonBody(ref(inputName)),
       responses: {
         "202": {

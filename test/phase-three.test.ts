@@ -221,6 +221,27 @@ describe("phase 3 Contract IR and OpenAPI", () => {
     assert.ok(first.paths["/api/sagas/{sagaId}"]);
     assert.equal(JSON.stringify(first).includes("revision"), false);
   });
+
+  it("generates unique operation IDs for repeated public exposures", () => {
+    const materialized = materializeContract(module, {
+      views: [
+        { view: "OrderDetails", path: "/orders" },
+        { view: "OrderDetails", path: "/order-search" },
+      ],
+    });
+    assert.equal(materialized.success, true);
+    if (!materialized.success) return;
+    const document = generateOpenApi(materialized.ir);
+    const operationIds = ["/orders", "/order-search"].map(
+      (path) =>
+        (
+          document.paths[path] as {
+            readonly post: { readonly operationId: string };
+          }
+        ).post.operationId,
+    );
+    assert.equal(new Set(operationIds).size, operationIds.length);
+  });
 });
 
 describe("phase 3 PostgreSQL View runtime", () => {
@@ -442,9 +463,102 @@ describe("phase 3 PostgreSQL View runtime", () => {
     );
     assert.equal(connected, false);
   });
+
+  it("rejects PostgreSQL-incompatible strings before connecting", async () => {
+    const stringInputModule: SemanticModule = {
+      ...module,
+      views: module.views.map((view) => ({
+        ...view,
+        input: [
+          ...view.input,
+          { name: "note", type: "string" as const, optional: false },
+        ],
+      })),
+    };
+    let connected = false;
+    const pool: PostgreSqlPoolLike = {
+      async connect() {
+        connected = true;
+        throw new Error("must not connect");
+      },
+    };
+    await assert.rejects(
+      new PostgreSqlViewRuntime(stringInputModule, pool, storage).execute({
+        view: "OrderDetails",
+        input: { id: ID, note: "invalid\0text" },
+      }),
+      { code: "VANE_VIEW_INPUT_INVALID" },
+    );
+    assert.equal(connected, false);
+  });
 });
 
 describe("phase 3 public HTTP boundary", () => {
+  it("returns 404 for an unknown saga without creating a waiter", async () => {
+    const terminals = new InMemoryTerminalResultStore();
+    const runtime = new PublicHttpRuntime({
+      contract: successfulContract(),
+      terminals,
+      events: {
+        async dispatch() {
+          throw new Error("must not dispatch");
+        },
+      },
+      views: {
+        async execute() {
+          throw new Error("must not execute");
+        },
+      },
+    });
+    const result = await runtime.handle({
+      method: "GET",
+      path: `/api/sagas/${UUID_V7}`,
+    });
+    assert.equal(result.status, 404);
+    assert.equal(JSON.parse(result.body).code, "VANE_SAGA_NOT_FOUND");
+  });
+
+  it("rejects PostgreSQL-incompatible View strings at HTTP admission", async () => {
+    const stringInputModule: SemanticModule = {
+      ...module,
+      views: module.views.map((view) => ({
+        ...view,
+        input: [
+          ...view.input,
+          { name: "note", type: "string" as const, optional: false },
+        ],
+      })),
+    };
+    const materialized = materializeContract(stringInputModule, {
+      views: [{ view: "OrderDetails" }],
+    });
+    assert.equal(materialized.success, true);
+    if (!materialized.success) return;
+    let executed = false;
+    const runtime = new PublicHttpRuntime({
+      contract: materialized.ir,
+      terminals: new InMemoryTerminalResultStore(),
+      events: {
+        async dispatch() {
+          throw new Error("must not dispatch");
+        },
+      },
+      views: {
+        async execute() {
+          executed = true;
+          throw new Error("must not execute");
+        },
+      },
+    });
+    const result = await runtime.handle({
+      method: "POST",
+      path: "/views/OrderDetails",
+      body: { id: ID, note: "invalid\0text" },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(executed, false);
+  });
+
   it("accepts canonical UUIDv7 input through the public boundary", async () => {
     const terminals = new InMemoryTerminalResultStore();
     const runtime = new PublicHttpRuntime({

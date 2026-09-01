@@ -34,18 +34,30 @@ export type PublicTerminalResult =
   | { readonly kind: "fail"; readonly fail: PublicFail };
 
 export interface TerminalResultStore {
+  register(sagaId: string): Promise<void>;
+  has(sagaId: string): Promise<boolean>;
   publish(sagaId: string, result: PublicTerminalResult): Promise<void>;
   wait(sagaId: string): Promise<PublicTerminalResult>;
 }
 
 export class InMemoryTerminalResultStore implements TerminalResultStore {
+  readonly #known = new Set<string>();
   readonly #results = new Map<string, PublicTerminalResult>();
   readonly #waiters = new Map<
     string,
     ((result: PublicTerminalResult) => void)[]
   >();
 
+  async register(sagaId: string): Promise<void> {
+    this.#known.add(sagaId);
+  }
+
+  async has(sagaId: string): Promise<boolean> {
+    return this.#known.has(sagaId);
+  }
+
   async publish(sagaId: string, result: PublicTerminalResult): Promise<void> {
+    this.#known.add(sagaId);
     if (this.#results.has(sagaId)) return;
     this.#results.set(sagaId, result);
     for (const resolve of this.#waiters.get(sagaId) ?? []) resolve(result);
@@ -183,6 +195,7 @@ export class PublicHttpRuntime {
       );
     const eventId = this.#uuid();
     const sagaId = this.#uuid();
+    await this.#terminals.register(sagaId);
     const envelope = createEventEnvelope({
       eventId,
       eventIdentity: operation.identity,
@@ -240,6 +253,16 @@ export class PublicHttpRuntime {
         safeFail(
           "VANE_SAGA_ID_INVALID",
           "The sagaId is invalid.",
+          this.#uuid(),
+        ),
+      );
+    }
+    if (!(await this.#terminals.has(sagaId))) {
+      return response(
+        404,
+        safeFail(
+          "VANE_SAGA_NOT_FOUND",
+          "The saga was not found.",
           this.#uuid(),
         ),
       );
@@ -361,7 +384,8 @@ function validateObject(
 
 function matches(value: unknown, type: ContractField["type"]): boolean {
   if (value === null || value === undefined) return false;
-  if (type === "string") return typeof value === "string";
+  if (type === "string")
+    return typeof value === "string" && isPostgreSqlTextCompatible(value);
   if (type === "integer")
     return typeof value === "number" && Number.isSafeInteger(value);
   if (type === "decimal")
@@ -378,7 +402,22 @@ function matches(value: unknown, type: ContractField["type"]): boolean {
       isIsoDate(value.slice(0, 10)) &&
       Number.isFinite(Date.parse(value))
     );
-  return isJson(value);
+  return isJson(value) && isPostgreSqlJsonCompatible(value);
+}
+
+function isPostgreSqlTextCompatible(value: string): boolean {
+  return !value.includes("\0");
+}
+
+function isPostgreSqlJsonCompatible(value: JsonValue): boolean {
+  if (typeof value === "string") return isPostgreSqlTextCompatible(value);
+  if (Array.isArray(value)) return value.every(isPostgreSqlJsonCompatible);
+  if (value && typeof value === "object")
+    return Object.entries(value).every(
+      ([key, item]) =>
+        isPostgreSqlTextCompatible(key) && isPostgreSqlJsonCompatible(item),
+    );
+  return true;
 }
 
 function isJson(value: unknown): value is JsonValue {

@@ -474,7 +474,8 @@ function validateViewInput(
 
 function matchesType(value: JsonValue | undefined, type: ColumnType): boolean {
   if (value === null || value === undefined) return false;
-  if (type === "string") return typeof value === "string";
+  if (type === "string")
+    return typeof value === "string" && isPostgreSqlTextCompatible(value);
   if (type === "integer")
     return typeof value === "number" && Number.isSafeInteger(value);
   if (type === "decimal")
@@ -497,7 +498,22 @@ function matchesType(value: JsonValue | undefined, type: ColumnType): boolean {
       isIsoDate(value.slice(0, 10)) &&
       Number.isFinite(Date.parse(value))
     );
-  return type === "json";
+  return type === "json" && isPostgreSqlJsonCompatible(value);
+}
+
+function isPostgreSqlTextCompatible(value: string): boolean {
+  return !value.includes("\0");
+}
+
+function isPostgreSqlJsonCompatible(value: JsonValue): boolean {
+  if (typeof value === "string") return isPostgreSqlTextCompatible(value);
+  if (Array.isArray(value)) return value.every(isPostgreSqlJsonCompatible);
+  if (value && typeof value === "object")
+    return Object.entries(value).every(
+      ([key, item]) =>
+        isPostgreSqlTextCompatible(key) && isPostgreSqlJsonCompatible(item),
+    );
+  return true;
 }
 
 function normalizeViewRow(
