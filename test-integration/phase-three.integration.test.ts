@@ -111,6 +111,52 @@ describe("phase 3 PostgreSQL and HTTP integration", () => {
       assert.deepEqual(JSON.parse(direct.body), [
         { id, name: "After", price: 12.5 },
       ]);
+      const moduleWithNullView = {
+        ...module,
+        views: [
+          ...module.views,
+          {
+            name: "ItemsWithoutExpiry",
+            input: [],
+            output: [
+              {
+                name: "id",
+                type: "uuid" as const,
+                nullable: false,
+                expression: {
+                  kind: "column" as const,
+                  entity: "StockItem",
+                  column: "id",
+                },
+              },
+            ],
+            query: {
+              root: "StockItem",
+              relations: [],
+              where: {
+                kind: "comparison" as const,
+                operator: "eq" as const,
+                left: {
+                  kind: "column" as const,
+                  entity: "StockItem",
+                  column: "expiresOn",
+                },
+                right: { kind: "literal" as const, value: null },
+              },
+              orderBy: [],
+              pagination: null,
+            },
+            persistence: { allowed: false as const },
+            publicResult: { kind: "view" as const },
+          },
+        ],
+      };
+      const nullResult = await new PostgreSqlViewRuntime(
+        moduleWithNullView,
+        pool,
+        materialized.ir,
+      ).execute({ view: "ItemsWithoutExpiry", input: {} });
+      assert.deepEqual(nullResult.rows, [{ id }]);
       await events.stop();
     });
   });

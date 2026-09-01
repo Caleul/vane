@@ -49,15 +49,18 @@ export class PostgreSqlViewRuntime {
   readonly #module: SemanticModule;
   readonly #pool: PostgreSqlPoolLike;
   readonly #storage: PostgreSqlStorageIr;
+  readonly #modules: readonly SemanticModule[];
 
   constructor(
     module: SemanticModule,
     pool: PostgreSqlPoolLike,
     storage: PostgreSqlStorageIr,
+    modules: readonly SemanticModule[] = [module],
   ) {
     this.#module = module;
     this.#pool = pool;
     this.#storage = storage;
+    this.#modules = modules;
   }
 
   async execute(request: ExecuteViewInput): Promise<ViewExecutionResult> {
@@ -71,6 +74,7 @@ export class PostgreSqlViewRuntime {
       view,
       request.input,
       this.#storage,
+      this.#modules,
     );
     const client = await this.#pool.connect();
     try {
@@ -99,9 +103,15 @@ function buildViewSql(
   view: SemanticView,
   input: Readonly<Record<string, JsonValue>>,
   storage: PostgreSqlStorageIr,
+  modules: readonly SemanticModule[],
 ): BuiltViewSql {
+  const entityModules = resolveVisibleEntityModules(module, modules);
   const aliases = new Map<string, string>([[view.query.root, "v0"]]);
-  const root = entityTable(module.name, view.query.root, storage);
+  const root = entityTable(
+    entityModule(view.query.root, entityModules),
+    view.query.root,
+    storage,
+  );
   const joins: string[] = [];
   const pending = [...view.query.relations];
   while (pending.length > 0) {
@@ -126,11 +136,15 @@ function buildViewSql(
     }
     const alias = `v${aliases.size}`;
     aliases.set(added.entity, alias);
-    const table = entityTable(module.name, added.entity, storage);
+    const table = entityTable(
+      entityModule(added.entity, entityModules),
+      added.entity,
+      storage,
+    );
     joins.push(
       `JOIN ${qualified(storage, table)} AS ${quotePostgreSqlIdentifier(alias)} ON ` +
-        `${columnSql(module.name, known.entity, known.column, aliases, storage)} = ` +
-        `${columnSql(module.name, added.entity, added.column, aliases, storage)}`,
+        `${columnSql(entityModules, known.entity, known.column, aliases, storage)} = ` +
+        `${columnSql(entityModules, added.entity, added.column, aliases, storage)}`,
     );
   }
 
@@ -139,7 +153,7 @@ function buildViewSql(
     const expression = output.expression;
     const column = expression.kind === "column" ? expression : expression.value;
     const sql = columnSql(
-      module.name,
+      entityModules,
       column.entity,
       column.column,
       aliases,
@@ -152,14 +166,14 @@ function buildViewSql(
     return `${projected} AS ${quotePostgreSqlIdentifier(output.name)}`;
   });
   const where = view.query.where
-    ? ` WHERE ${expressionSql(view.query.where, view, module.name, aliases, storage, input, values)}`
+    ? ` WHERE ${expressionSql(view.query.where, view, entityModules, aliases, storage, input, values)}`
     : "";
   const order =
     view.query.orderBy.length > 0
       ? ` ORDER BY ${view.query.orderBy
           .map(
             (item) =>
-              `${columnSql(module.name, item.value.entity, item.value.column, aliases, storage)} ${item.direction.toUpperCase()}`,
+              `${columnSql(entityModules, item.value.entity, item.value.column, aliases, storage)} ${item.direction.toUpperCase()}`,
           )
           .join(", ")}`
       : "";
@@ -183,26 +197,54 @@ function buildViewSql(
 function expressionSql(
   expression: ViewExpressionDeclaration,
   view: SemanticView,
-  module: string,
+  entityModules: ReadonlyMap<string, string>,
   aliases: ReadonlyMap<string, string>,
   storage: PostgreSqlStorageIr,
   input: Readonly<Record<string, JsonValue>>,
   values: unknown[],
 ): string {
   if (expression.kind === "not") {
-    return `(NOT ${expressionSql(expression.operand, view, module, aliases, storage, input, values)})`;
+    return `(NOT ${expressionSql(expression.operand, view, entityModules, aliases, storage, input, values)})`;
   }
   if (expression.kind === "logical") {
     return `(${expression.operands
       .map((operand) =>
-        expressionSql(operand, view, module, aliases, storage, input, values),
+        expressionSql(
+          operand,
+          view,
+          entityModules,
+          aliases,
+          storage,
+          input,
+          values,
+        ),
       )
       .join(expression.operator === "and" ? " AND " : " OR ")})`;
+  }
+  const nullOnLeft =
+    expression.left.kind === "literal" && expression.left.value === null;
+  const nullOnRight =
+    expression.right.kind === "literal" && expression.right.value === null;
+  if (nullOnLeft || nullOnRight) {
+    if (nullOnLeft && nullOnRight) {
+      return expression.operator === "eq" ? "(TRUE)" : "(FALSE)";
+    }
+    const value = nullOnLeft ? expression.right : expression.left;
+    const sql = valueSql(
+      value,
+      view,
+      entityModules,
+      aliases,
+      storage,
+      input,
+      values,
+    );
+    return `(${sql} IS ${expression.operator === "neq" ? "NOT " : ""}NULL)`;
   }
   const left = valueSql(
     expression.left,
     view,
-    module,
+    entityModules,
     aliases,
     storage,
     input,
@@ -211,7 +253,7 @@ function expressionSql(
   const right = valueSql(
     expression.right,
     view,
-    module,
+    entityModules,
     aliases,
     storage,
     input,
@@ -231,14 +273,20 @@ function expressionSql(
 function valueSql(
   value: ViewValueDeclaration,
   view: SemanticView,
-  module: string,
+  entityModules: ReadonlyMap<string, string>,
   aliases: ReadonlyMap<string, string>,
   storage: PostgreSqlStorageIr,
   input: Readonly<Record<string, JsonValue>>,
   values: unknown[],
 ): string {
   if (value.kind === "column")
-    return columnSql(module, value.entity, value.column, aliases, storage);
+    return columnSql(
+      entityModules,
+      value.entity,
+      value.column,
+      aliases,
+      storage,
+    );
   values.push(value.kind === "input" ? input[value.input] : value.value);
   if (value.kind === "input") {
     const type = view.input.find((field) => field.name === value.input)?.type;
@@ -292,9 +340,15 @@ function paginationSql(
     ) {
       continue;
     }
-    if (!Number.isSafeInteger(resolved) || (resolved as number) < 0) {
+    if (
+      !Number.isSafeInteger(resolved) ||
+      (resolved as number) < 0 ||
+      (keyword === "LIMIT" && resolved === 0)
+    ) {
       throw new ViewInputError([
-        `${keyword.toLowerCase()} must be a non-negative integer`,
+        keyword === "LIMIT"
+          ? "limit must be a positive integer"
+          : "offset must be a non-negative integer",
       ]);
     }
     values.push(resolved);
@@ -304,7 +358,7 @@ function paginationSql(
 }
 
 function columnSql(
-  module: string,
+  entityModules: ReadonlyMap<string, string>,
   entity: string,
   column: string,
   aliases: ReadonlyMap<string, string>,
@@ -315,6 +369,7 @@ function columnSql(
     throw new PostgreSqlViewRuntimeConfigurationError(
       `View Column references unreachable Entity ${entity}.`,
     );
+  const module = entityModule(entity, entityModules);
   const table = entityTable(module, entity, storage);
   const definition = table.columns.find(
     (candidate) => candidate.semanticId === `${module}.${entity}.${column}`,
@@ -324,6 +379,55 @@ function columnSql(
       `Storage IR has no Column ${module}.${entity}.${column}.`,
     );
   return `${quotePostgreSqlIdentifier(alias)}.${quotePostgreSqlIdentifier(definition.name)}`;
+}
+
+function resolveVisibleEntityModules(
+  owner: SemanticModule,
+  modules: readonly SemanticModule[],
+): ReadonlyMap<string, string> {
+  const modulesByName = new Map(modules.map((module) => [module.name, module]));
+  modulesByName.set(owner.name, owner);
+  const visible = new Set<string>();
+  const visit = (name: string): void => {
+    if (visible.has(name)) return;
+    const module = modulesByName.get(name);
+    if (!module) {
+      throw new PostgreSqlViewRuntimeConfigurationError(
+        `View runtime is missing imported Module ${name}.`,
+      );
+    }
+    visible.add(name);
+    for (const imported of module.imports) visit(imported);
+  };
+  visit(owner.name);
+  const entityModules = new Map<string, string>();
+  for (const moduleName of visible) {
+    const module = modulesByName.get(moduleName);
+    if (!module) continue;
+    for (const entity of module.entities) {
+      const previous = entityModules.get(entity.name);
+      if (previous && previous !== module.name) {
+        throw new PostgreSqlViewRuntimeConfigurationError(
+          `Entity ${entity.name} is ambiguous across visible Modules ${previous} and ${module.name}.`,
+        );
+      }
+      entityModules.set(entity.name, module.name);
+    }
+  }
+  return entityModules;
+}
+
+function entityModule(
+  entity: string,
+  entityModules: ReadonlyMap<string, string>,
+): string {
+  const module = entityModules.get(entity);
+  if (!module) {
+    throw new PostgreSqlViewRuntimeConfigurationError(
+      `View references Entity ${entity} outside its visible Module import graph.`,
+    );
+  }
+  return module;
 }
 
 function entityTable(

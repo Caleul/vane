@@ -235,6 +235,172 @@ describe("phase 3 PostgreSQL View runtime", () => {
     });
     assert.equal(connected, false);
   });
+
+  it("resolves imported Entities through their declaring Module", async () => {
+    const catalog: SemanticModule = {
+      name: "Catalog",
+      imports: [],
+      entities: [
+        {
+          name: "Product",
+          identityColumn: "id",
+          columns: [column("id", "uuid")],
+          rules: [],
+          events: [],
+        },
+      ],
+      views: [],
+      antiCorruptionLayers: [],
+      sagas: [],
+    };
+    const sales: SemanticModule = {
+      name: "Sales",
+      imports: ["Catalog"],
+      entities: [],
+      views: [
+        {
+          name: "ProductDetails",
+          input: [{ name: "id", type: "uuid", optional: false }],
+          output: [
+            {
+              name: "id",
+              type: "uuid",
+              nullable: false,
+              expression: { kind: "column", entity: "Product", column: "id" },
+            },
+          ],
+          query: {
+            root: "Product",
+            relations: [],
+            where: {
+              kind: "comparison",
+              operator: "eq",
+              left: { kind: "column", entity: "Product", column: "id" },
+              right: { kind: "input", input: "id" },
+            },
+            orderBy: [],
+            pagination: null,
+          },
+          persistence: { allowed: false },
+          publicResult: { kind: "view" },
+        },
+      ],
+      antiCorruptionLayers: [],
+      sagas: [],
+    };
+    let sql = "";
+    const pool: PostgreSqlPoolLike = {
+      async connect() {
+        return {
+          async query<Row extends object>(text: string) {
+            sql = text;
+            return { rows: [{ id: ID }] as unknown as Row[], rowCount: 1 };
+          },
+          release() {},
+        };
+      },
+    };
+    const importedStorage: PostgreSqlStorageIr = {
+      ...storage,
+      tables: [
+        {
+          semanticId: "Catalog.Product",
+          module: "Catalog",
+          name: "catalog_product",
+          technical: false,
+          columns: [physical("Catalog.Product.id", "id", "uuid")],
+          constraints: [],
+          indexes: [],
+        },
+      ],
+    };
+    const runtime = new PostgreSqlViewRuntime(sales, pool, importedStorage, [
+      sales,
+      catalog,
+    ]);
+    await runtime.execute({ view: "ProductDetails", input: { id: ID } });
+    assert.match(sql, /FROM "public"\."catalog_product"/u);
+  });
+
+  it("compiles null equality as SQL null predicates", async () => {
+    const nullableView: SemanticModule = {
+      ...module,
+      entities: module.entities.map((entity) => ({
+        ...entity,
+        columns: entity.columns.map((field) =>
+          field.name === "total" ? { ...field, nullable: true } : field,
+        ),
+      })),
+      views: module.views.map((view) => ({
+        ...view,
+        output: view.output.map((field) =>
+          field.name === "total" ? { ...field, nullable: true } : field,
+        ),
+        query: {
+          ...view.query,
+          where: {
+            kind: "comparison" as const,
+            operator: "eq" as const,
+            left: { kind: "column" as const, entity: "Order", column: "total" },
+            right: { kind: "literal" as const, value: null },
+          },
+        },
+      })),
+    };
+    let query: { text: string; values: readonly unknown[] } | undefined;
+    const pool: PostgreSqlPoolLike = {
+      async connect() {
+        return {
+          async query<Row extends object>(text: string, values = []) {
+            query = { text, values };
+            return {
+              rows: [{ id: ID, total: null }] as unknown as Row[],
+              rowCount: 1,
+            };
+          },
+          release() {},
+        };
+      },
+    };
+    await new PostgreSqlViewRuntime(nullableView, pool, storage).execute({
+      view: "OrderDetails",
+      input: { id: ID },
+    });
+    assert.match(query?.text ?? "", /"v0"\."total" IS NULL/u);
+    assert.deepEqual(query?.values, []);
+  });
+
+  it("rejects zero for a dynamic LIMIT before opening the database", async () => {
+    const paginated: SemanticModule = {
+      ...module,
+      views: module.views.map((view) => ({
+        ...view,
+        input: [
+          ...view.input,
+          { name: "limit", type: "integer" as const, optional: false },
+        ],
+        query: {
+          ...view.query,
+          pagination: { limit: { kind: "input" as const, input: "limit" } },
+        },
+      })),
+    };
+    let connected = false;
+    const pool: PostgreSqlPoolLike = {
+      async connect() {
+        connected = true;
+        throw new Error("must not connect");
+      },
+    };
+    await assert.rejects(
+      new PostgreSqlViewRuntime(paginated, pool, storage).execute({
+        view: "OrderDetails",
+        input: { id: ID, limit: 0 },
+      }),
+      { code: "VANE_VIEW_INPUT_INVALID" },
+    );
+    assert.equal(connected, false);
+  });
 });
 
 describe("phase 3 public HTTP boundary", () => {
