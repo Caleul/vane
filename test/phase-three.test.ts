@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { once } from "node:events";
+import { createServer } from "node:http";
 import { describe, it } from "node:test";
 import type { ContractIr } from "../src/contract-ir.js";
 import {
@@ -11,6 +13,8 @@ import {
   PostgreSqlViewRuntime,
   PublicHttpRuntime,
   type SemanticModule,
+  type TerminalResultStore,
+  createNodeHttpHandler,
   generateOpenApi,
   materializeContract,
   serializeContractIr,
@@ -600,6 +604,72 @@ describe("phase 3 PostgreSQL View runtime", () => {
 });
 
 describe("phase 3 public HTTP boundary", () => {
+  it("cancels terminal waits and bounds in-memory retention", async () => {
+    const store = new InMemoryTerminalResultStore({ maxEntries: 1 });
+    await store.register(ID);
+    const controller = new AbortController();
+    const waiting = store.wait(ID, controller.signal);
+    controller.abort();
+    await assert.rejects(waiting, { name: "AbortError" });
+
+    await store.register(SAGA);
+    assert.equal(await store.has(ID), false);
+    assert.equal(await store.has(SAGA), true);
+  });
+
+  it("maps runtime failures to a safe HTTP 500", async () => {
+    const failingStore: TerminalResultStore = {
+      async register() {
+        throw new Error("store unavailable");
+      },
+      async has() {
+        return false;
+      },
+      async publish() {},
+      async wait() {
+        throw new Error("must not wait");
+      },
+    };
+    const runtime = new PublicHttpRuntime({
+      contract: successfulContract(),
+      terminals: failingStore,
+      events: {
+        async dispatch() {
+          throw new Error("must not dispatch");
+        },
+      },
+      views: {
+        async execute() {
+          throw new Error("must not execute");
+        },
+      },
+    });
+    const server = createServer(createNodeHttpHandler(runtime));
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+    try {
+      const address = server.address();
+      assert.ok(address && typeof address === "object");
+      const result = await fetch(
+        `http://127.0.0.1:${address.port}/api/events/Order.Place`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            id: ID,
+            customerId: CORRELATION,
+            total: 1,
+          }),
+        },
+      );
+      assert.equal(result.status, 500);
+      assert.equal((await result.json()).code, "VANE_PUBLIC_INTERNAL");
+    } finally {
+      server.close();
+      await once(server, "close");
+    }
+  });
+
   it("returns 404 for an unknown saga without creating a waiter", async () => {
     const terminals = new InMemoryTerminalResultStore();
     const runtime = new PublicHttpRuntime({

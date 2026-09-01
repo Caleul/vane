@@ -37,19 +37,40 @@ export interface TerminalResultStore {
   register(sagaId: string): Promise<void>;
   has(sagaId: string): Promise<boolean>;
   publish(sagaId: string, result: PublicTerminalResult): Promise<void>;
-  wait(sagaId: string): Promise<PublicTerminalResult>;
+  wait(sagaId: string, signal?: AbortSignal): Promise<PublicTerminalResult>;
+}
+
+export interface InMemoryTerminalResultStoreOptions {
+  readonly retentionMs?: number;
+  readonly maxEntries?: number;
 }
 
 export class InMemoryTerminalResultStore implements TerminalResultStore {
-  readonly #known = new Set<string>();
+  readonly #known = new Map<string, ReturnType<typeof setTimeout>>();
   readonly #results = new Map<string, PublicTerminalResult>();
   readonly #waiters = new Map<
     string,
-    ((result: PublicTerminalResult) => void)[]
+    {
+      readonly resolve: (result: PublicTerminalResult) => void;
+      readonly reject: (error: Error) => void;
+      readonly signal?: AbortSignal;
+      readonly abort: () => void;
+    }[]
   >();
+  readonly #retentionMs: number;
+  readonly #maxEntries: number;
+
+  constructor(options: InMemoryTerminalResultStoreOptions = {}) {
+    this.#retentionMs = options.retentionMs ?? 300_000;
+    this.#maxEntries = options.maxEntries ?? 1_000;
+    if (!Number.isSafeInteger(this.#retentionMs) || this.#retentionMs <= 0)
+      throw new Error("Terminal retentionMs must be a positive integer.");
+    if (!Number.isSafeInteger(this.#maxEntries) || this.#maxEntries <= 0)
+      throw new Error("Terminal maxEntries must be a positive integer.");
+  }
 
   async register(sagaId: string): Promise<void> {
-    this.#known.add(sagaId);
+    this.#retain(sagaId);
   }
 
   async has(sagaId: string): Promise<boolean> {
@@ -57,21 +78,60 @@ export class InMemoryTerminalResultStore implements TerminalResultStore {
   }
 
   async publish(sagaId: string, result: PublicTerminalResult): Promise<void> {
-    this.#known.add(sagaId);
+    this.#retain(sagaId);
     if (this.#results.has(sagaId)) return;
     this.#results.set(sagaId, result);
-    for (const resolve of this.#waiters.get(sagaId) ?? []) resolve(result);
+    for (const waiter of this.#waiters.get(sagaId) ?? []) {
+      waiter.signal?.removeEventListener("abort", waiter.abort);
+      waiter.resolve(result);
+    }
     this.#waiters.delete(sagaId);
   }
 
-  wait(sagaId: string): Promise<PublicTerminalResult> {
+  wait(sagaId: string, signal?: AbortSignal): Promise<PublicTerminalResult> {
     const result = this.#results.get(sagaId);
     if (result) return Promise.resolve(result);
-    return new Promise((resolve) => {
+    if (signal?.aborted) return Promise.reject(abortError());
+    return new Promise((resolve, reject) => {
       const waiters = this.#waiters.get(sagaId) ?? [];
-      waiters.push(resolve);
+      const abort = (): void => {
+        const current = this.#waiters.get(sagaId) ?? [];
+        const remaining = current.filter(
+          (candidate) => candidate.abort !== abort,
+        );
+        if (remaining.length > 0) this.#waiters.set(sagaId, remaining);
+        else this.#waiters.delete(sagaId);
+        reject(abortError());
+      };
+      waiters.push({ resolve, reject, ...(signal ? { signal } : {}), abort });
       this.#waiters.set(sagaId, waiters);
+      signal?.addEventListener("abort", abort, { once: true });
     });
+  }
+
+  #retain(sagaId: string): void {
+    const previous = this.#known.get(sagaId);
+    if (previous) clearTimeout(previous);
+    else if (this.#known.size >= this.#maxEntries) {
+      const oldest = this.#known.keys().next().value as string | undefined;
+      if (oldest) this.#expire(oldest);
+    }
+    const timer = setTimeout(() => this.#expire(sagaId), this.#retentionMs);
+    timer.unref();
+    this.#known.delete(sagaId);
+    this.#known.set(sagaId, timer);
+  }
+
+  #expire(sagaId: string): void {
+    const timer = this.#known.get(sagaId);
+    if (timer) clearTimeout(timer);
+    this.#known.delete(sagaId);
+    this.#results.delete(sagaId);
+    for (const waiter of this.#waiters.get(sagaId) ?? []) {
+      waiter.signal?.removeEventListener("abort", waiter.abort);
+      waiter.reject(new Error("The terminal result retention period expired."));
+    }
+    this.#waiters.delete(sagaId);
   }
 }
 
@@ -79,6 +139,7 @@ export interface PublicHttpRequest {
   readonly method: string;
   readonly path: string;
   readonly body?: unknown;
+  readonly signal?: AbortSignal;
 }
 
 export interface PublicHttpResponse {
@@ -129,7 +190,7 @@ export class PublicHttpRuntime {
         streamMatch(candidate.terminal.streamPath, request.path),
     );
     if (stream && method === "GET")
-      return this.#streamTerminal(stream, request.path);
+      return this.#streamTerminal(stream, request.path, request.signal);
     const pathExists =
       Boolean(stream) ||
       this.#contract.operations.some(
@@ -245,6 +306,7 @@ export class PublicHttpRuntime {
   async #streamTerminal(
     operation: ContractEventOperation,
     path: string,
+    signal?: AbortSignal,
   ): Promise<PublicHttpResponse> {
     const sagaId = streamParameter(operation.terminal.streamPath, path);
     if (!sagaId || !UUID.test(sagaId)) {
@@ -267,7 +329,7 @@ export class PublicHttpRuntime {
         ),
       );
     }
-    const terminal = await this.#terminals.wait(sagaId);
+    const terminal = await this.#terminals.wait(sagaId, signal);
     return {
       status: 200,
       headers: {
@@ -285,19 +347,18 @@ export function createNodeHttpHandler(runtime: PublicHttpRuntime) {
     request: IncomingMessage,
     responseTarget: ServerResponse,
   ): Promise<void> => {
+    let publicRequest: PublicHttpRequest;
     try {
       const url = new URL(request.url ?? "/", "http://vane.local");
       const body =
         request.method === "GET" || request.method === "HEAD"
           ? undefined
           : await readJsonBody(request);
-      const result = await runtime.handle({
+      publicRequest = {
         method: request.method ?? "GET",
         path: url.pathname,
         body,
-      });
-      responseTarget.writeHead(result.status, result.headers);
-      responseTarget.end(result.body);
+      };
     } catch {
       const correlationId = randomUUID();
       const result = response(
@@ -310,8 +371,43 @@ export function createNodeHttpHandler(runtime: PublicHttpRuntime) {
       );
       responseTarget.writeHead(result.status, result.headers);
       responseTarget.end(result.body);
+      return;
+    }
+    const controller = new AbortController();
+    const abort = (): void => controller.abort();
+    request.once("aborted", abort);
+    responseTarget.once("close", abort);
+    try {
+      const result = await runtime.handle({
+        ...publicRequest,
+        signal: controller.signal,
+      });
+      request.off("aborted", abort);
+      responseTarget.off("close", abort);
+      responseTarget.writeHead(result.status, result.headers);
+      responseTarget.end(result.body);
+    } catch {
+      request.off("aborted", abort);
+      responseTarget.off("close", abort);
+      if (controller.signal.aborted || responseTarget.destroyed) return;
+      const result = response(
+        500,
+        safeFail(
+          "VANE_PUBLIC_INTERNAL",
+          "The public operation could not be completed.",
+          randomUUID(),
+        ),
+      );
+      responseTarget.writeHead(result.status, result.headers);
+      responseTarget.end(result.body);
     }
   };
+}
+
+function abortError(): Error {
+  const error = new Error("The terminal wait was aborted.");
+  error.name = "AbortError";
+  return error;
 }
 
 async function readJsonBody(request: IncomingMessage): Promise<unknown> {

@@ -20,7 +20,8 @@ into that same input.
   identities recorded by the contract IR.
 - The contract IR and OpenAPI are deterministic, versioned and content-hashed.
 - The terminal store is an interface. Phase 3 includes an in-process
-  implementation; phase 4 will bind it to the durable Saga runtime.
+  implementation with abortable waits, five-minute retention and a bounded
+  entry count; phase 4 will bind it to the durable Saga runtime.
 
 ## Public flow
 
@@ -38,6 +39,8 @@ POST public View
   -> 200 typed View rows
 
 GET Saga terminal stream
+  -> reject unknown or expired sagaId
+  -> cancel the wait when the client disconnects
   -> SSE event: view | fail
   -> close
 ```
