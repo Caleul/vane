@@ -534,6 +534,7 @@ function isPostgreSqlTextCompatible(value: string): boolean {
 
 function isPostgreSqlJsonCompatible(value: JsonValue): boolean {
   if (typeof value === "string") return isPostgreSqlTextCompatible(value);
+  if (typeof value === "number") return Number.isFinite(value);
   if (Array.isArray(value)) return value.every(isPostgreSqlJsonCompatible);
   if (value && typeof value === "object")
     return Object.entries(value).every(

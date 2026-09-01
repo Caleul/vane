@@ -242,6 +242,26 @@ describe("phase 3 Contract IR and OpenAPI", () => {
         badJson.diagnostics[0]?.code,
         "VANE_CONTRACT_TERMINAL_LITERAL_TYPE",
       );
+    const nonFiniteJson = materializeContract(jsonModule, {
+      events: [
+        {
+          event: "Order.Place",
+          terminal: {
+            view: "OrderDetails",
+            input: {
+              id: { kind: "eventInput", input: "id" },
+              filter: { kind: "literal", value: { value: Number.NaN } },
+            },
+          },
+        },
+      ],
+    });
+    assert.equal(nonFiniteJson.success, false);
+    if (!nonFiniteJson.success)
+      assert.equal(
+        nonFiniteJson.diagnostics[0]?.code,
+        "VANE_CONTRACT_TERMINAL_LITERAL_TYPE",
+      );
   });
 
   it("generates byte-identical OpenAPI with typed View, Event and SSE contracts", () => {
@@ -655,6 +675,17 @@ describe("phase 3 PostgreSQL View runtime", () => {
       new PostgreSqlViewRuntime(stringInputModule, pool, storage).execute({
         view: "OrderDetails",
         input: { id: ID, note: "invalid\0text" },
+      }),
+      { code: "VANE_VIEW_INPUT_INVALID" },
+    );
+    await assert.rejects(
+      new PostgreSqlViewRuntime(stringInputModule, pool, storage).execute({
+        view: "OrderDetails",
+        input: {
+          id: ID,
+          note: "valid",
+          filter: { value: Number.POSITIVE_INFINITY },
+        },
       }),
       { code: "VANE_VIEW_INPUT_INVALID" },
     );
