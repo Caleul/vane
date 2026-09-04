@@ -21,7 +21,7 @@ semantic, persistence, contract and Saga materializers. See the
 ## Validation
 
 - Node **24.13.0**: `npm run verify` passes strict types, public positive/negative
-  type fixtures, lint/format, build and **216 unit tests**.
+  type fixtures, lint/format, build and **220 unit tests**.
 - PostgreSQL **16.15**: `npm run test:integration` passes **37 integration tests**,
   including all previous phases and five configured runtime scenarios.
 - Generated deployment was packed with the actual built Vane package, built from
@@ -51,3 +51,20 @@ apply remain outside v0.1. Entity ownership is preserved explicitly for future
 service mapping. Generation emits an image recipe; building/publishing/deploying
 an image is a separate explicit operation. Initial migration output is not an
 upgrade plan for an already-populated database.
+
+## PR #11 review corrections
+
+Both reported issues were reproduced before correction:
+
+- Generated deployments now preserve the selected profile, symbolic secret
+  references and original compiled input hash. Environment aliases live only in
+  deployment binding metadata. The runtime verifies the expected hash before
+  resolving bindings; local secret sentinels retain their redacted identity.
+- The semantic project embedded in configuration.mjs uses the same sorted Module
+  order as semantic-hash validation, so reordering Modules cannot change output.
+
+Regression coverage includes full original/generated plan equality, byte-identical
+artifacts for reordered Modules, local-secret redaction and per-slot resolution,
+and rejection of configuration drift before secret/database access. Validation:
+220 unit tests and 37 PostgreSQL integration tests, plus the generated Docker
+bootstrap executing HTTP admission through the configured ACL to terminal SSE.

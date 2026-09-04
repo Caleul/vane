@@ -22,7 +22,12 @@ import type {
 export interface ServiceRuntimeBindings {
   /** Caller owns and closes this pool. Schema migrations are never implicit. */
   readonly pool: PostgreSqlPoolLike;
-  readonly resolveSecret?: (value: SecretValue) => string | Promise<string>;
+  /** Deployment identity to verify before resolving secrets or accessing the database. */
+  readonly expectedInputHash?: string;
+  readonly resolveSecret?: (
+    value: SecretValue,
+    slot: string,
+  ) => string | Promise<string>;
   readonly fetch?: typeof fetch;
 }
 export class ServiceRuntimeError extends Error {
@@ -53,6 +58,13 @@ export async function createServiceRuntime<P extends string>(
       compiled.diagnostics.map((d) => d.code).join(", "),
     );
   const plan = compiled.plan;
+  if (
+    bindings.expectedInputHash !== undefined &&
+    bindings.expectedInputHash !== plan.inputHash
+  )
+    throw new ServiceRuntimeError(
+      "Configuration differs from the expected deployment plan.",
+    );
   const profile = resolveServiceProfile(snapshot, profileName);
   // Phase 5 resolves these policies, but cannot silently claim durable retry execution.
   if (
@@ -67,9 +79,9 @@ export async function createServiceRuntime<P extends string>(
       "The selected plan requires phase-six durable retry or Entity timeout execution.",
     );
   const resolve = bindings.resolveSecret ?? resolveConfiguredSecret;
-  async function value(reference: SecretValue): Promise<string> {
+  async function value(reference: SecretValue, slot: string): Promise<string> {
     try {
-      const result = await resolve(reference);
+      const result = await resolve(reference, slot);
       if (typeof result !== "string" || !result) throw new Error();
       return result;
     } catch {
@@ -83,7 +95,10 @@ export async function createServiceRuntime<P extends string>(
   const bearer =
     security.authentication === "none"
       ? null
-      : await value(security.authentication.bearer);
+      : await value(
+          security.authentication.bearer,
+          "http.authentication.bearer",
+        );
   const modules = await Promise.all(
     [...snapshot.project.modules]
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -106,12 +121,15 @@ export async function createServiceRuntime<P extends string>(
           const mapping = profile.acls?.[qualified];
           if (!mapping)
             throw new ServiceRuntimeError("ACL mapping is unavailable.");
-          const endpoint = await value(mapping.endpoint);
+          const endpoint = await value(
+            mapping.endpoint,
+            `acls.${qualified}.endpoint`,
+          );
           const headers = Object.fromEntries(
             await Promise.all(
               Object.entries(mapping.headers ?? {}).map(async ([name, ref]) => [
                 name,
-                await value(ref),
+                await value(ref, `acls.${qualified}.headers.${name}`),
               ]),
             ),
           );

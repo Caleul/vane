@@ -170,8 +170,12 @@ are the only supported credential fields.
 all technical IRs, per-Module OpenAPI, schema SQL, initial migration plan,
 Dockerfile, bootstrap, executable configuration, package manifest, deployment
 plan and a content hash inventory. It validates the semantic input hash.
-Every generated secret slot becomes a `VANE_BINDING_n` environment reference;
-the deploy plan maps these back to the original symbolic source.
+The original profile and secret references remain in the generated configuration.
+The deploy plan maps each secret slot to a `VANE_BINDING_n` environment alias
+outside the hashed input. Local values are represented only by safe sentinels.
+The bootstrap resolves each slot externally and verifies `expectedInputHash`
+before secret resolution or database access, preserving the original plan identity.
+Reordering the input Modules produces byte-identical deployment artifacts.
 
 Generation creates an image build recipe. Build Vane, use `npm pack`, copy the
 tarball into the generated directory as `vane.tgz`, and build the Dockerfile.
@@ -195,9 +199,10 @@ Generation publishes a complete new directory and refuses overwrites.
 Configuration import is normal JavaScript execution; do not load untrusted code.
 Phase 6 will extend CLI inspection, development and operational commands.
 
-`createServiceRuntime(configuration, profile, { pool, resolveSecret? })` compiles
+`createServiceRuntime(configuration, profile, { pool, resolveSecret?, expectedInputHash? })` compiles
 and snapshots the configuration before wiring the existing runtimes. The caller
-owns and closes the pool. `start()` checks the migrated database before accepting
+owns and closes the pool. The optional resolver receives `(reference, slot)`,
+so distinct redacted local values can be bound independently. `start()` checks the migrated database before accepting
 requests. `handler` provides the configured Node HTTP API; `modules` exposes
 identity dispatch, Views and Saga controls. `runWorkers()` explicitly starts
 workers and returns their lifetime promise, whose rejection must be observed.

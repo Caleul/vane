@@ -184,7 +184,7 @@ describe("phase five configuration", () => {
     assert.ok(
       !JSON.stringify(artifacts).includes("unique-secret-DO-NOT-PRINT"),
     );
-    assert.ok(artifacts["configuration.mjs"]?.includes("VANE_BINDING_"));
+    assert.ok(artifacts["deploy-plan.json"]?.includes("VANE_BINDING_"));
     const prod = compileServiceConfiguration(first, "production");
     assert.equal(prod.success, false);
     assert.ok(!JSON.stringify(prod).includes("unique-secret-DO-NOT-PRINT"));
@@ -529,7 +529,7 @@ describe("phase five configuration", () => {
         true,
       );
       assert.ok(
-        (await readFile(join(output, "configuration.mjs"), "utf8")).includes(
+        (await readFile(join(output, "deploy-plan.json"), "utf8")).includes(
           "VANE_BINDING_",
         ),
       );
