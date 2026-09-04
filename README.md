@@ -5,16 +5,19 @@ for defining software through persistent Entities and the Events that happen to
 them.
 
 Vane currently implements the semantic compiler, PostgreSQL persistence and
-public View/HTTP contracts and durable ACL/Saga execution:
+public View/HTTP contracts, durable ACL/Saga execution and ServiceConfiguration:
 
 ```text
 declarative module -> semantic validation -> deterministic Semantic IR
 Semantic IR -> PostgreSQL Storage IR -> schema / migrations / runtime
 Semantic IR + exposure -> Contract IR -> View SQL / HTTP / OpenAPI / terminal SSE
 Semantic Saga + adapter bindings -> Saga plan -> durable execution / compensation
+Semantic Project + ServiceConfiguration + profile -> Runtime / Storage / Contract / Infrastructure IR
 ```
 
-ServiceConfiguration and production hardening continue in phases 5–6.
+Phase 5 adds typed profiles, explicit providers, capability negotiation, policy
+precedence, safe inspection, CLI generation and configured monolithic bootstrap.
+Production hardening continues in phase 6.
 
 ## Current guarantees
 
@@ -81,3 +84,8 @@ The [phase 4 completion gate](docs/phase-4-completion.md) covers executable ACL
 Events, durable Saga admission, causal DAGs, compensation and terminal SSE after
 restart. See [the Saga runtime guide](docs/sagas.md) for explicit adapter wiring,
 input bindings and recovery guarantees.
+
+See [ServiceConfiguration](docs/service-configuration.md) for profiles, provider
+selection, policies, ACL/HTTP configuration, secret bindings, CLI and deployment
+artifacts. The [phase 5 completion gate](docs/phase-5-completion.md) records
+validation and the exact runtime boundary for policies deferred to phase 6.
