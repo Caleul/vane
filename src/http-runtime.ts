@@ -160,6 +160,7 @@ export interface PublicHttpResponse {
 }
 
 export interface DurablePublicEventAdmission {
+  readonly handlesStandalone?: boolean;
   validateOperation?(operation: ContractEventOperation): void;
   admitPublic(
     operation: ContractEventOperation,
@@ -202,7 +203,11 @@ export class PublicHttpRuntime {
     )
       throw new Error("Public Sagas require durable admission.");
     for (const operation of options.contract.operations) {
-      if (operation.kind === "event" && requiresOrchestration(operation))
+      if (
+        operation.kind === "event" &&
+        (requiresOrchestration(operation) ||
+          options.admission?.handlesStandalone)
+      )
         options.admission?.validateOperation?.(operation);
     }
     this.#now = options.now ?? (() => new Date());
@@ -299,7 +304,10 @@ export class PublicHttpRuntime {
       occurredAt: this.#now().toISOString(),
       payload: input.value,
     });
-    if (this.#admission && requiresOrchestration(operation)) {
+    if (
+      this.#admission &&
+      (requiresOrchestration(operation) || this.#admission.handlesStandalone)
+    ) {
       await this.#admission.admitPublic(operation, envelope);
       return response(202, { sagaId });
     }

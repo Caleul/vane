@@ -69,6 +69,7 @@ export interface ExecuteEntityEventInput {
   readonly entity: SemanticEntity;
   readonly event: SemanticEntityEvent;
   readonly envelope: EventEnvelope;
+  readonly timeoutMs?: number;
 }
 
 interface MailboxRow {
@@ -132,6 +133,13 @@ export class PostgreSqlEventRuntime {
   }
 
   async execute(input: ExecuteEntityEventInput): Promise<EventExecutionResult> {
+    if (
+      input.timeoutMs !== undefined &&
+      (!Number.isSafeInteger(input.timeoutMs) ||
+        input.timeoutMs < 1 ||
+        input.timeoutMs > 2147483647)
+    )
+      throw new EventRuntimeConfigurationError("Invalid Entity timeout.");
     assertValidEventEnvelope(input.envelope);
     if (input.envelope.eventIdentity !== input.event.identity) {
       throw new EventRuntimeConfigurationError(
@@ -161,6 +169,10 @@ export class PostgreSqlEventRuntime {
     try {
       await client.query("BEGIN");
       transactionOpen = true;
+      if (input.timeoutMs !== undefined)
+        await client.query("SELECT set_config('statement_timeout', $1, true)", [
+          String(input.timeoutMs),
+        ]);
 
       const mailbox = await this.#claimMailbox(client, input.envelope);
       if (mailbox) {

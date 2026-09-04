@@ -4,6 +4,7 @@ import type {
   SemanticEntityEvent,
   SemanticModule,
 } from "../semantic-ir.js";
+import type { RuntimeTelemetry } from "../telemetry.js";
 import {
   type EventEnvelope,
   assertValidEventEnvelope,
@@ -35,6 +36,8 @@ export interface PostgreSqlModuleRuntimeOptions {
   readonly module: SemanticModule;
   readonly pool: PostgreSqlPoolLike;
   readonly storage: PostgreSqlStorageIr;
+  readonly telemetry?: RuntimeTelemetry;
+  readonly timeouts?: Readonly<Record<string, number>>;
 }
 
 interface DispatchTarget {
@@ -151,7 +154,7 @@ export class PostgreSqlModuleRuntime {
   #startPromise: Promise<void> | null = null;
   #stopPromise: Promise<void> | null = null;
 
-  constructor(options: PostgreSqlModuleRuntimeOptions) {
+  constructor(readonly options: PostgreSqlModuleRuntimeOptions) {
     this.#module = options.module;
     this.#pool = options.pool;
     this.#storage = options.storage;
@@ -183,7 +186,10 @@ export class PostgreSqlModuleRuntime {
     return start;
   }
 
-  dispatch(envelope: EventEnvelope): Promise<EventExecutionResult> {
+  dispatch(
+    envelope: EventEnvelope,
+    timeoutMs = this.options.timeouts?.[envelope.eventIdentity],
+  ): Promise<EventExecutionResult> {
     if (this.#state !== "running" || !this.#eventRuntime) {
       return Promise.reject(
         new PostgreSqlModuleRuntimeStateError(
@@ -199,12 +205,40 @@ export class PostgreSqlModuleRuntime {
       );
     }
 
-    const execution = this.#eventRuntime.execute({
-      module: this.#module.name,
-      entity: target.entity,
-      event: target.event,
-      envelope,
-    });
+    const runtime = this.#eventRuntime;
+    const work = () =>
+      runtime.execute({
+        module: this.#module.name,
+        entity: target.entity,
+        event: target.event,
+        envelope,
+        ...(timeoutMs !== undefined ? { timeoutMs } : {}),
+      });
+    const attributes = {
+      eventId: envelope.eventId,
+      eventIdentity: envelope.eventIdentity,
+      sagaId: envelope.sagaId,
+      correlationId: envelope.correlationId,
+      causationId: envelope.causationId,
+    };
+    const telemetry = this.options.telemetry;
+    const execution = telemetry
+      ? this.options.telemetry.span(
+          "event",
+          attributes,
+          () => telemetry.span("persistence", attributes, work),
+          (r) =>
+            r.kind === "fail" ||
+            (r.kind === "duplicate" && r.result.kind === "fail"),
+        )
+      : work();
+    void execution.then(
+      (r) => {
+        if (r.kind === "duplicate")
+          this.options.telemetry?.record("deduplication", attributes);
+      },
+      () => {},
+    );
     this.#inFlight.add(execution);
     const remove = (): void => {
       this.#inFlight.delete(execution);

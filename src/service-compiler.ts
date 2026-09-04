@@ -7,11 +7,13 @@ import {
 import { type ContractIr, materializeContract } from "./contract-ir.js";
 import type { JsonValue } from "./declaration.js";
 import type { Diagnostic } from "./diagnostic.js";
+import { moduleScope } from "./module-scope.js";
 import { canonicalJson } from "./postgresql/envelope.js";
 import { materializePostgreSql } from "./postgresql/materializer.js";
 import { PostgreSqlPublicSagaAdmission } from "./postgresql/public-saga-admission.js";
 import type { PostgreSqlSagaRuntime } from "./postgresql/saga-runtime.js";
 import type { PostgreSqlStorageIr } from "./postgresql/storage-ir.js";
+import { materializePublicEventPlan } from "./saga-plan.js";
 import { type SagaPlan, materializeSagaPlan } from "./saga-plan.js";
 import {
   BUILTIN_PROVIDERS,
@@ -60,8 +62,8 @@ export interface RuntimeIr {
   readonly policyExecution: {
     readonly idempotency: "durable";
     readonly aclTimeout: "enforced";
-    readonly durableRetryAndBackoff: "phase6";
-    readonly entityTimeout: "phase6";
+    readonly durableRetryAndBackoff: "enforced";
+    readonly entityTimeout: "enforced";
   };
 }
 export interface InfrastructureIr {
@@ -410,7 +412,13 @@ function compile(
       });
       bindings.push({ slot, source: "literal" });
     } else {
-      if (!/^[A-Za-z_][A-Za-z0-9_.\/-]*$/.test(value.name))
+      if (
+        !(
+          value.kind === "secret"
+            ? /^[A-Za-z_][A-Za-z0-9_.\/-]*(?:#[A-Za-z_][A-Za-z0-9_-]*)?$/
+            : /^[A-Za-z_][A-Za-z0-9_]*$/
+        ).test(value.name)
+      )
         issue(
           "SECRET_REFERENCE",
           [slot],
@@ -419,6 +427,41 @@ function compile(
         );
       bindings.push({ slot, source: value.kind, name: value.name });
     }
+  }
+  if (
+    profile.telemetry &&
+    (!["none", "json"].includes(profile.telemetry.exporter) ||
+      (profile.telemetry.redact !== undefined &&
+        (!Array.isArray(profile.telemetry.redact) ||
+          profile.telemetry.redact.some(
+            (k) => typeof k !== "string" || !k.trim(),
+          ))))
+  )
+    issue(
+      "TELEMETRY",
+      ["telemetry"],
+      "Invalid telemetry configuration.",
+      "Select none/json and a list of metadata keys to redact.",
+    );
+  if (profile.secrets) {
+    const v = profile.secrets;
+    if (
+      v.provider !== "vault-kv-v2" ||
+      !/^[a-zA-Z0-9_-]+$/.test(v.mount) ||
+      !Number.isSafeInteger(v.timeoutMs) ||
+      v.timeoutMs < 1 ||
+      v.timeoutMs > 2147483647 ||
+      v.address.kind === "secret" ||
+      v.token.kind === "secret"
+    )
+      issue(
+        "VAULT",
+        ["secrets"],
+        "Invalid Vault bootstrap configuration.",
+        "Use environment bindings, KV v2 mount and a bounded timeout.",
+      );
+    bind(v.address, "secrets.address");
+    bind(v.token, "secrets.token");
   }
   bind(service.persistence.connection, "persistence.connection");
   const security = profile.http.security;
@@ -598,7 +641,21 @@ function compile(
             module,
             saga.name,
             profile.sagas?.[identity] ?? {},
-            moduleAdapters,
+            moduleScope(module, modules).flatMap((m) =>
+              m.antiCorruptionLayers.flatMap((a) =>
+                a.events.map((e) => {
+                  const mapping = profile.acls?.[`${m.name}.${e.identity}`];
+                  if (!mapping) throw new Error("Missing ACL mapping.");
+                  return httpAclAdapter({
+                    ...mapping,
+                    eventIdentity: e.identity,
+                    url: "https://configuration.invalid",
+                    headers: () => ({}),
+                  });
+                }),
+              ),
+            ),
+            modules,
           ),
         );
       } catch {
@@ -626,7 +683,10 @@ function compile(
           "Public ACL admission requires an explicit Saga.",
           "Associate the public ACL Event with a declared Saga.",
         );
-      if (!operation.saga) continue;
+      if (!operation.saga) {
+        sagaPlans.push(materializePublicEventPlan(module, operation));
+        continue;
+      }
       const plan = sagaPlans.find(
         (p) => p.module === module.name && p.saga === operation.saga,
       );
@@ -776,8 +836,8 @@ function compile(
     policyExecution: {
       idempotency: "durable",
       aclTimeout: "enforced",
-      durableRetryAndBackoff: "phase6",
-      entityTimeout: "phase6",
+      durableRetryAndBackoff: "enforced",
+      entityTimeout: "enforced",
     },
   };
   const infrastructure: InfrastructureIr = {
@@ -977,6 +1037,8 @@ function validateShapes(configuration: ServiceConfiguration): void {
         "topology",
         "communication",
         "http",
+        "telemetry",
+        "secrets",
         "policies",
         "contracts",
         "acls",
@@ -984,6 +1046,16 @@ function validateShapes(configuration: ServiceConfiguration): void {
       ],
       ["profiles"],
     );
+    if (p.telemetry) keys(p.telemetry, ["exporter", "redact"], ["telemetry"]);
+    if (p.secrets) {
+      keys(
+        p.secrets,
+        ["provider", "address", "token", "mount", "timeoutMs"],
+        ["secrets"],
+      );
+      secretShape(p.secrets.address);
+      secretShape(p.secrets.token);
+    }
     if (p.topology) {
       keys(p.topology, ["kind", "service"], ["topology"]);
       const s = p.topology.service;

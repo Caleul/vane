@@ -135,7 +135,16 @@ export class AclEventRuntime {
       .sort((a, b) => a.event.localeCompare(b.event));
   }
 
-  async dispatch(envelope: EventEnvelope): Promise<AclEventResult> {
+  async dispatch(
+    envelope: EventEnvelope,
+    timeoutMs = this.timeoutMs,
+  ): Promise<AclEventResult> {
+    if (
+      !Number.isSafeInteger(timeoutMs) ||
+      timeoutMs < 1 ||
+      timeoutMs > 2147483647
+    )
+      throw new AclConfigurationError("Invalid timeout.");
     assertValidEventEnvelope(envelope);
     const event = this.#events.get(envelope.eventIdentity);
     const adapter = this.#adapters.get(envelope.eventIdentity);
@@ -164,7 +173,7 @@ export class AclEventRuntime {
           timer = setTimeout(() => {
             controller.abort();
             reject(new Error("timeout"));
-          }, this.timeoutMs);
+          }, timeoutMs);
         }),
       ]);
       const interpretation = event.results.find(

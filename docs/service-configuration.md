@@ -113,13 +113,10 @@ policies: {
 
 Retry accepts `{ attempts, backoff: "fixed" | "exponential", delayMs,
 maxDelayMs }`. Numeric bounds, unknown overrides and weakened idempotency or
-deduplication fail statically. Configuration and inspection of these policies
-belong to phase 5. Durable retry/backoff scheduling, Entity execution timeout,
-failure-queue operation and expanded recovery belong to phase 6. The Runtime IR
-states this boundary. The bootstrap **rejects** more than one attempt or an
-Entity timeout override instead of silently ignoring them. Per-ACL timeout is
-executed now, alongside existing mailbox/deduplication guarantees. The baseline
-Entity timeout is a resolved future policy, not a claimed query deadline.
+deduplication fail statically. Runtime IR reports enforced policy execution.
+Phase 6 persists retry eligibility and attempts, executes compensation budgets,
+and applies Entity database timeouts. See [operations](operations.md) for
+transient/final failure classification, recovery and timeout boundaries.
 
 ## ACL, Saga and public HTTP
 
@@ -160,7 +157,7 @@ Default production posture is chosen explicitly, never inferred from a route.
 ## Secrets and artifacts
 
 `env(name)` references a process environment value. `secret(name)` references a
-caller-supplied resolver (vault integration is phase 6). `localSecret(value)` is
+caller-supplied resolver or the configured Vault KV v2 provider. `localSecret(value)` is
 allowed only in development/test with a warning. Literal values are removed
 before plan hashing, serialization and generation. Symbolic names remain
 inspectable. Do not place credentials in semantic input or names; secret slots
@@ -197,7 +194,8 @@ The trusted `.mjs` file default-exports a ServiceConfiguration. Static validatio
 needs no database or network. Without `--profile`, validate checks every profile.
 Generation publishes a complete new directory and refuses overwrites.
 Configuration import is normal JavaScript execution; do not load untrusted code.
-Phase 6 will extend CLI inspection, development and operational commands.
+Phase 6 adds migrate diff/apply, dev, Event/Saga/queue inspection and failure operations;
+see the [operations guide](operations.md).
 
 `createServiceRuntime(configuration, profile, { pool, resolveSecret?, expectedInputHash? })` compiles
 and snapshots the configuration before wiring the existing runtimes. The caller

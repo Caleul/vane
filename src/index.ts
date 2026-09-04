@@ -183,3 +183,8 @@ export * from "./service-configuration.js";
 export * from "./service-compiler.js";
 export * from "./service-runtime.js";
 export * from "./service-artifacts.js";
+
+export * from "./telemetry.js";
+export * from "./secrets.js";
+export * from "./execution-policy.js";
+export * from "./postgresql/operations.js";

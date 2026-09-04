@@ -2,7 +2,10 @@ import { randomUUID, timingSafeEqual } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { AclEventRuntime, httpAclAdapter } from "./acl-runtime.js";
 import { PublicHttpRuntime, createNodeHttpHandler } from "./http-runtime.js";
+import { hashSemanticModule } from "./module-fingerprint.js";
+import { moduleScope } from "./module-scope.js";
 import { PostgreSqlModuleRuntime } from "./postgresql/module-runtime.js";
+import { PostgreSqlOperations } from "./postgresql/operations.js";
 import { PostgreSqlPublicSagaAdmission } from "./postgresql/public-saga-admission.js";
 import type { PostgreSqlPoolLike } from "./postgresql/runtime.js";
 import {
@@ -10,6 +13,7 @@ import {
   PostgreSqlSagaStore,
 } from "./postgresql/saga-runtime.js";
 import { PostgreSqlViewRuntime } from "./postgresql/view-runtime.js";
+import { createVaultSecretResolver } from "./secrets.js";
 import {
   compileServiceConfiguration,
   resolveServiceProfile,
@@ -18,8 +22,10 @@ import type {
   SecretValue,
   ServiceConfiguration,
 } from "./service-configuration.js";
+import { RuntimeTelemetry, type TelemetrySink } from "./telemetry.js";
 
 export interface ServiceRuntimeBindings {
+  readonly telemetrySink?: TelemetrySink;
   /** Caller owns and closes this pool. Schema migrations are never implicit. */
   readonly pool: PostgreSqlPoolLike;
   /** Deployment identity to verify before resolving secrets or accessing the database. */
@@ -66,19 +72,16 @@ export async function createServiceRuntime<P extends string>(
       "Configuration differs from the expected deployment plan.",
     );
   const profile = resolveServiceProfile(snapshot, profileName);
-  // Phase 5 resolves these policies, but cannot silently claim durable retry execution.
-  if (
-    plan.runtime.policies.some(
-      (p) =>
-        p.effective.retry.attempts !== 1 ||
-        (p.effective.timeoutMs !== 10000 &&
-          !Object.hasOwn(profile.acls ?? {}, p.event)),
-    )
-  )
-    throw new ServiceRuntimeError(
-      "The selected plan requires phase-six durable retry or Entity timeout execution.",
-    );
-  const resolve = bindings.resolveSecret ?? resolveConfiguredSecret;
+  const telemetry = new RuntimeTelemetry(
+    profile.telemetry,
+    bindings.telemetrySink,
+  );
+  const operations = new PostgreSqlOperations(bindings.pool, plan.storage);
+  const resolve =
+    bindings.resolveSecret ??
+    (profile.secrets
+      ? await createVaultSecretResolver(profile.secrets, bindings.fetch)
+      : resolveConfiguredSecret);
   async function value(reference: SecretValue, slot: string): Promise<string> {
     try {
       const result = await resolve(reference, slot);
@@ -99,6 +102,14 @@ export async function createServiceRuntime<P extends string>(
           security.authentication.bearer,
           "http.authentication.bearer",
         );
+  const eventRuntimes = new Map<string, PostgreSqlModuleRuntime>();
+  const aclDispatchers = new Map<
+    string,
+    {
+      dispatch: AclEventRuntime["dispatch"];
+      bindings: AclEventRuntime["bindings"];
+    }
+  >();
   const modules = await Promise.all(
     [...snapshot.project.modules]
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -107,11 +118,24 @@ export async function createServiceRuntime<P extends string>(
           module,
           pool: bindings.pool,
           storage: plan.storage,
+          telemetry,
+          timeouts: Object.fromEntries(
+            plan.runtime.policies
+              .filter((p) => p.event.startsWith(`${module.name}.`))
+              .map((p) => [
+                p.event.slice(p.event.indexOf(".") + 1),
+                p.effective.timeoutMs,
+              ]),
+          ),
         });
+        eventRuntimes.set(module.name, events);
+        const scope = moduleScope(module, snapshot.project.modules);
         const views = new PostgreSqlViewRuntime(
           module,
           bindings.pool,
           plan.storage,
+          snapshot.project.modules,
+          telemetry,
         );
         const aclRuntimes = new Map<string, AclEventRuntime>();
         for (const event of module.antiCorruptionLayers.flatMap(
@@ -159,10 +183,56 @@ export async function createServiceRuntime<P extends string>(
         }
         const acls = {
           bindings: [...aclRuntimes.values()].flatMap((a) => a.bindings),
-          dispatch: (envelope: Parameters<AclEventRuntime["dispatch"]>[0]) => {
+          dispatch: (
+            envelope: Parameters<AclEventRuntime["dispatch"]>[0],
+            timeoutMs?: number,
+          ) => {
             const runtime = aclRuntimes.get(envelope.eventIdentity);
             if (!runtime) throw new ServiceRuntimeError("Unknown ACL Event.");
-            return runtime.dispatch(envelope);
+            return runtime.dispatch(envelope, timeoutMs);
+          },
+        };
+        aclDispatchers.set(module.name, acls);
+        const scopedEvents = {
+          semanticHash: hashSemanticModule(module),
+          dispatch: (
+            envelope: Parameters<PostgreSqlModuleRuntime["dispatch"]>[0],
+            timeoutMs?: number,
+          ) => {
+            const owner = scope.find((m) =>
+              m.entities.some((e) =>
+                e.events.some((ev) => ev.identity === envelope.eventIdentity),
+              ),
+            );
+            const target = owner && eventRuntimes.get(owner.name);
+            if (!target)
+              throw new ServiceRuntimeError("Event owner is unavailable.");
+            return target.dispatch(envelope, timeoutMs);
+          },
+        };
+        const scopedAcls = {
+          bindings: scope.flatMap((m) =>
+            m.antiCorruptionLayers.flatMap((a) =>
+              a.events.map((e) => ({
+                event: e.identity,
+                version:
+                  profile.acls?.[`${m.name}.${e.identity}`]?.version ?? "",
+              })),
+            ),
+          ),
+          dispatch: (
+            envelope: Parameters<AclEventRuntime["dispatch"]>[0],
+            timeoutMs?: number,
+          ) => {
+            const owner = scope.find((m) =>
+              m.antiCorruptionLayers.some((a) =>
+                a.events.some((e) => e.identity === envelope.eventIdentity),
+              ),
+            );
+            const target = owner && aclDispatchers.get(owner.name);
+            if (!target)
+              throw new ServiceRuntimeError("ACL owner is unavailable.");
+            return target.dispatch(envelope, timeoutMs);
           },
         };
         const store = new PostgreSqlSagaStore(bindings.pool, plan.storage);
@@ -171,22 +241,34 @@ export async function createServiceRuntime<P extends string>(
         );
         const sagas = new PostgreSqlSagaRuntime({
           plans,
+          telemetry,
+          policies: Object.fromEntries(
+            plan.runtime.policies
+              .filter((p) =>
+                scope.some((m) => p.event.startsWith(`${m.name}.`)),
+              )
+              .map((p) => [
+                p.event.slice(p.event.indexOf(".") + 1),
+                p.effective,
+              ]),
+          ),
           store,
-          events,
+          events: scopedEvents,
           views,
-          acls,
+          acls: scopedAcls,
         });
         const contract = plan.contracts.find((c) => c.module === module.name);
         if (!contract)
           throw new ServiceRuntimeError("Contract is unavailable.");
         const publicPlans = Object.fromEntries(
           contract.operations.flatMap((op) =>
-            op.kind === "event" && op.saga
+            op.kind === "event"
               ? [
                   [
                     op.identity,
                     plans.find(
-                      (p) => p.saga === op.saga,
+                      (p) =>
+                        p.saga === (op.saga ?? `vane.event.${op.identity}`),
                     ) as (typeof plans)[number],
                   ],
                 ]
@@ -198,7 +280,11 @@ export async function createServiceRuntime<P extends string>(
           events,
           views,
           terminals: store,
-          admission: new PostgreSqlPublicSagaAdmission(sagas, publicPlans),
+          admission: new PostgreSqlPublicSagaAdmission(
+            sagas,
+            publicPlans,
+            true,
+          ),
         });
         return {
           name: module.name,
@@ -336,6 +422,8 @@ export async function createServiceRuntime<P extends string>(
   };
   return {
     plan,
+    telemetry,
+    operations,
     modules,
     start,
     stop,

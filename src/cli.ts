@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, rename, rm, rmdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { operationalCommand } from "./operational-cli.js";
 import { generateServiceDeployment } from "./service-artifacts.js";
 import {
   compileServiceConfiguration,
@@ -15,14 +16,28 @@ async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
   const options = new Map<string, string>();
   let json = false;
+  const positional: string[] = [];
   for (let i = 0; i < args.length; i++) {
     const key = args[i];
+    if (key && !key.startsWith("--")) {
+      positional.push(key);
+      continue;
+    }
     if (key === "--json") {
       json = true;
       continue;
     }
     if (
-      !["--config", "--profile", "--out"].includes(key ?? "") ||
+      ![
+        "--config",
+        "--profile",
+        "--out",
+        "--previous",
+        "--migration",
+        "--approval",
+        "--port",
+        "--before",
+      ].includes(key ?? "") ||
       !args[i + 1] ||
       args[i + 1]?.startsWith("--")
     )
@@ -30,11 +45,19 @@ async function main(): Promise<void> {
     options.set(key as string, args[++i] as string);
   }
   if (
-    !["validate", "plan", "generate"].includes(command ?? "") ||
+    ![
+      "validate",
+      "plan",
+      "generate",
+      "migrate",
+      "dev",
+      "inspect",
+      "failures",
+    ].includes(command ?? "") ||
     !options.has("--config")
   ) {
     console.error(
-      "Usage: entity-event validate|plan|generate --config <configuration.mjs> [--profile <name>] [--out <new-directory>] [--json]",
+      "Usage: entity-event validate|plan|generate|migrate|dev|inspect|failures --config <configuration.mjs> [--profile <name>] [--out <new-directory>] [--json]",
     );
     process.exitCode = 1;
     return;
@@ -68,6 +91,18 @@ async function main(): Promise<void> {
     return;
   }
   if (!profile) throw new Error();
+  if (["migrate", "dev", "inspect", "failures"].includes(command as string)) {
+    await operationalCommand(
+      command as string,
+      positional,
+      options,
+      configuration,
+      profile,
+      json,
+    );
+    return;
+  }
+  if (positional.length) throw new Error();
   const result = compileServiceConfiguration(configuration, profile);
   if (!result.success) {
     console.log(JSON.stringify(result, null, json ? 0 : 2));

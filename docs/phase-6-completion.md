@@ -1,0 +1,47 @@
+# Phase 6 completion gate
+
+Scope: PRD v0.1 §15 phase 6 and remaining robustness requirements. Baseline
+f553e08 includes phases 1–5. See [design decisions](phase-6-design.md),
+[operations](operations.md) and [reference quickstart](../examples/sales-billing/README.md).
+
+| Requirement | Delivery | Evidence |
+| --- | --- | --- |
+| FR-SVC-018–022 | Resolved policies execute with persistent attempts/backoff; independent compensation budget; Entity database statement deadline | Restart, locked-row rollback, exhaustion and compensation integration tests |
+| FR-PG-005–006, FR-RUN-004–005 | Atomic failure recording; fenced outbox exhaustion; explicit retry-outbox with original identity; durable standalone public admission | Concurrent workers, process restart, preserved terminal and redrive assertions |
+| FR-OBS-001–006, FR-RUN-006 | Structured JSON internal exporter; Event/persistence/publication/consumption/ACL/View spans; counters, queue inspection and redaction | Sink failure isolation, redaction, correlated retry records, safe causal inspection and terminal-only SSE |
+| FR-SVC-028–030 | Environment/caller resolvers and configured Vault KV v2; HTTPS/no redirects; symbolic production bindings | Vault protocol test, invalid bootstrap and literal production rejection; generated artifact redaction |
+| FR-CLI-001–004 | migrate diff/apply; dev; inspect event/saga/queues; failures list/resolve/retry-outbox/prune | Static CLI subprocess tests and real migrate/dev/HTTP/SSE/inspect/SIGTERM/restart integration |
+| PRD §13–14 | Sales/Billing Modules, Order/Payment, PaymentGateway, PlaceOrder, OrderDetails/PaymentReceipt, real two-Column Rule, three profiles | Reference project compile, cross-Module ownership, PostgreSQL Rule and generated Docker execution |
+| Retention boundary | Explicit bounded pruning of resolved failure metadata; durable receipts retained | Pruning/resolution tests and operational documentation; no hidden cleanup |
+
+## Validation
+
+Node 24.13.0: lint, strict types, positive/negative public type fixtures, build and
+225 unit tests passed. PostgreSQL 16.15: 45 integration tests passed, including
+all prior phases. The CLI test runs separate operating-system processes and
+verifies successful signal shutdown and terminal replay after restart.
+
+The generated Docker image was packed from the actual library, built and started.
+Order.Place returned 202, Payment persisted through its owning Billing Module,
+the HTTP gateway failed once and succeeded on the second attempt, and SSE
+returned only OrderDetails with status complete. SIGTERM exited with code 0.
+Local smoke resources were removed; no remote infrastructure was applied.
+
+## Operational limits and future scope
+
+- Entity deadlines are database statement deadlines; pool acquisition/network
+  liveness use pool configuration. External idempotency depends on the gateway.
+- Only known transient failures retry. Unexpected worker errors are observable
+  through the worker lifetime promise, leaving durable work available to resume.
+- Failure resolution never rewrites terminal results or replays compensation.
+  Only failed outbox publications support explicit redrive of the same identity.
+- Retained Saga/mailbox records are not automatically deleted. Other retention
+  windows require an explicit policy that preserves the redelivery horizon.
+- JSON telemetry export is the reference implementation. Vendor-specific
+  collectors can consume the sink; native vendor exporters are not bundled.
+- The production Vault service itself was not contacted; its HTTPS request,
+  response, path and secrecy contracts are tested through a controlled transport.
+- Microservice builders, remote infrastructure apply, distributed transactions,
+  other production databases/runtimes and public progress remain outside v0.1.
+
+PR review and any resulting corrections are recorded in the PR history.
