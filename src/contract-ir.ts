@@ -1,12 +1,13 @@
 import { createHash } from "node:crypto";
 import type { ColumnType, JsonValue } from "./declaration.js";
 import type {
+  SemanticAntiCorruptionLayerEvent,
   SemanticEntityEvent,
   SemanticModule,
   SemanticView,
 } from "./semantic-ir.js";
 
-export const CONTRACT_IR_VERSION = 1 as const;
+export const CONTRACT_IR_VERSION = 2 as const;
 
 export interface PublicViewExposure {
   readonly view: string;
@@ -21,6 +22,7 @@ export interface TerminalViewInputMapping {
 
 export interface PublicEventExposure {
   readonly event: string;
+  readonly saga?: string;
   readonly path?: string;
   readonly terminal: {
     readonly view: string;
@@ -52,6 +54,8 @@ export interface ContractViewOperation {
 
 export interface ContractEventOperation {
   readonly kind: "event";
+  readonly saga?: string;
+  readonly ownerKind: "entity" | "antiCorruptionLayer";
   readonly identity: string;
   readonly method: "POST";
   readonly path: string;
@@ -113,11 +117,16 @@ export function materializeContract(
       ],
     };
   }
-  const eventsByIdentity = new Map<string, SemanticEntityEvent>();
+  const eventsByIdentity = new Map<
+    string,
+    SemanticEntityEvent | SemanticAntiCorruptionLayerEvent
+  >();
   for (const entity of module.entities) {
     for (const event of entity.events)
       eventsByIdentity.set(event.identity, event);
   }
+  for (const acl of module.antiCorruptionLayers)
+    for (const event of acl.events) eventsByIdentity.set(event.identity, event);
   const viewsByName = new Map(module.views.map((view) => [view.name, view]));
   const operations: (ContractEventOperation | ContractViewOperation)[] = [];
   const paths = new Map<string, string>();
@@ -152,11 +161,36 @@ export function materializeContract(
     if (!view)
       diagnostics.push(unknown("terminal View", exposure.terminal.view));
     if (!event || !view || !path) continue;
+    if (exposure.saga) {
+      const saga = module.sagas.find((saga) => saga.name === exposure.saga);
+      const roots =
+        saga?.steps.filter((step) => step.causedBy.length === 0) ?? [];
+      if (
+        !saga ||
+        roots.length !== 1 ||
+        `${roots[0]?.event.owner}.${roots[0]?.event.event}` !==
+          event.identity ||
+        saga.terminal.success.view !== view.name ||
+        JSON.stringify(saga.input) !== JSON.stringify(event.input)
+      ) {
+        diagnostics.push({
+          code: "VANE_CONTRACT_SAGA_INVALID",
+          path: ["events", event.identity, "saga"],
+          message:
+            "Public Saga must start at this Event, share its input contract and end at the declared View.",
+          correction:
+            "Bind a Saga with one matching root Event and terminal View.",
+        });
+        continue;
+      }
+    }
     const mapping = exposure.terminal.input ?? {};
     validateTerminalMapping(event, view, mapping, diagnostics);
     registerPath(path, `Event ${event.identity}`, paths, diagnostics);
     operations.push({
       kind: "event",
+      ownerKind: event.owner.kind,
+      ...(exposure.saga ? { saga: exposure.saga } : {}),
       identity: event.identity,
       method: "POST",
       path,
@@ -218,7 +252,7 @@ function toViewOperation(
 }
 
 function validateTerminalMapping(
-  event: SemanticEntityEvent,
+  event: SemanticEntityEvent | SemanticAntiCorruptionLayerEvent,
   view: SemanticView,
   mapping: TerminalViewInputMapping,
   diagnostics: ContractDiagnostic[],

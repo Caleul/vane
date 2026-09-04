@@ -35,6 +35,7 @@ export type PublicTerminalResult =
   | { readonly kind: "fail"; readonly fail: PublicFail };
 
 export interface TerminalResultStore {
+  readonly durable?: true;
   register(sagaId: string): Promise<void>;
   has(sagaId: string): Promise<boolean>;
   publish(sagaId: string, result: PublicTerminalResult): Promise<void>;
@@ -158,11 +159,20 @@ export interface PublicHttpResponse {
   readonly body: string;
 }
 
+export interface DurablePublicEventAdmission {
+  validateOperation?(operation: ContractEventOperation): void;
+  admitPublic(
+    operation: ContractEventOperation,
+    envelope: ReturnType<typeof createEventEnvelope>,
+  ): Promise<void>;
+}
+
 export interface PublicHttpRuntimeOptions {
   readonly contract: ContractIr;
   readonly events: Pick<PostgreSqlModuleRuntime, "dispatch">;
   readonly views: Pick<PostgreSqlViewRuntime, "execute">;
   readonly terminals: TerminalResultStore;
+  readonly admission?: DurablePublicEventAdmission;
   readonly now?: () => Date;
   readonly uuid?: () => string;
 }
@@ -172,6 +182,7 @@ export class PublicHttpRuntime {
   readonly #events: PublicHttpRuntimeOptions["events"];
   readonly #views: PublicHttpRuntimeOptions["views"];
   readonly #terminals: TerminalResultStore;
+  readonly #admission: DurablePublicEventAdmission | undefined;
   readonly #now: () => Date;
   readonly #uuid: () => string;
 
@@ -180,6 +191,20 @@ export class PublicHttpRuntime {
     this.#events = options.events;
     this.#views = options.views;
     this.#terminals = options.terminals;
+    this.#admission = options.admission;
+    if (
+      !options.admission &&
+      options.contract.operations.some(
+        (operation) =>
+          operation.kind === "event" &&
+          (operation.saga || operation.ownerKind === "antiCorruptionLayer"),
+      )
+    )
+      throw new Error("Public Sagas require durable admission.");
+    for (const operation of options.contract.operations) {
+      if (operation.kind === "event" && requiresOrchestration(operation))
+        options.admission?.validateOperation?.(operation);
+    }
     this.#now = options.now ?? (() => new Date());
     this.#uuid = options.uuid ?? randomUUID;
   }
@@ -223,7 +248,7 @@ export class PublicHttpRuntime {
     body: unknown,
   ): Promise<PublicHttpResponse> {
     const correlationId = this.#uuid();
-    const input = validateObject(body, operation.input);
+    const input = validatePublicInput(body, operation.input);
     if (!input.success)
       return response(
         400,
@@ -258,7 +283,7 @@ export class PublicHttpRuntime {
     body: unknown,
   ): Promise<PublicHttpResponse> {
     const correlationId = this.#uuid();
-    const input = validateObject(body, operation.input);
+    const input = validatePublicInput(body, operation.input);
     if (!input.success)
       return response(
         400,
@@ -266,7 +291,6 @@ export class PublicHttpRuntime {
       );
     const eventId = this.#uuid();
     const sagaId = this.#uuid();
-    await this.#terminals.register(sagaId);
     const envelope = createEventEnvelope({
       eventId,
       eventIdentity: operation.identity,
@@ -275,6 +299,11 @@ export class PublicHttpRuntime {
       occurredAt: this.#now().toISOString(),
       payload: input.value,
     });
+    if (this.#admission && requiresOrchestration(operation)) {
+      await this.#admission.admitPublic(operation, envelope);
+      return response(202, { sagaId });
+    }
+    await this.#terminals.register(sagaId);
     void this.#finishEvent(operation, envelope, sagaId).catch(async () => {
       try {
         await this.#terminals.publish(sagaId, {
@@ -469,7 +498,7 @@ type ValidatedObject =
     }
   | { readonly success: false; readonly message: string };
 
-function validateObject(
+export function validatePublicInput(
   value: unknown,
   fields: readonly ContractField[],
 ): ValidatedObject {
@@ -596,4 +625,11 @@ function isIsoDate(value: string): boolean {
   const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
   const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   return day <= (days[month - 1] as number);
+}
+
+function requiresOrchestration(operation: ContractEventOperation): boolean {
+  return (
+    operation.saga !== undefined ||
+    operation.ownerKind === "antiCorruptionLayer"
+  );
 }

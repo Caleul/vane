@@ -1064,6 +1064,16 @@ function technicalTables(): PostgreSqlTable[] {
         ),
       ],
       [technicalPrimaryKey("sagas", "saga_id")],
+      [
+        {
+          ...technicalIndex("sagas", "runnable", [
+            "saga_identity",
+            "updated_at",
+            "saga_id",
+          ]),
+          where: "(state ->> 'status') IN ('running', 'compensating')",
+        },
+      ],
     ),
     technicalTable(
       "failures",
