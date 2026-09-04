@@ -179,3 +179,7 @@ export * from "./saga-plan.js";
 export * from "./postgresql/saga-runtime.js";
 export * from "./postgresql/public-saga-admission.js";
 export type { DurablePublicEventAdmission } from "./http-runtime.js";
+export * from "./service-configuration.js";
+export * from "./service-compiler.js";
+export * from "./service-runtime.js";
+export * from "./service-artifacts.js";
