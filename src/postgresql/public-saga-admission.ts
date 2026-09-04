@@ -1,6 +1,6 @@
 import type { ContractEventOperation } from "../contract-ir.js";
 import type { DurablePublicEventAdmission } from "../http-runtime.js";
-import { type SagaPlan, bindSagaInput } from "../saga-plan.js";
+import type { SagaPlan } from "../saga-plan.js";
 import {
   type EventEnvelope,
   assertValidEventEnvelope,
@@ -24,15 +24,7 @@ export class PostgreSqlPublicSagaAdmission
       ]),
     );
   }
-  async admitPublic(
-    operation: ContractEventOperation,
-    envelope: EventEnvelope,
-  ): Promise<void> {
-    assertValidEventEnvelope(envelope);
-    if (envelope.eventIdentity !== operation.identity)
-      throw new SagaStateError(
-        "Public Event envelope identity differs from the contract.",
-      );
+  validateOperation(operation: ContractEventOperation): void {
     const plan = this.#bindings.get(operation.identity);
     const roots =
       plan?.steps.filter((step) => step.causedBy.length === 0) ?? [];
@@ -40,31 +32,63 @@ export class PostgreSqlPublicSagaAdmission
       !plan ||
       roots.length !== 1 ||
       roots[0]?.event !== operation.identity ||
-      (operation.saga !== undefined && plan.saga !== operation.saga) ||
-      plan.terminal.view !== operation.terminal.view ||
-      !envelope.sagaId ||
-      canonicalJson(bindSagaInput(roots[0].input, envelope.payload)) !==
-        canonicalJson(envelope.payload)
+      roots[0].ownerKind !== operation.ownerKind ||
+      (operation.saga !== undefined
+        ? plan.saga !== operation.saga
+        : operation.ownerKind !== "antiCorruptionLayer" ||
+          plan.steps.length !== 1) ||
+      plan.terminal.view !== operation.terminal.view
     )
       throw new SagaStateError(
-        "Public Event does not match its durable Saga plan.",
+        "Public Event does not match its declared Saga plan.",
       );
-    const terminalInput = Object.fromEntries(
-      Object.entries(operation.terminal.input).flatMap(([name, source]) => {
-        const value =
-          source.kind === "eventInput"
-            ? envelope.payload[source.input]
-            : source.value;
-        return value === undefined ? [] : [[name, value]];
-      }),
+    const rootBinding = Object.fromEntries(
+      operation.input.map((field) => [
+        field.name,
+        { kind: "input", name: field.name },
+      ]),
     );
+    if (canonicalJson(rootBinding) !== canonicalJson(roots[0].input))
+      throw new SagaStateError(
+        "Public root binding differs from the Saga plan.",
+      );
+    const input = operation.input.map(({ name, type, optional }) => ({
+      name,
+      type,
+      optional,
+    }));
     if (
-      canonicalJson(terminalInput) !==
-      canonicalJson(bindSagaInput(plan.terminal.input, envelope.payload))
+      canonicalJson(input) !==
+      canonicalJson(plan.input.map((field) => ({ ...field })))
     )
+      throw new SagaStateError(
+        "Public input contract differs from the Saga plan.",
+      );
+    const terminalBinding = Object.fromEntries(
+      Object.entries(operation.terminal.input).map(([name, source]) => [
+        name,
+        source.kind === "eventInput"
+          ? { kind: "input", name: source.input }
+          : source,
+      ]),
+    );
+    if (canonicalJson(terminalBinding) !== canonicalJson(plan.terminal.input))
       throw new SagaStateError(
         "Public terminal binding differs from the Saga plan.",
       );
+  }
+
+  async admitPublic(
+    operation: ContractEventOperation,
+    envelope: EventEnvelope,
+  ): Promise<void> {
+    this.validateOperation(operation);
+    assertValidEventEnvelope(envelope);
+    if (envelope.eventIdentity !== operation.identity || !envelope.sagaId)
+      throw new SagaStateError(
+        "Public Event envelope does not match the contract.",
+      );
+    const plan = this.#bindings.get(operation.identity) as SagaPlan;
     await this.runtime.admit(plan, envelope.payload, {
       sagaId: envelope.sagaId,
       eventId: envelope.eventId,

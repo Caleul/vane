@@ -110,6 +110,58 @@ function withAvailableColumn(
 }
 
 describe("PostgreSQL migrations", () => {
+  it("adds the runnable Saga index to an existing installation without losing retained states", async () => {
+    await withTestDatabase("saga_index_upgrade", async ({ pool, schema }) => {
+      const next = storage(schema);
+      const previous = {
+        ...next,
+        tables: next.tables.map((table) =>
+          table.semanticId === "vane.infrastructure.sagas"
+            ? { ...table, indexes: [] }
+            : table,
+        ),
+      };
+      await applyPostgreSqlMigrationPlan(
+        database(pool),
+        createPostgreSqlMigrationPlan({ previous: null, next: previous }),
+      );
+      await pool.query(
+        `INSERT INTO "${schema}"."__vane_sagas" (saga_id, saga_identity, state) VALUES (gen_random_uuid(), 'retained', '{"status":"terminal"}'::jsonb)`,
+      );
+      const plan = createPostgreSqlMigrationPlan({ previous, next });
+      assert.equal(plan.classification, "unsafe");
+      const approval = approvePostgreSqlMigrationPlan(plan, {
+        classification: "unsafe",
+        reason:
+          "Validate index upgrade against an isolated existing installation.",
+      });
+      assert.deepEqual(
+        plan.steps.map((step) => step.kind),
+        ["createIndex"],
+      );
+      assert.equal(
+        (await applyPostgreSqlMigrationPlan(database(pool), plan, approval))
+          .status,
+        "applied",
+      );
+      assert.equal(
+        (await applyPostgreSqlMigrationPlan(database(pool), plan, approval))
+          .status,
+        "already-applied",
+      );
+      assert.equal(
+        (await pool.query(`SELECT * FROM "${schema}"."__vane_sagas"`)).rowCount,
+        1,
+      );
+      const index = await pool.query(
+        "SELECT indexdef FROM pg_indexes WHERE schemaname = $1 AND indexname = 'ix_vane_sagas__runnable'",
+        [schema],
+      );
+      assert.equal(index.rowCount, 1);
+      assert.match(index.rows[0].indexdef as string, /WHERE.*status/);
+    });
+  });
+
   it("applies a deterministic initial plan once and records immutable history", async () => {
     await withTestDatabase("migration_apply", async ({ pool, schema }) => {
       const target = storage(schema);

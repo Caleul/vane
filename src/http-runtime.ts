@@ -160,6 +160,7 @@ export interface PublicHttpResponse {
 }
 
 export interface DurablePublicEventAdmission {
+  validateOperation?(operation: ContractEventOperation): void;
   admitPublic(
     operation: ContractEventOperation,
     envelope: ReturnType<typeof createEventEnvelope>,
@@ -192,16 +193,6 @@ export class PublicHttpRuntime {
     this.#terminals = options.terminals;
     this.#admission = options.admission;
     if (
-      options.terminals.durable &&
-      !options.admission &&
-      options.contract.operations.some(
-        (operation) => operation.kind === "event",
-      )
-    )
-      throw new Error(
-        "Durable terminal storage requires durable Event admission.",
-      );
-    if (
       !options.admission &&
       options.contract.operations.some(
         (operation) =>
@@ -210,6 +201,10 @@ export class PublicHttpRuntime {
       )
     )
       throw new Error("Public Sagas require durable admission.");
+    for (const operation of options.contract.operations) {
+      if (operation.kind === "event" && requiresOrchestration(operation))
+        options.admission?.validateOperation?.(operation);
+    }
     this.#now = options.now ?? (() => new Date());
     this.#uuid = options.uuid ?? randomUUID;
   }
@@ -304,7 +299,7 @@ export class PublicHttpRuntime {
       occurredAt: this.#now().toISOString(),
       payload: input.value,
     });
-    if (this.#admission) {
+    if (this.#admission && requiresOrchestration(operation)) {
       await this.#admission.admitPublic(operation, envelope);
       return response(202, { sagaId });
     }
@@ -630,4 +625,11 @@ function isIsoDate(value: string): boolean {
   const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
   const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   return day <= (days[month - 1] as number);
+}
+
+function requiresOrchestration(operation: ContractEventOperation): boolean {
+  return (
+    operation.saga !== undefined ||
+    operation.ownerKind === "antiCorruptionLayer"
+  );
 }

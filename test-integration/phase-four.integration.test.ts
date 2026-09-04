@@ -17,6 +17,7 @@ import {
   PostgreSqlViewRuntime,
   PublicHttpRuntime,
   applyPostgreSqlMigrationPlan,
+  createEventEnvelope,
   createNodeHttpHandler,
   createPostgreSqlMigrationPlan,
   httpAclAdapter,
@@ -150,6 +151,150 @@ async function drain(runtime: PostgreSqlSagaRuntime) {
 }
 
 describe("phase 4 durable PostgreSQL orchestration", () => {
+  it("keeps ordinary Entity endpoints on their own flow in a mixed public contract", async () =>
+    fixture(async (context) => {
+      const terminal = {
+        view: "Receipt",
+        input: { id: { kind: "eventInput" as const, input: "id" } },
+      };
+      const contract = materializeContract(context.module, {
+        events: [
+          { event: "Order.Place", saga: "PlaceOrder", path: "/saga", terminal },
+          { event: "Order.Place", path: "/plain", terminal },
+          { event: "Order.Cancel", path: "/cancel", terminal },
+        ],
+      });
+      assert.ok(contract.success);
+      const http = new PublicHttpRuntime({
+        contract: contract.ir,
+        events: context.events,
+        views: context.views,
+        terminals: context.store,
+        admission: new PostgreSqlPublicSagaAdmission(context.runtime, {
+          "Order.Place": context.plan,
+        }),
+      });
+      const id = randomUUID();
+      const plain = await http.handle({
+        method: "POST",
+        path: "/plain",
+        body: { id },
+      });
+      assert.equal(plain.status, 202);
+      await drain(context.runtime);
+      const plainFinal = await context.store.wait(
+        JSON.parse(plain.body).sagaId,
+        AbortSignal.timeout(1000),
+      );
+      assert.equal(plainFinal.kind, "view");
+      if (plainFinal.kind === "view")
+        assert.equal(plainFinal.data[0]?.status, "placed");
+      assert.equal(context.calls.length, 0);
+      const cancel = await http.handle({
+        method: "POST",
+        path: "/cancel",
+        body: { id },
+      });
+      assert.equal(cancel.status, 202);
+      const cancelFinal = await context.store.wait(
+        JSON.parse(cancel.body).sagaId,
+        AbortSignal.timeout(1000),
+      );
+      assert.equal(cancelFinal.kind, "view");
+      if (cancelFinal.kind === "view")
+        assert.equal(cancelFinal.data[0]?.status, "cancelled");
+      const saga = await http.handle({
+        method: "POST",
+        path: "/saga",
+        body: { id: randomUUID() },
+      });
+      await drain(context.runtime);
+      assert.equal(
+        (await context.store.wait(JSON.parse(saga.body).sagaId)).kind,
+        "view",
+      );
+      assert.equal(context.calls.length, 1);
+    }));
+
+  it("rejects structurally different terminal and root bindings even when values coincide", async () =>
+    fixture(async (context) => {
+      const id = randomUUID();
+      const contract = materializeContract(context.module, {
+        events: [
+          {
+            event: "Order.Place",
+            saga: "PlaceOrder",
+            terminal: {
+              view: "Receipt",
+              input: { id: { kind: "eventInput", input: "id" } },
+            },
+          },
+        ],
+      });
+      assert.ok(contract.success);
+      const operation = contract.ir.operations.find(
+        (operation) => operation.kind === "event",
+      );
+      assert.ok(operation && operation.kind === "event");
+      for (const configuration of [
+        { terminal: { id: { kind: "literal" as const, value: id } } },
+        { steps: { place: { id: { kind: "literal" as const, value: id } } } },
+      ]) {
+        const plan = materializeSagaPlan(
+          context.module,
+          "PlaceOrder",
+          configuration,
+          [context.adapter],
+        );
+        const runtime = context.makeRuntime({ plans: [plan] });
+        const admission = new PostgreSqlPublicSagaAdmission(runtime, {
+          "Order.Place": plan,
+        });
+        assert.throws(
+          () =>
+            new PublicHttpRuntime({
+              contract: contract.ir,
+              events: context.events,
+              views: context.views,
+              terminals: context.store,
+              admission,
+            }),
+          /binding differs/,
+        );
+        for (const value of [id, randomUUID()]) {
+          const envelope = createEventEnvelope({
+            eventId: randomUUID(),
+            eventIdentity: "Order.Place",
+            sagaId: randomUUID(),
+            occurredAt: new Date().toISOString(),
+            payload: { id: value },
+          });
+          await assert.rejects(admission.admitPublic(operation, envelope));
+          assert.equal(
+            await context.store.has(envelope.sagaId as string),
+            false,
+          );
+        }
+      }
+    }));
+
+  it("uses a runnable-only index instead of scanning retained Saga history", async () =>
+    fixture(async (context) => {
+      await context.query(
+        `INSERT INTO ${context.store.table} (saga_id, saga_identity, state) SELECT gen_random_uuid(), 'history', jsonb_build_object('status', 'terminal', 'planHash', $1::text) FROM generate_series(1, 20000)`,
+        [context.plan.hash],
+      );
+      await context.runtime.admit(context.plan, { id: randomUUID() });
+      await context.query(`ANALYZE ${context.store.table}`);
+      const result = await context.query(
+        `EXPLAIN (ANALYZE, FORMAT JSON) SELECT saga_id, saga_identity, state FROM ${context.store.table} WHERE state->>'status' IN ('running', 'compensating') AND state->>'planHash' = ANY($1::text[]) AND saga_identity = ANY($2::text[]) ORDER BY updated_at, saga_id LIMIT 100`,
+        [[context.plan.hash], [`${context.plan.module}.${context.plan.saga}`]],
+      );
+      const plan = JSON.stringify(result.rows);
+      assert.match(plan, /ix_vane_sagas__runnable/);
+      assert.doesNotMatch(plan, /Seq Scan/);
+    }));
+
   it("accepts an ACL-owned public Event and causally orders an Entity Event", async () =>
     fixture(async (context) => {
       const original = context.module.sagas[0];

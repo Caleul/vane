@@ -339,8 +339,17 @@ export class PostgreSqlSagaRuntime {
     const client = await this.#store.pool.connect();
     try {
       const candidates = await client.query<SagaRow>(
-        `SELECT saga_id, saga_identity, state FROM ${this.#store.table} WHERE state->>'status' IN ('running', 'compensating') AND state->>'planHash' = ANY($1::text[]) ORDER BY updated_at, saga_id LIMIT 100`,
-        [[...this.#plans.keys()]],
+        `SELECT saga_id, saga_identity, state FROM ${this.#store.table} WHERE state->>'status' IN ('running', 'compensating') AND state->>'planHash' = ANY($1::text[]) AND saga_identity = ANY($2::text[]) ORDER BY updated_at, saga_id LIMIT 100`,
+        [
+          [...this.#plans.keys()],
+          [
+            ...new Set(
+              [...this.#plans.values()].map(
+                (plan) => `${plan.module}.${plan.saga}`,
+              ),
+            ),
+          ],
+        ],
       );
       for (const candidate of candidates.rows) {
         const lockKey = `${this.#store.table}:${candidate.saga_id}`;

@@ -18,7 +18,7 @@ are in [the design](phase-4-design.md); API usage is in [the runtime guide](saga
 
 ## Verification
 
-Local gate: **178 unit tests + 28 PostgreSQL integration tests**, all passing.
+Local gate: **178 unit tests + 32 PostgreSQL integration tests**, all passing.
 Includes a fresh Node process resuming persisted admission, HTTP ACL-owned
 admission, and rejection of semantic/adapter drift before execution.
 
@@ -42,3 +42,13 @@ No external exactly-once guarantee is claimed: replay is safe only when the
 selected external provider honors Event identity idempotency for the recovery
 horizon. Workers keep transient database errors observable and preserve pending
 work; automatic backoff/retry policy is not invented in this phase.
+
+## PR review corrections
+
+- Mixed contracts preserve the direct phase-three flow for unassociated Entity
+  Events; only declared orchestration goes through Saga admission.
+- Public root/input/terminal associations compare binding sources before requests,
+  so equal runtime values cannot conceal an incompatible configuration.
+- A migration-managed partial index selects runnable Saga identities in processing
+  order, excluding retained terminal history. PostgreSQL EXPLAIN verifies an
+  index scan with 20,000 terminal states; upgrade tests preserve existing data.

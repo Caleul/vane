@@ -85,9 +85,17 @@ Saga and the same terminal View. Multi-root DAGs can be admitted explicitly with
 `sagas.admit(plan, input)`. The public contract is now Contract IR v2; Semantic IR
 and PostgreSQL Storage IR versions are unchanged.
 
-Durable terminals must be paired with durable admission. The constructor rejects
-using PostgreSQL terminal storage with the old asynchronous in-memory admission
-path. HTTP admission resolves only after the complete initial Saga state exists.
+Named public Sagas and ACL-owned public Events use durable admission. Ordinary
+Entity Events without a `saga` association retain the phase-three direct execution
+path, including in mixed contracts. Adding an admission binding for the same
+Event identity does not opt a plain route into an undeclared Saga. For durable
+orchestration of one Entity Event, explicitly expose a single-step Saga.
+Durable terminal retention alone does not make legacy direct execution recoverable.
+
+The PostgreSQL admission adapter validates root and terminal binding **sources**
+against the public contract at HTTP construction, before serving requests. An
+input-to-literal or input-to-different-input mismatch is rejected even when a
+particular request happens to contain equal values.
 
 ## Recovery and operational state
 
@@ -110,10 +118,18 @@ A View failure also enters compensation. Infrastructure exceptions preserve the
 executing state and reject the worker call; explicit supervision can restart it.
 
 Keep historical plans/adapters installed until their pending Sagas complete.
-Workers select installed plan hashes only, so changed plans cannot silently
+Workers select installed Saga identities and plan hashes only, so changed plans cannot silently
 reinterpret accepted work. Plan content, Event/View semantic fingerprints and adapter versions are checked
 before execution. Historical plans require runtimes with the matching semantics;
 a current runtime cannot reinterpret an older plan. Use `store.read(sagaId)` to inspect the required hash.
+
+A partial index on Saga identity and processing order contains only running or
+compensating states, so polling does not scan retained terminal history. The
+plan hash remains a filter within the active rows for the installed identities.
+Regenerate and apply the normal storage migration to add this index to existing
+installations; accepted state and terminal history are preserved. Existing migration
+safety rules classify index creation on an installed table as unsafe and require
+an approval artifact bound to the exact plan hash.
 
 The existing Saga table is used through normal migrations; there is no startup
 DDL. State and terminal results remain retained until an explicit future
