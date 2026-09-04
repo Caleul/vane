@@ -1,3 +1,4 @@
+import { hashSemanticModule } from "../module-fingerprint.js";
 import type {
   SemanticEntity,
   SemanticEntityEvent,
@@ -154,6 +155,10 @@ export class PostgreSqlModuleRuntime {
     this.#module = options.module;
     this.#pool = options.pool;
     this.#storage = options.storage;
+  }
+
+  get semanticHash(): string {
+    return hashSemanticModule(this.#module);
   }
 
   get state(): PostgreSqlModuleRuntimeState {

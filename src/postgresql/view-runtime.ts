@@ -5,6 +5,7 @@ import type {
   ViewPaginationValueDeclaration,
   ViewValueDeclaration,
 } from "../declaration.js";
+import { hashSemanticModule } from "../module-fingerprint.js";
 import type { SemanticModule, SemanticView } from "../semantic-ir.js";
 import {
   fitPostgreSqlIdentifier,
@@ -64,6 +65,10 @@ export class PostgreSqlViewRuntime {
     this.#pool = pool;
     this.#storage = storage;
     this.#modules = modules;
+  }
+
+  get semanticHash(): string {
+    return hashSemanticModule(this.#module);
   }
 
   async execute(request: ExecuteViewInput): Promise<ViewExecutionResult> {
