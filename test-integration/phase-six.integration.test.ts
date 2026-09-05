@@ -219,7 +219,7 @@ describe("phase six robustness", () => {
     }, 0));
 });
 
-it("standalone configured Event is durable before dispatch and survives restart", async () =>
+it("standalone Event aliases share a durable plan and both survive restart", async () =>
   fixture(async (c) => {
     await c.runtime.stop();
     const p = c.configuration.profiles.development;
@@ -232,15 +232,14 @@ it("standalone configured Event is durable before dispatch and survives restart"
           contracts: {
             Sales: {
               basePath: "/sales",
-              events: [
-                {
-                  event: "Order.Place",
-                  terminal: {
-                    view: "Receipt",
-                    input: { id: { kind: "eventInput" as const, input: "id" } },
-                  },
+              events: ["/orders", "/order-alias"].map((path) => ({
+                event: "Order.Place",
+                path,
+                terminal: {
+                  view: "Receipt",
+                  input: { id: { kind: "eventInput" as const, input: "id" } },
                 },
-              ],
+              })),
             },
           },
         },
@@ -250,17 +249,26 @@ it("standalone configured Event is durable before dispatch and survives restart"
     await runtime.start();
     const m = runtime.modules[0];
     assert.ok(m);
-    const op = m.contract.operations.find((o) => o.kind === "event");
-    assert.ok(op);
-    const response = await m.http.handle({
-      method: "POST",
-      path: op.path,
-      body: { id: randomUUID() },
-    });
-    assert.equal(response.status, 202);
-    const sagaId = (JSON.parse(response.body) as { sagaId: string }).sagaId;
-    const before = await m.store.read(sagaId);
-    assert.equal(before?.steps[0]?.status, "pending");
+    const operations = m.contract.operations.filter((o) => o.kind === "event");
+    assert.equal(operations.length, 2);
+    assert.equal(
+      runtime.plan.runtime.sagas.filter(
+        (p) => p.saga === "vane.event.Order.Place",
+      ).length,
+      1,
+    );
+    const sagaIds: string[] = [];
+    for (const op of operations) {
+      const response = await m.http.handle({
+        method: "POST",
+        path: op.path,
+        body: { id: randomUUID() },
+      });
+      assert.equal(response.status, 202);
+      const sagaId = (JSON.parse(response.body) as { sagaId: string }).sagaId;
+      sagaIds.push(sagaId);
+      assert.equal((await m.store.read(sagaId))?.steps[0]?.status, "pending");
+    }
     await runtime.stop();
     const recovered = await createServiceRuntime(config, "test", c.bindings);
     await recovered.start();
@@ -268,7 +276,8 @@ it("standalone configured Event is durable before dispatch and survives restart"
       const worker = recovered.modules[0];
       assert.ok(worker);
       while (await worker.sagas.runOnce()) {}
-      assert.equal((await worker.store.wait(sagaId)).kind, "view");
+      for (const sagaId of sagaIds)
+        assert.equal((await worker.store.wait(sagaId)).kind, "view");
     } finally {
       await recovered.stop();
     }

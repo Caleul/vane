@@ -693,8 +693,22 @@ function compile(
     if (!result.success)
       return { success: false, diagnostics: result.diagnostics };
     contracts.push(result.ir);
+    const publicBindings = new Map<string, string>();
     for (const operation of result.ir.operations) {
       if (operation.kind !== "event") continue;
+      const publicBinding = technicalJson({
+        saga: operation.saga ?? null,
+        terminal: operation.terminal,
+      });
+      const previousBinding = publicBindings.get(operation.identity);
+      if (previousBinding !== undefined && previousBinding !== publicBinding)
+        issue(
+          "PUBLIC_EVENT_BINDING",
+          ["contracts", module.name, operation.identity],
+          "Aliases of an Event have conflicting Saga or terminal bindings.",
+          "Use the same Saga, terminal View and input mapping for every alias of the Event.",
+        );
+      publicBindings.set(operation.identity, publicBinding);
       if (operation.ownerKind === "antiCorruptionLayer" && !operation.saga)
         issue(
           "ACL_PUBLIC_SAGA",
@@ -703,7 +717,22 @@ function compile(
           "Associate the public ACL Event with a declared Saga.",
         );
       if (!operation.saga) {
-        sagaPlans.push(materializePublicEventPlan(module, operation, modules));
+        const standalone = materializePublicEventPlan(
+          module,
+          operation,
+          modules,
+        );
+        const existing = sagaPlans.find(
+          (p) => p.module === module.name && p.saga === standalone.saga,
+        );
+        if (existing && existing.hash !== standalone.hash)
+          issue(
+            "PUBLIC_EVENT_BINDING",
+            ["contracts", module.name, operation.identity],
+            "Aliases of a standalone Event have conflicting terminal bindings.",
+            "Expose the Event aliases with the same terminal View and input mapping.",
+          );
+        if (!existing) sagaPlans.push(standalone);
         continue;
       }
       const plan = sagaPlans.find(

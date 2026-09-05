@@ -17,7 +17,7 @@ f553e08 includes phases 1–5. See [design decisions](phase-6-design.md),
 ## Validation
 
 Node 24.13.0: lint, strict types, positive/negative public type fixtures, build and
-232 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
+233 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
 all prior phases. The CLI test runs separate operating-system processes and
 verifies successful signal shutdown and terminal replay after restart.
 
@@ -75,3 +75,8 @@ against both installed Event and View runtimes; missing or changed inventories
 fail before database access. Standalone public plans carry the same import
 fingerprints. The regression covers missing/stale fingerprints on both runtime
 boundaries and acceptance of matching fingerprints.
+
+Aliased standalone Event routes now reuse one durable technical plan. Conflicting
+terminal bindings fail during compilation. A PostgreSQL regression reproduces
+the previous duplicate-plan startup failure and now admits through both routes,
+restarts the runtime and verifies both terminal results.

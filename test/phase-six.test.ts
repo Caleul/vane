@@ -464,3 +464,79 @@ it("rejects missing or stale imported hashes before installing a Saga plan", () 
       new PostgreSqlSagaRuntime({ plans: [plan], store, events, views, acls }),
   );
 });
+
+it("shares identical standalone aliases and rejects conflicting terminal bindings", () => {
+  const exposure = {
+    event: "Order.Place",
+    terminal: {
+      view: "Receipt",
+      input: { id: { kind: "eventInput" as const, input: "id" } },
+    },
+  };
+  const config = phaseFiveConfiguration({
+    contracts: {
+      Sales: {
+        basePath: "/sales",
+        events: [
+          { ...exposure, path: "/first" },
+          { ...exposure, path: "/second" },
+        ],
+      },
+    },
+  });
+  const compiled = compileServiceConfiguration(config, "test");
+  assert.ok(compiled.success);
+  assert.equal(
+    compiled.plan.runtime.sagas.filter(
+      (p) => p.saga === "vane.event.Order.Place",
+    ).length,
+    1,
+  );
+  const conflicting = phaseFiveConfiguration({
+    contracts: {
+      Sales: {
+        basePath: "/sales",
+        events: [
+          { ...exposure, path: "/first" },
+          {
+            ...exposure,
+            path: "/second",
+            terminal: {
+              view: "Receipt",
+              input: {
+                id: {
+                  kind: "literal",
+                  value: "10000000-0000-4000-8000-000000000001",
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+  });
+  const rejected = compileServiceConfiguration(conflicting, "test");
+  assert.equal(rejected.success, false);
+  if (!rejected.success)
+    assert.equal(
+      rejected.diagnostics[0]?.code,
+      "VANE_SVC_PUBLIC_EVENT_BINDING",
+    );
+  const mixed = compileServiceConfiguration(
+    phaseFiveConfiguration({
+      contracts: {
+        Sales: {
+          basePath: "/sales",
+          events: [
+            { ...exposure, path: "/first" },
+            { ...exposure, path: "/second", saga: "PlaceOrder" },
+          ],
+        },
+      },
+    }),
+    "test",
+  );
+  assert.equal(mixed.success, false);
+  if (!mixed.success)
+    assert.equal(mixed.diagnostics[0]?.code, "VANE_SVC_PUBLIC_EVENT_BINDING");
+});
