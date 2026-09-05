@@ -6,7 +6,9 @@ import type {
   ViewValueDeclaration,
 } from "../declaration.js";
 import { hashSemanticModule } from "../module-fingerprint.js";
+import { importedModuleHashes } from "../module-scope.js";
 import type { SemanticModule, SemanticView } from "../semantic-ir.js";
+import type { RuntimeTelemetry } from "../telemetry.js";
 import {
   fitPostgreSqlIdentifier,
   quotePostgreSqlIdentifier,
@@ -60,6 +62,7 @@ export class PostgreSqlViewRuntime {
     pool: PostgreSqlPoolLike,
     storage: PostgreSqlStorageIr,
     modules: readonly SemanticModule[] = [module],
+    readonly telemetry?: RuntimeTelemetry,
   ) {
     this.#module = module;
     this.#pool = pool;
@@ -71,7 +74,20 @@ export class PostgreSqlViewRuntime {
     return hashSemanticModule(this.#module);
   }
 
+  get importedHashes(): Readonly<Record<string, string>> {
+    return importedModuleHashes(this.#module, this.#modules);
+  }
+
   async execute(request: ExecuteViewInput): Promise<ViewExecutionResult> {
+    return this.telemetry
+      ? this.telemetry.span(
+          "view",
+          { module: this.#module.name, view: request.view },
+          () => this.#execute(request),
+        )
+      : this.#execute(request);
+  }
+  async #execute(request: ExecuteViewInput): Promise<ViewExecutionResult> {
     const view = this.#module.views.find(
       (candidate) => candidate.name === request.view,
     );

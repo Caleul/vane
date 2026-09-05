@@ -4,6 +4,7 @@ import { validateAclAdapter } from "./acl-runtime.js";
 import type { JsonValue } from "./declaration.js";
 import { validatePublicInput } from "./http-runtime.js";
 import { hashSemanticModule } from "./module-fingerprint.js";
+import { importedModuleHashes, moduleScope } from "./module-scope.js";
 import { canonicalJson } from "./postgresql/envelope.js";
 import type {
   SemanticEventInput,
@@ -40,6 +41,7 @@ export interface SagaPlan {
   readonly version: 1;
   readonly module: string;
   readonly semanticHash: string;
+  readonly importedHashes?: Readonly<Record<string, string>>;
   readonly saga: string;
   readonly input: readonly SemanticEventInput[];
   readonly steps: readonly SagaPlanStep[];
@@ -62,13 +64,17 @@ export function materializeSagaPlan(
   sagaName: string,
   configuration: SagaPlanConfiguration = {},
   adapters: readonly AclEventAdapter[] = [],
+  modules: readonly SemanticModule[] = [module],
 ): SagaPlan {
   const saga = module.sagas.find((candidate) => candidate.name === sagaName);
   if (!saga) throw new SagaPlanError("Saga is not declared in the Module.");
+  const scope = moduleScope(module, modules);
   const events = new Map(
     [
-      ...module.entities.flatMap((entity) => entity.events),
-      ...module.antiCorruptionLayers.flatMap((acl) => acl.events),
+      ...scope.flatMap((m) => m.entities.flatMap((entity) => entity.events)),
+      ...scope.flatMap((m) =>
+        m.antiCorruptionLayers.flatMap((acl) => acl.events),
+      ),
     ].map((event) => [event.identity, event]),
   );
   const adapterMap = new Map(
@@ -145,6 +151,11 @@ export function materializeSagaPlan(
     version: 1 as const,
     module: module.name,
     semanticHash: hashSemanticModule(module),
+    ...(scope.length > 1
+      ? {
+          importedHashes: importedModuleHashes(module, modules),
+        }
+      : {}),
     saga: saga.name,
     input: saga.input,
     steps: ordered,
@@ -238,4 +249,54 @@ export function assertSagaPlan(plan: SagaPlan): void {
     throw new SagaPlanError(
       "Saga plan version or content hash is invalid; rematerialize before execution.",
     );
+}
+
+/** A visible technical one-step plan makes standalone public admission durable. */
+export function materializePublicEventPlan(
+  module: SemanticModule,
+  operation: import("./contract-ir.js").ContractEventOperation,
+  modules: readonly SemanticModule[] = [module],
+): SagaPlan {
+  const importedHashes = importedModuleHashes(module, modules);
+  const content: Omit<SagaPlan, "hash"> = {
+    schema: "vane.saga-plan",
+    version: 1,
+    module: module.name,
+    semanticHash: hashSemanticModule(module),
+    ...(Object.keys(importedHashes).length ? { importedHashes } : {}),
+    saga: `vane.event.${operation.identity}`,
+    input: operation.input.map(({ name, type, optional }) => ({
+      name,
+      type,
+      optional,
+    })),
+    steps: [
+      {
+        name: "execute",
+        event: operation.identity,
+        ownerKind: operation.ownerKind,
+        causedBy: [],
+        input: Object.fromEntries(
+          operation.input.map((f) => [
+            f.name,
+            { kind: "input" as const, name: f.name },
+          ]),
+        ),
+        compensation: null,
+      },
+    ],
+    terminal: {
+      view: operation.terminal.view,
+      input: Object.fromEntries(
+        Object.entries(operation.terminal.input).map(([name, value]) => [
+          name,
+          value.kind === "eventInput"
+            ? { kind: "input" as const, name: value.input }
+            : value,
+        ]),
+      ),
+    },
+    adapters: [],
+  };
+  return { ...content, hash: hashValue(content) };
 }

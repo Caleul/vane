@@ -1028,7 +1028,7 @@ function technicalTables(): PostgreSqlTable[] {
         technicalCheck(
           "outbox",
           "status",
-          `${quotePostgreSqlIdentifier("status")} IN ('pending', 'publishing', 'published')`,
+          `${quotePostgreSqlIdentifier("status")} IN ('pending', 'publishing', 'published', 'failed')`,
           ["status"],
         ),
       ],

@@ -457,29 +457,26 @@ describe("phase five configuration", () => {
     invalid(collide, "ROUTE_COLLISION");
     assert.equal(p.runtime.service.name, "api");
   });
-  it("refuses to bootstrap deferred policies before database access", async () => {
-    const c = phaseFiveConfiguration({
+  it("accepts durable policies without accessing the database before start", async () => {
+    const configuration = phaseFiveConfiguration({
       policies: {
         defaults: {
-          retry: {
-            attempts: 3,
-            backoff: "exponential",
-            delayMs: 10,
-            maxDelayMs: 100,
-          },
+          retry: { attempts: 3, backoff: "fixed", delayMs: 10, maxDelayMs: 10 },
         },
       },
     });
-    assert.ok(compileServiceConfiguration(c, "development").success);
-    await assert.rejects(
-      createServiceRuntime(c, "development", {
-        pool: {
-          connect: async () => {
-            throw new Error("must not connect");
-          },
+    const runtime = await createServiceRuntime(configuration, "development", {
+      pool: {
+        connect: async () => {
+          throw new Error("unexpected database access");
         },
-      }),
-      /phase-six/,
+      },
+      resolveSecret: async () => "https://gateway.invalid",
+    });
+    assert.equal(runtime.state, "stopped");
+    assert.equal(
+      runtime.plan.runtime.policyExecution.durableRetryAndBackoff,
+      "enforced",
     );
   });
   it("does not expose resolver errors", async () => {

@@ -17,7 +17,9 @@ Semantic Project + ServiceConfiguration + profile -> Runtime / Storage / Contrac
 
 Phase 5 adds typed profiles, explicit providers, capability negotiation, policy
 precedence, safe inspection, CLI generation and configured monolithic bootstrap.
-Production hardening continues in phase 6.
+Phase 6 adds durable retry/recovery, failure operations, internal telemetry, Vault
+secret resolution and the executable Sales/Billing reference. See the
+[quickstart](examples/sales-billing/README.md) and [operations guide](docs/operations.md).
 
 ## Current guarantees
 
@@ -89,3 +91,6 @@ See [ServiceConfiguration](docs/service-configuration.md) for profiles, provider
 selection, policies, ACL/HTTP configuration, secret bindings, CLI and deployment
 artifacts. The [phase 5 completion gate](docs/phase-5-completion.md) records
 validation and the exact runtime boundary for policies deferred to phase 6.
+
+The [phase 6 completion gate](docs/phase-6-completion.md) records robustness,
+recovery, operational tooling and reference application evidence.

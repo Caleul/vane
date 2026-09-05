@@ -1,7 +1,9 @@
 import type { HttpAclAdapterOptions } from "./acl-runtime.js";
 import type { ContractMaterializerConfiguration } from "./contract-ir.js";
 import type { SagaPlanConfiguration } from "./saga-plan.js";
+import type { VaultConfiguration } from "./secrets.js";
 import type { SemanticProjectIr } from "./semantic-ir.js";
+import type { TelemetryConfiguration } from "./telemetry.js";
 
 export type ProviderKind =
   | "runtime"
@@ -175,6 +177,8 @@ export interface HttpSecurityConfiguration {
   } | null;
 }
 export interface ServiceProfile {
+  readonly telemetry?: TelemetryConfiguration;
+  readonly secrets?: VaultConfiguration;
   readonly extends?: string;
   readonly environment?: "development" | "test" | "staging" | "production";
   readonly topology?: ReturnType<typeof monolith>;

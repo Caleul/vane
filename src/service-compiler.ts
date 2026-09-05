@@ -1,18 +1,20 @@
 import { createHash } from "node:crypto";
-import {
-  type AclEventAdapter,
-  httpAclAdapter,
-  validateAclAdapter,
-} from "./acl-runtime.js";
+import { httpAclAdapter, validateAclAdapter } from "./acl-runtime.js";
 import { type ContractIr, materializeContract } from "./contract-ir.js";
 import type { JsonValue } from "./declaration.js";
 import type { Diagnostic } from "./diagnostic.js";
+import { moduleScope } from "./module-scope.js";
 import { canonicalJson } from "./postgresql/envelope.js";
 import { materializePostgreSql } from "./postgresql/materializer.js";
 import { PostgreSqlPublicSagaAdmission } from "./postgresql/public-saga-admission.js";
 import type { PostgreSqlSagaRuntime } from "./postgresql/saga-runtime.js";
 import type { PostgreSqlStorageIr } from "./postgresql/storage-ir.js";
-import { type SagaPlan, materializeSagaPlan } from "./saga-plan.js";
+import {
+  type SagaPlan,
+  materializePublicEventPlan,
+  materializeSagaPlan,
+} from "./saga-plan.js";
+import { isVaultSecretReference } from "./secrets.js";
 import {
   BUILTIN_PROVIDERS,
   type ExecutionPolicy,
@@ -60,8 +62,8 @@ export interface RuntimeIr {
   readonly policyExecution: {
     readonly idempotency: "durable";
     readonly aclTimeout: "enforced";
-    readonly durableRetryAndBackoff: "phase6";
-    readonly entityTimeout: "phase6";
+    readonly durableRetryAndBackoff: "enforced";
+    readonly entityTimeout: "enforced";
   };
 }
 export interface InfrastructureIr {
@@ -206,12 +208,17 @@ export function resolveServiceProfile(
   };
   return resolve(name);
 }
+export interface ServiceCompilationOptions {
+  /** Caller promises to install its own resolver; standalone CLI/deployment uses configured validation. */
+  readonly secretResolver?: "configured" | "caller";
+}
 export function compileServiceConfiguration<P extends string>(
   configuration: ServiceConfiguration<P>,
   profile: NoInfer<P>,
+  options: ServiceCompilationOptions = {},
 ): ServiceCompilationResult {
   try {
-    return compile(configuration, profile);
+    return compile(configuration, profile, options);
   } catch (error) {
     return {
       success: false,
@@ -245,6 +252,7 @@ export function validateServiceConfiguration(
 function compile(
   configuration: ServiceConfiguration,
   profileName: string,
+  options: ServiceCompilationOptions,
 ): ServiceCompilationResult {
   if (
     configuration.schema !== "vane.service-configuration" ||
@@ -302,6 +310,18 @@ function compile(
       "Every Module and Entity must have exactly one explicit owner.",
       "Map every compiled Module exactly once to the monolithic service.",
     );
+  for (const module of modules) {
+    try {
+      moduleScope(module, modules);
+    } catch {
+      issue(
+        "IMPORT_SCOPE",
+        ["project", "modules", module.name, "imports"],
+        "Imported Modules are missing or contain ambiguous Event owners.",
+        "Compile a semantic project with distinct visible Entity and ACL names and explicit imports.",
+      );
+    }
+  }
   if (!profile.communication || !profile.http)
     issue(
       "PROVIDERS_MISSING",
@@ -410,15 +430,59 @@ function compile(
       });
       bindings.push({ slot, source: "literal" });
     } else {
-      if (!/^[A-Za-z_][A-Za-z0-9_.\/-]*$/.test(value.name))
+      if (
+        !(value.kind === "secret" &&
+        profile.secrets &&
+        options.secretResolver !== "caller"
+          ? isVaultSecretReference(value.name)
+          : /^[A-Za-z_][A-Za-z0-9_.\/-]*$/.test(value.name) ||
+            (value.kind === "secret" &&
+              options.secretResolver === "caller" &&
+              isVaultSecretReference(value.name)))
+      )
         issue(
           "SECRET_REFERENCE",
           [slot],
           "Secret reference name is invalid.",
-          "Use a symbolic identifier, never a credential or URL.",
+          "Use a symbolic identifier; Vault KV v2 references require path#field with alphanumeric, underscore or hyphen segments.",
         );
       bindings.push({ slot, source: value.kind, name: value.name });
     }
+  }
+  if (
+    profile.telemetry &&
+    (!["none", "json"].includes(profile.telemetry.exporter) ||
+      (profile.telemetry.redact !== undefined &&
+        (!Array.isArray(profile.telemetry.redact) ||
+          profile.telemetry.redact.some(
+            (k) => typeof k !== "string" || !k.trim(),
+          ))))
+  )
+    issue(
+      "TELEMETRY",
+      ["telemetry"],
+      "Invalid telemetry configuration.",
+      "Select none/json and a list of metadata keys to redact.",
+    );
+  if (profile.secrets) {
+    const v = profile.secrets;
+    if (
+      v.provider !== "vault-kv-v2" ||
+      !/^[a-zA-Z0-9_-]+$/.test(v.mount) ||
+      !Number.isSafeInteger(v.timeoutMs) ||
+      v.timeoutMs < 1 ||
+      v.timeoutMs > 2147483647 ||
+      v.address.kind === "secret" ||
+      v.token.kind === "secret"
+    )
+      issue(
+        "VAULT",
+        ["secrets"],
+        "Invalid Vault bootstrap configuration.",
+        "Use environment bindings, KV v2 mount and a bounded timeout.",
+      );
+    bind(v.address, "secrets.address");
+    bind(v.token, "secrets.token");
   }
   bind(service.persistence.connection, "persistence.connection");
   const security = profile.http.security;
@@ -526,7 +590,6 @@ function compile(
   const sagaPlans: SagaPlan[] = [];
   const contracts: ContractIr[] = [];
   for (const module of modules) {
-    const moduleAdapters: AclEventAdapter[] = [];
     for (const event of module.antiCorruptionLayers.flatMap((a) => a.events)) {
       const identity = `${module.name}.${event.identity}`;
       knownAcls.add(identity);
@@ -579,7 +642,6 @@ function compile(
           headers: () => ({}),
         });
         validateAclAdapter(event, adapter);
-        moduleAdapters.push(adapter);
       } catch {
         issue(
           "ACL_MAPPING",
@@ -598,7 +660,21 @@ function compile(
             module,
             saga.name,
             profile.sagas?.[identity] ?? {},
-            moduleAdapters,
+            moduleScope(module, modules).flatMap((m) =>
+              m.antiCorruptionLayers.flatMap((a) =>
+                a.events.map((e) => {
+                  const mapping = profile.acls?.[`${m.name}.${e.identity}`];
+                  if (!mapping) throw new Error("Missing ACL mapping.");
+                  return httpAclAdapter({
+                    ...mapping,
+                    eventIdentity: e.identity,
+                    url: "https://configuration.invalid",
+                    headers: () => ({}),
+                  });
+                }),
+              ),
+            ),
+            modules,
           ),
         );
       } catch {
@@ -617,8 +693,22 @@ function compile(
     if (!result.success)
       return { success: false, diagnostics: result.diagnostics };
     contracts.push(result.ir);
+    const publicBindings = new Map<string, string>();
     for (const operation of result.ir.operations) {
       if (operation.kind !== "event") continue;
+      const publicBinding = technicalJson({
+        saga: operation.saga ?? null,
+        terminal: operation.terminal,
+      });
+      const previousBinding = publicBindings.get(operation.identity);
+      if (previousBinding !== undefined && previousBinding !== publicBinding)
+        issue(
+          "PUBLIC_EVENT_BINDING",
+          ["contracts", module.name, operation.identity],
+          "Aliases of an Event have conflicting Saga or terminal bindings.",
+          "Use the same Saga, terminal View and input mapping for every alias of the Event.",
+        );
+      publicBindings.set(operation.identity, publicBinding);
       if (operation.ownerKind === "antiCorruptionLayer" && !operation.saga)
         issue(
           "ACL_PUBLIC_SAGA",
@@ -626,7 +716,25 @@ function compile(
           "Public ACL admission requires an explicit Saga.",
           "Associate the public ACL Event with a declared Saga.",
         );
-      if (!operation.saga) continue;
+      if (!operation.saga) {
+        const standalone = materializePublicEventPlan(
+          module,
+          operation,
+          modules,
+        );
+        const existing = sagaPlans.find(
+          (p) => p.module === module.name && p.saga === standalone.saga,
+        );
+        if (existing && existing.hash !== standalone.hash)
+          issue(
+            "PUBLIC_EVENT_BINDING",
+            ["contracts", module.name, operation.identity],
+            "Aliases of a standalone Event have conflicting terminal bindings.",
+            "Expose the Event aliases with the same terminal View and input mapping.",
+          );
+        if (!existing) sagaPlans.push(standalone);
+        continue;
+      }
       const plan = sagaPlans.find(
         (p) => p.module === module.name && p.saga === operation.saga,
       );
@@ -776,8 +884,8 @@ function compile(
     policyExecution: {
       idempotency: "durable",
       aclTimeout: "enforced",
-      durableRetryAndBackoff: "phase6",
-      entityTimeout: "phase6",
+      durableRetryAndBackoff: "enforced",
+      entityTimeout: "enforced",
     },
   };
   const infrastructure: InfrastructureIr = {
@@ -887,6 +995,13 @@ function redactProfile(profile: ServiceProfile): JsonValue {
     value.kind === "literal" ? { kind: "literal", value: "[REDACTED]" } : value;
   return redact({
     ...copy,
+    secrets: copy.secrets
+      ? {
+          ...copy.secrets,
+          address: safe(copy.secrets.address),
+          token: safe(copy.secrets.token),
+        }
+      : undefined,
     topology: copy.topology
       ? {
           ...copy.topology,
@@ -977,6 +1092,8 @@ function validateShapes(configuration: ServiceConfiguration): void {
         "topology",
         "communication",
         "http",
+        "telemetry",
+        "secrets",
         "policies",
         "contracts",
         "acls",
@@ -984,6 +1101,16 @@ function validateShapes(configuration: ServiceConfiguration): void {
       ],
       ["profiles"],
     );
+    if (p.telemetry) keys(p.telemetry, ["exporter", "redact"], ["telemetry"]);
+    if (p.secrets) {
+      keys(
+        p.secrets,
+        ["provider", "address", "token", "mount", "timeoutMs"],
+        ["secrets"],
+      );
+      secretShape(p.secrets.address);
+      secretShape(p.secrets.token);
+    }
     if (p.topology) {
       keys(p.topology, ["kind", "service"], ["topology"]);
       const s = p.topology.service;

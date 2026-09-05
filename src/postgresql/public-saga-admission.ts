@@ -16,6 +16,7 @@ export class PostgreSqlPublicSagaAdmission
   constructor(
     readonly runtime: PostgreSqlSagaRuntime,
     bindings: Readonly<Record<string, SagaPlan>>,
+    readonly handlesStandalone = false,
   ) {
     this.#bindings = new Map(
       Object.entries(bindings).map(([event, plan]) => [
@@ -35,8 +36,7 @@ export class PostgreSqlPublicSagaAdmission
       roots[0].ownerKind !== operation.ownerKind ||
       (operation.saga !== undefined
         ? plan.saga !== operation.saga
-        : operation.ownerKind !== "antiCorruptionLayer" ||
-          plan.steps.length !== 1) ||
+        : plan.steps.length !== 1) ||
       plan.terminal.view !== operation.terminal.view
     )
       throw new SagaStateError(

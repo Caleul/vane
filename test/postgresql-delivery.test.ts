@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { DEFAULT_EXECUTION_POLICY } from "../src/execution-policy.js";
 import {
+  InvalidOutboxClaimError,
   LostOutboxLeaseError,
   PostgreSqlOutboxDispatcher,
 } from "../src/postgresql/delivery.js";
@@ -11,6 +13,7 @@ import type {
   PostgreSqlQueryResult,
 } from "../src/postgresql/runtime.js";
 import type { PostgreSqlStorageIr } from "../src/postgresql/storage-ir.js";
+import type { ExecutionPolicy } from "../src/service-configuration.js";
 
 const EVENT_ID = "10000000-0000-4000-8000-000000000001";
 const MESSAGE_ID = "10000000-0000-4000-8000-000000000002";
@@ -58,6 +61,15 @@ const storage: PostgreSqlStorageIr = {
   provider: { name: "postgresql", minimumVersion: 16, namespace: "vane" },
   tables: [
     {
+      semanticId: "vane.infrastructure.failures",
+      module: null,
+      name: "__vane_failures",
+      technical: true,
+      columns: [],
+      constraints: [],
+      indexes: [],
+    },
+    {
       semanticId: "vane.infrastructure.outbox",
       module: null,
       name: "__vane_outbox",
@@ -77,6 +89,25 @@ const envelope = createEventEnvelope({
 });
 
 describe("PostgreSQL outbox delivery", () => {
+  it("rejects a missing failure queue before claiming work", () => {
+    assert.throws(
+      () =>
+        new PostgreSqlOutboxDispatcher(
+          {
+            connect: async () => {
+              throw new Error("must not connect");
+            },
+          },
+          {
+            ...storage,
+            tables: storage.tables.filter(
+              (t) => t.semanticId !== "vane.infrastructure.failures",
+            ),
+          },
+        ),
+      /failure queue/,
+    );
+  });
   it("claims due work with SKIP LOCKED and a fenced lease", async () => {
     const client = new QueueClient([
       response(),
@@ -176,4 +207,105 @@ describe("PostgreSQL outbox delivery", () => {
     assert.equal(client.queries[0]?.values[4], "connection failed temporarily");
     client.assertComplete();
   });
+});
+
+it("rejects malformed outbox policies before connecting or publishing", async () => {
+  let connections = 0;
+  let publications = 0;
+  const dispatcher = new PostgreSqlOutboxDispatcher(
+    {
+      connect: async () => {
+        connections++;
+        throw new Error("unexpected connection");
+      },
+    },
+    storage,
+  );
+  const base = DEFAULT_EXECUTION_POLICY;
+  const invalid: unknown[] = [
+    null,
+    {},
+    { ...base, timeoutMs: 0 },
+    { ...base, timeoutMs: Number.POSITIVE_INFINITY },
+    { ...base, idempotency: "optional" },
+    { ...base, deduplication: "memory" },
+    { ...base, retry: null },
+    ...[
+      { attempts: 0 },
+      { attempts: 1.5 },
+      { backoff: "random" },
+      { delayMs: Number.NaN },
+      { delayMs: -1 },
+      { maxDelayMs: 2147483648 },
+      { delayMs: 5, maxDelayMs: 4 },
+    ].map((retry) => ({ ...base, retry: { ...base.retry, ...retry } })),
+  ];
+  for (const policy of invalid)
+    await assert.rejects(
+      dispatcher.dispatch({
+        workerId: "worker",
+        limit: 1,
+        leaseMilliseconds: 100,
+        policy: policy as ExecutionPolicy,
+        publisher: {
+          publish: async () => {
+            publications++;
+          },
+        },
+        retryAt: () => new Date().toISOString(),
+      }),
+      InvalidOutboxClaimError,
+    );
+  assert.equal(connections, 0);
+  assert.equal(publications, 0);
+});
+
+it("keeps the admitted outbox policy stable across caller mutation", async () => {
+  const dispatcher = new PostgreSqlOutboxDispatcher(
+    {
+      connect: async () => {
+        throw new Error("must not connect");
+      },
+    },
+    storage,
+  );
+  const policy = {
+    ...DEFAULT_EXECUTION_POLICY,
+    retry: { ...DEFAULT_EXECUTION_POLICY.retry, attempts: 2 },
+  };
+  dispatcher.claim = async () => {
+    policy.retry.attempts = 0;
+    policy.retry.delayMs = Number.NaN;
+    return [
+      {
+        messageId: MESSAGE_ID,
+        eventId: EVENT_ID,
+        leaseToken: LEASE_TOKEN,
+        leaseUntil: "2026-08-31T15:01:00Z",
+        attempt: 1,
+        envelope,
+      },
+    ];
+  };
+  let rescheduled = false;
+  dispatcher.reschedule = async (request) => {
+    assert.ok(Number.isFinite(Date.parse(request.availableAt)));
+    rescheduled = true;
+  };
+  const report = await dispatcher.dispatch({
+    workerId: "worker",
+    limit: 1,
+    leaseMilliseconds: 100,
+    policy,
+    publisher: {
+      publish: async () => {
+        throw new Error("unavailable");
+      },
+    },
+    retryAt: () => {
+      throw new Error("must use captured policy");
+    },
+  });
+  assert.equal(report.rescheduled, 1);
+  assert.equal(rescheduled, true);
 });

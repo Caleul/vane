@@ -3,6 +3,13 @@ import { setTimeout as delay } from "node:timers/promises";
 import type { AclEventRuntime } from "../acl-runtime.js";
 import type { JsonValue } from "../declaration.js";
 import {
+  DEFAULT_EXECUTION_POLICY,
+  isExecutionPolicy,
+  retryDelay,
+  retryableFailure,
+  transientPostgreSqlFailure,
+} from "../execution-policy.js";
+import {
   type PublicFail,
   type PublicTerminalResult,
   TerminalResultNotFoundError,
@@ -10,6 +17,8 @@ import {
   validatePublicInput,
 } from "../http-runtime.js";
 import { type SagaPlan, assertSagaPlan, bindSagaInput } from "../saga-plan.js";
+import type { ExecutionPolicy } from "../service-configuration.js";
+import type { RuntimeTelemetry } from "../telemetry.js";
 import {
   type EventEnvelope,
   canonicalJson,
@@ -31,6 +40,10 @@ export interface SagaStepRecord {
   compensationStatus: "pending" | "executing" | "success" | "fail" | null;
   fail: PublicFail | null;
   compensationFail: PublicFail | null;
+  attempts?: number;
+  compensationAttempts?: number;
+  retryAt?: string | null;
+  compensationRetryAt?: string | null;
 }
 export interface DurableSagaState {
   readonly schema: "vane.saga-state";
@@ -40,6 +53,7 @@ export interface DurableSagaState {
   readonly input: Readonly<Record<string, JsonValue>>;
   status: "registered" | "running" | "compensating" | "terminal";
   readonly steps: SagaStepRecord[];
+  readonly policies?: Readonly<Record<string, ExecutionPolicy>>;
   fail: PublicFail | null;
   terminal: PublicTerminalResult | null;
 }
@@ -57,11 +71,17 @@ export class SagaStateError extends Error {
 export class PostgreSqlSagaStore implements TerminalResultStore {
   readonly durable = true as const;
   readonly table: string;
+  readonly failuresTable: string;
   constructor(
     readonly pool: PostgreSqlPoolLike,
     storage: PostgreSqlStorageIr,
     readonly pollMs = 50,
   ) {
+    const failures = storage.tables.find(
+      (t) => t.semanticId === "vane.infrastructure.failures",
+    );
+    if (!failures) throw new SagaStateError("Missing failure queue.");
+    this.failuresTable = `${quotePostgreSqlIdentifier(storage.provider.namespace)}.${quotePostgreSqlIdentifier(failures.name)}`;
     const table = storage.tables.find(
       (table) => table.semanticId === "vane.infrastructure.sagas",
     );
@@ -164,21 +184,54 @@ export class PostgreSqlSagaStore implements TerminalResultStore {
 }
 
 export interface PostgreSqlSagaRuntimeOptions {
+  readonly telemetry?: RuntimeTelemetry;
+  readonly policies?: Readonly<Record<string, ExecutionPolicy>>;
   readonly plans: readonly SagaPlan[];
   readonly store: PostgreSqlSagaStore;
-  readonly events: Pick<PostgreSqlModuleRuntime, "dispatch" | "semanticHash">;
+  readonly events: Pick<
+    PostgreSqlModuleRuntime,
+    "dispatch" | "semanticHash"
+  > & { readonly importedHashes?: Readonly<Record<string, string>> };
   readonly acls?: Pick<AclEventRuntime, "dispatch" | "bindings">;
-  readonly views: Pick<PostgreSqlViewRuntime, "execute" | "semanticHash">;
+  readonly views: Pick<PostgreSqlViewRuntime, "execute" | "semanticHash"> & {
+    readonly importedHashes?: Readonly<Record<string, string>>;
+  };
 }
 export class PostgreSqlSagaRuntime {
   readonly #plans: ReadonlyMap<string, SagaPlan>;
   readonly #store: PostgreSqlSagaStore;
+  readonly #policies: Readonly<Record<string, ExecutionPolicy>>;
   #stopping = false;
   #loop: Promise<void> | null = null;
   #active = new Set<Promise<boolean>>();
   constructor(readonly options: PostgreSqlSagaRuntimeOptions) {
+    const policies =
+      options.policies === undefined ? {} : structuredClone(options.policies);
+    if (
+      !policies ||
+      typeof policies !== "object" ||
+      Array.isArray(policies) ||
+      Object.values(policies).some((policy) => !isExecutionPolicy(policy))
+    )
+      throw new SagaStateError("Execution policy is invalid.");
+    this.#policies = policies;
     for (const plan of options.plans) {
       assertSagaPlan(plan);
+      const imported = plan.importedHashes ?? {};
+      for (const installed of [
+        options.events.importedHashes ?? {},
+        options.views.importedHashes ?? {},
+      ]) {
+        if (
+          Object.keys(installed).length !== Object.keys(imported).length ||
+          Object.entries(imported).some(
+            ([name, hash]) => installed[name] !== hash,
+          )
+        )
+          throw new SagaStateError(
+            "Saga plan imported semantics differ from the installed Event or View runtime.",
+          );
+      }
       if (
         plan.semanticHash !== options.events.semanticHash ||
         plan.semanticHash !== options.views.semanticHash
@@ -296,9 +349,11 @@ export class PostgreSqlSagaRuntime {
       input: structuredClone(input),
       status: "running",
       steps: records,
+      policies: structuredClone(this.#policies),
       fail: null,
       terminal: null,
     });
+    this.options.telemetry?.record("saga.admitted", { sagaId, correlationId });
     return sagaId;
   }
 
@@ -339,7 +394,7 @@ export class PostgreSqlSagaRuntime {
     const client = await this.#store.pool.connect();
     try {
       const candidates = await client.query<SagaRow>(
-        `SELECT saga_id, saga_identity, state FROM ${this.#store.table} WHERE state->>'status' IN ('running', 'compensating') AND state->>'planHash' = ANY($1::text[]) AND saga_identity = ANY($2::text[]) ORDER BY updated_at, saga_id LIMIT 100`,
+        `SELECT saga_id, saga_identity, state FROM ${this.#store.table} WHERE state->>'status' IN ('running', 'compensating') AND state->>'planHash' = ANY($1::text[]) AND saga_identity = ANY($2::text[]) AND NOT EXISTS (SELECT 1 FROM jsonb_array_elements(state->'steps') step WHERE CASE WHEN state->>'status'='compensating' THEN step->>'compensationRetryAt' ELSE step->>'retryAt' END > $3) ORDER BY updated_at, saga_id LIMIT 100`,
         [
           [...this.#plans.keys()],
           [
@@ -349,6 +404,7 @@ export class PostgreSqlSagaRuntime {
               ),
             ),
           ],
+          new Date().toISOString(),
         ],
       );
       for (const candidate of candidates.rows) {
@@ -370,6 +426,7 @@ export class PostgreSqlSagaRuntime {
             ? this.#plans.get(row.state.planHash)
             : undefined;
           if (!plan) continue;
+          if (!this.#eligible(row.state)) continue;
           await this.#transition(client, row, plan);
           return true;
         } finally {
@@ -394,18 +451,141 @@ export class PostgreSqlSagaRuntime {
     envelope: EventEnvelope,
     kind: "entity" | "antiCorruptionLayer",
     record?: SagaStepRecord,
+    timeoutMs?: number,
   ): Promise<PublicFail | null> {
     if (kind === "antiCorruptionLayer") {
-      const result = await this.options.acls?.dispatch(envelope);
+      const result = await this.options.acls?.dispatch(envelope, timeoutMs);
       if (!result) throw new SagaStateError("Missing ACL runtime.");
       if (record && result.kind === "success") record.result = result.data;
       return result.kind === "fail" ? result.fail : null;
     }
-    const execution = await this.options.events.dispatch(envelope);
-    const result =
-      execution.kind === "duplicate" ? execution.result : execution;
-    return result.kind === "fail" ? result.fail : null;
+    try {
+      const execution = await this.options.events.dispatch(envelope, timeoutMs);
+      const result =
+        execution.kind === "duplicate" ? execution.result : execution;
+      return result.kind === "fail" ? result.fail : null;
+    } catch (error) {
+      const code = transientPostgreSqlFailure(error);
+      if (!code) throw error;
+      return safeFail(code, envelope.correlationId);
+    }
   }
+  #eligible(state: DurableSagaState): boolean {
+    const retryAt =
+      state.status === "compensating"
+        ? [...state.steps]
+            .reverse()
+            .find(
+              (s) =>
+                s.status === "success" &&
+                ["pending", "executing"].includes(s.compensationStatus ?? ""),
+            )?.compensationRetryAt
+        : state.steps.find((s) => s.status === "executing")?.retryAt;
+    return !retryAt || Date.parse(retryAt) <= Date.now();
+  }
+  async #attempt(
+    client: PostgreSqlClientLike,
+    row: SagaRow,
+    record: SagaStepRecord,
+    envelope: EventEnvelope,
+    kind: "entity" | "antiCorruptionLayer",
+    compensation: boolean,
+  ): Promise<boolean> {
+    const policy =
+      row.state.policies?.[envelope.eventIdentity] ?? DEFAULT_EXECUTION_POLICY;
+    const countKey = compensation ? "compensationAttempts" : "attempts";
+    const retryKey = compensation ? "compensationRetryAt" : "retryAt";
+    // An executing attempt without retryAt is an interrupted attempt. Reconcile
+    // the same envelope without consuming a new budget (the effect may exist).
+    if (!record[countKey] || record[retryKey])
+      record[countKey] = (record[countKey] ?? 0) + 1;
+    record[retryKey] = null;
+    await this.#save(client, row);
+    const dispatch = () =>
+      this.#dispatch(
+        envelope,
+        kind,
+        compensation ? undefined : record,
+        // Legacy rows predate snapshots and retain the baseline deadline.
+        // New low-level callers with no policy entry keep their executor override.
+        row.state.policies === undefined
+          ? policy.timeoutMs
+          : row.state.policies[envelope.eventIdentity]?.timeoutMs,
+      );
+    const attributes = {
+      eventId: envelope.eventId,
+      eventIdentity: envelope.eventIdentity,
+      sagaId: envelope.sagaId,
+      correlationId: envelope.correlationId,
+      causationId: envelope.causationId,
+      compensation,
+      attempt: record[countKey],
+    };
+    const fail = this.options.telemetry
+      ? await this.options.telemetry.span(
+          kind === "antiCorruptionLayer" ? "acl" : "consumption",
+          attributes,
+          dispatch,
+          (f) => f !== null,
+        )
+      : await dispatch();
+    if (compensation) record.compensationFail = fail;
+    else record.fail = fail;
+    if (
+      fail &&
+      retryableFailure(fail.code) &&
+      (record[countKey] ?? 1) < policy.retry.attempts
+    ) {
+      this.options.telemetry?.record("retry", attributes);
+      record[retryKey] = new Date(
+        Date.now() + retryDelay(policy, record[countKey] ?? 1),
+      ).toISOString();
+      await this.#save(client, row);
+      return false;
+    }
+    if (compensation) record.compensationStatus = fail ? "fail" : "success";
+    else {
+      record.status = fail ? "fail" : "success";
+      if (fail) {
+        row.state.fail = fail;
+        row.state.status = "compensating";
+      }
+    }
+    // The failure record and completed attempt are committed together.
+    await client.query("BEGIN");
+    try {
+      if (fail)
+        await client.query(
+          `INSERT INTO ${this.#store.failuresTable}
+        (event_id,event_identity,code,safe_message,correlation_id,causation_id,saga_id,details,attempt_count)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9) ON CONFLICT (event_id) DO NOTHING`,
+          [
+            envelope.eventId,
+            envelope.eventIdentity,
+            fail.code,
+            "The Event could not be completed.",
+            envelope.correlationId,
+            envelope.causationId,
+            envelope.sagaId,
+            encode({
+              step: record.name,
+              compensation,
+              planHash: row.state.planHash,
+            }),
+            record[countKey] ?? 1,
+          ],
+        );
+      await this.#save(client, row);
+      await client.query("COMMIT");
+      if (fail)
+        this.options.telemetry?.record("failure.queued", attributes, "fail");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    }
+    return true;
+  }
+
   async #transition(
     client: PostgreSqlClientLike,
     row: SagaRow,
@@ -427,14 +607,14 @@ export class PostgreSqlSagaRuntime {
           throw new SagaStateError("Compensation plan mismatch.");
         record.compensationStatus = "executing";
         await this.#save(client, row);
-        record.compensationFail = await this.#dispatch(
+        await this.#attempt(
+          client,
+          row,
+          record,
           record.compensation,
           step.compensation.ownerKind,
+          true,
         );
-        record.compensationStatus = record.compensationFail
-          ? "fail"
-          : "success";
-        await this.#save(client, row);
         return;
       }
       const compensationFailed = state.steps.some(
@@ -448,6 +628,11 @@ export class PostgreSqlSagaRuntime {
       };
       state.status = "terminal";
       await this.#save(client, row);
+      this.options.telemetry?.record(
+        "saga.terminal",
+        { sagaId: row.saga_id, correlationId: state.correlationId },
+        "fail",
+      );
       return;
     }
     const next = state.steps.find(
@@ -467,13 +652,14 @@ export class PostgreSqlSagaRuntime {
       next.status = "executing";
       await this.#save(client, row);
       // If the process dies after the effect, replay uses the stored Event envelope.
-      next.fail = await this.#dispatch(next.envelope, step.ownerKind, next);
-      next.status = next.fail ? "fail" : "success";
-      if (next.fail) {
-        state.fail = next.fail;
-        state.status = "compensating";
-      }
-      await this.#save(client, row);
+      await this.#attempt(
+        client,
+        row,
+        next,
+        next.envelope,
+        step.ownerKind,
+        false,
+      );
       return;
     }
     if (!state.steps.every((record) => record.status === "success"))
@@ -490,6 +676,12 @@ export class PostgreSqlSagaRuntime {
       state.status = "compensating";
     }
     await this.#save(client, row);
+    if (state.status === "terminal")
+      this.options.telemetry?.record(
+        "saga.terminal",
+        { sagaId: row.saga_id, correlationId: state.correlationId },
+        state.terminal?.kind === "fail" ? "fail" : "success",
+      );
   }
 }
 function encode(value: unknown): string {
