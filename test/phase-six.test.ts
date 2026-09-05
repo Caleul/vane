@@ -540,3 +540,13 @@ it("shares identical standalone aliases and rejects conflicting terminal binding
   if (!mixed.success)
     assert.equal(mixed.diagnostics[0]?.code, "VANE_SVC_PUBLIC_EVENT_BINDING");
 });
+
+it("contains asynchronous telemetry rejection without changing execution", async () => {
+  const telemetry = new RuntimeTelemetry({ exporter: "json" }, async () => {
+    throw new Error("private-exporter-error");
+  });
+  assert.equal(await telemetry.span("event", {}, async () => 42), 42);
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.equal(telemetry.exporterFailures, 1);
+  assert.equal(telemetry.metrics()["event.success"]?.count, 1);
+});

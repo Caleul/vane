@@ -432,3 +432,47 @@ it("upgrades the phase-five outbox constraint with reviewed migration and retain
     await runtime.stop();
   });
 });
+
+it("resumes legacy work with the baseline timeout instead of a changed profile", async () =>
+  fixture(async (c) => {
+    const sagaId = await c.module.sagas.admit(c.plan, { id: randomUUID() });
+    await c.module.sagas.runOnce();
+    await c.db.query(
+      `UPDATE ${c.module.store.table} SET state=state - 'policies' WHERE saga_id=$1`,
+      [sagaId],
+    );
+    await c.runtime.stop();
+    const configuration = {
+      ...c.configuration,
+      profiles: {
+        ...c.configuration.profiles,
+        test: {
+          ...c.configuration.profiles.test,
+          policies: { defaults: { timeoutMs: 5 } },
+        },
+      },
+    };
+    const resumed = await createServiceRuntime(configuration, "test", {
+      ...c.bindings,
+      fetch: async () => {
+        await delay(40);
+        return new Response(JSON.stringify({ reference: "approved" }), {
+          status: 200,
+        });
+      },
+    });
+    await resumed.start();
+    try {
+      const worker = resumed.modules[0];
+      assert.ok(worker);
+      await worker.sagas.runOnce();
+      assert.equal(
+        (await worker.store.read(sagaId))?.steps[1]?.status,
+        "success",
+      );
+      while (await worker.sagas.runOnce()) {}
+      assert.equal((await worker.store.wait(sagaId)).kind, "view");
+    } finally {
+      await resumed.stop();
+    }
+  }, 0));

@@ -494,7 +494,11 @@ export class PostgreSqlSagaRuntime {
         envelope,
         kind,
         compensation ? undefined : record,
-        row.state.policies?.[envelope.eventIdentity]?.timeoutMs,
+        // Legacy rows predate snapshots and retain the baseline deadline.
+        // New low-level callers with no policy entry keep their executor override.
+        row.state.policies === undefined
+          ? policy.timeoutMs
+          : row.state.policies[envelope.eventIdentity]?.timeoutMs,
       );
     const attributes = {
       eventId: envelope.eventId,

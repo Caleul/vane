@@ -17,7 +17,7 @@ f553e08 includes phases 1–5. See [design decisions](phase-6-design.md),
 ## Validation
 
 Node 24.13.0: lint, strict types, positive/negative public type fixtures, build and
-233 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
+234 unit tests passed. PostgreSQL 16.15: 47 integration tests passed, including
 all prior phases. The CLI test runs separate operating-system processes and
 verifies successful signal shutdown and terminal replay after restart.
 
@@ -80,3 +80,9 @@ Aliased standalone Event routes now reuse one durable technical plan. Conflictin
 terminal bindings fail during compilation. A PostgreSQL regression reproduces
 the previous duplicate-plan startup failure and now admits through both routes,
 restarts the runtime and verifies both terminal results.
+
+Legacy rows without policy snapshots now use the baseline dispatch deadline even
+when the current profile changes. A restart test reproduces the previous unwanted
+timeout. Asynchronous telemetry rejections are observed and counted without
+changing business results; the regression previously produced an unhandled
+rejection. Explicit low-level executor timeouts remain supported for new work.

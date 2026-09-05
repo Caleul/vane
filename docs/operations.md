@@ -124,3 +124,11 @@ View executors, calculated from the installed semantic Modules. Saga constructio
 requires an exact match with the materialized plan and rejects missing hashes.
 The service runtime and PostgreSQL View runtime provide this inventory directly;
 single-Module callers remain compatible without it.
+
+
+Rows created before policy snapshots use the one-attempt, 10-second baseline,
+including their dispatch deadline, when resumed under a changed profile. New
+low-level Saga callers that omit a policy entry retain their executor's explicit
+timeout; configured service runtimes snapshot every resolved Event policy.
+Telemetry sinks may be asynchronous: rejection is counted in `exporterFailures`
+without an unhandled rejection or delaying business completion.

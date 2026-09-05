@@ -63,14 +63,18 @@ export class RuntimeTelemetry {
     this.#metrics.set(key, metric);
     if (this.configuration.exporter === "none") return;
     try {
-      this.sink({
-        schema: "vane.telemetry",
-        timestamp: new Date().toISOString(),
-        operation,
-        spanId: randomUUID(),
-        outcome,
-        durationMs,
-        attributes: this.redact(attributes) as Record<string, unknown>,
+      void Promise.resolve(
+        this.sink({
+          schema: "vane.telemetry",
+          timestamp: new Date().toISOString(),
+          operation,
+          spanId: randomUUID(),
+          outcome,
+          durationMs,
+          attributes: this.redact(attributes) as Record<string, unknown>,
+        }),
+      ).catch(() => {
+        this.exporterFailures++;
       });
     } catch {
       this.exporterFailures++;
