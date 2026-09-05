@@ -93,6 +93,7 @@ entity-event inspect event Sales.Order.Place --config configuration.mjs --profil
 entity-event inspect saga <uuid> --config configuration.mjs --profile test --json
 entity-event inspect queues --config configuration.mjs --profile test --json
 entity-event failures list --config configuration.mjs --profile test --json
+entity-event failures list --limit 100 --offset 100 --config configuration.mjs --profile test --json
 entity-event failures retry-outbox <failure-uuid> --config configuration.mjs --profile test
 entity-event failures resolve <failure-uuid> --config configuration.mjs --profile test
 entity-event failures prune --before 2026-01-01T00:00:00Z --config configuration.mjs --profile test
@@ -132,3 +133,10 @@ low-level Saga callers that omit a policy entry retain their executor's explicit
 timeout; configured service runtimes snapshot every resolved Event policy.
 Telemetry sinks may be asynchronous: rejection is counted in `exporterFailures`
 without an unhandled rejection or delaying business completion.
+
+
+Failure inspection lists unresolved records before resolved history, newest first
+within each group, with a stable failure-ID tie-breaker. The default page has 100
+records; `--limit` accepts 1–1000 and `--offset` selects later pages. The internal
+API exposes the same `failures(limit, offset)` arguments. Offset pages are live,
+so concurrent insertions or resolutions can move records between pages.

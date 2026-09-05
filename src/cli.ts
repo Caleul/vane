@@ -37,6 +37,8 @@ async function main(): Promise<void> {
         "--approval",
         "--port",
         "--before",
+        "--limit",
+        "--offset",
       ].includes(key ?? "") ||
       !args[i + 1] ||
       args[i + 1]?.startsWith("--")

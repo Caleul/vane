@@ -102,7 +102,13 @@ export async function operationalCommand(
       return;
     }
     if (command === "failures") {
-      if (positional[0] === "list") output(await operations.failures());
+      if (positional[0] === "list")
+        output(
+          await operations.failures(
+            Number(options.get("--limit") ?? 100),
+            Number(options.get("--offset") ?? 0),
+          ),
+        );
       else if (positional[0] === "retry-outbox" && positional[1])
         output({
           requeued: await operations.retryOutboxFailure(positional[1]),

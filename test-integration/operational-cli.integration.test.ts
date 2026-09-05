@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { it } from "node:test";
 import { promisify } from "node:util";
+import { compileServiceConfiguration } from "../src/index.js";
 import { phaseFiveConfiguration } from "../test/phase-five-fixture.js";
 import { testDatabaseUrl, withTestDatabase } from "./database.js";
 
@@ -104,6 +105,49 @@ it("CLI migrates, runs, inspects and replays terminal SSE across real process re
         (await invoke("migrate", "apply", "--migration", migrationPath)).status,
         "already-applied",
       );
+      const compiled = compileServiceConfiguration(config, "test");
+      assert.ok(compiled.success);
+      const failureTable = compiled.plan.storage.tables.find(
+        (t) => t.semanticId === "vane.infrastructure.failures",
+      );
+      assert.ok(failureTable);
+      const failures = `${db.qualifiedSchema}."${failureTable.name}"`;
+      await db.query(
+        `INSERT INTO ${failures} (event_id,event_identity,code,safe_message,correlation_id,status,occurred_at,resolved_at) SELECT gen_random_uuid(),'Old.Event','OLD','safe',gen_random_uuid(),'resolved','2019-01-01','2019-01-02' FROM generate_series(1,101)`,
+      );
+      const newest = randomUUID();
+      const older = randomUUID();
+      await db.query(
+        `INSERT INTO ${failures} (failure_id,event_id,event_identity,code,safe_message,correlation_id,status,occurred_at) VALUES ($1,gen_random_uuid(),'New.Event','NEW','safe',gen_random_uuid(),'pending','2021-01-01'),($2,gen_random_uuid(),'Old.Event','OLD','safe',gen_random_uuid(),'dead','2020-01-01')`,
+        [newest, older],
+      );
+      const listed = await invoke("failures", "list");
+      assert.equal(listed.length, 100);
+      assert.equal(listed[0].failure_id, newest);
+      assert.equal(listed[1].failure_id, older);
+      const page = await invoke(
+        "failures",
+        "list",
+        "--limit",
+        "1",
+        "--offset",
+        "1",
+      );
+      assert.equal(page.length, 1);
+      assert.equal(page[0].failure_id, older);
+      const history = await invoke(
+        "failures",
+        "list",
+        "--limit",
+        "100",
+        "--offset",
+        "100",
+      );
+      assert.equal(history.length, 3);
+      assert.ok(
+        history.every((row: { status: string }) => row.status === "resolved"),
+      );
+      await assert.rejects(invoke("failures", "list", "--offset", "-1"));
       const first = await start();
       const response = await fetch(`${first.url}/sales/events/Order.Place`, {
         method: "POST",

@@ -49,15 +49,17 @@ export class PostgreSqlOperations {
       })),
     };
   }
-  async failures(limit = 100) {
+  async failures(limit = 100, offset = 0) {
     if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000)
       throw new OperationalError("Invalid limit.");
+    if (!Number.isSafeInteger(offset) || offset < 0)
+      throw new OperationalError("Invalid offset.");
     const c = await this.pool.connect();
     try {
       return (
         await c.query(
-          `SELECT failure_id,event_id,event_identity,code,correlation_id,causation_id,saga_id,status,attempt_count,occurred_at,resolved_at FROM ${this.#failures} ORDER BY occurred_at,failure_id LIMIT $1`,
-          [limit],
+          `SELECT failure_id,event_id,event_identity,code,correlation_id,causation_id,saga_id,status,attempt_count,occurred_at,resolved_at FROM ${this.#failures} ORDER BY (status = 'resolved') ASC,occurred_at DESC,failure_id DESC LIMIT $1 OFFSET $2`,
+          [limit, offset],
         )
       ).rows;
     } finally {

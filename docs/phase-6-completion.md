@@ -86,3 +86,8 @@ when the current profile changes. A restart test reproduces the previous unwante
 timeout. Asynchronous telemetry rejections are observed and counted without
 changing business results; the regression previously produced an unhandled
 rejection. Explicit low-level executor timeouts remain supported for new work.
+
+Failure inspection prioritizes unresolved work and supports CLI/API pagination.
+The real-process CLI regression seeds 101 resolved historical failures and two
+unresolved failures, then verifies default visibility, subsequent pages and
+rejection of invalid offsets. Retention no longer hides current failures.
