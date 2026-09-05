@@ -208,12 +208,17 @@ export function resolveServiceProfile(
   };
   return resolve(name);
 }
+export interface ServiceCompilationOptions {
+  /** Caller promises to install its own resolver; standalone CLI/deployment uses configured validation. */
+  readonly secretResolver?: "configured" | "caller";
+}
 export function compileServiceConfiguration<P extends string>(
   configuration: ServiceConfiguration<P>,
   profile: NoInfer<P>,
+  options: ServiceCompilationOptions = {},
 ): ServiceCompilationResult {
   try {
-    return compile(configuration, profile);
+    return compile(configuration, profile, options);
   } catch (error) {
     return {
       success: false,
@@ -247,6 +252,7 @@ export function validateServiceConfiguration(
 function compile(
   configuration: ServiceConfiguration,
   profileName: string,
+  options: ServiceCompilationOptions,
 ): ServiceCompilationResult {
   if (
     configuration.schema !== "vane.service-configuration" ||
@@ -425,9 +431,14 @@ function compile(
       bindings.push({ slot, source: "literal" });
     } else {
       if (
-        !(value.kind === "secret" && profile.secrets
+        !(value.kind === "secret" &&
+        profile.secrets &&
+        options.secretResolver !== "caller"
           ? isVaultSecretReference(value.name)
-          : /^[A-Za-z_][A-Za-z0-9_.\/-]*$/.test(value.name))
+          : /^[A-Za-z_][A-Za-z0-9_.\/-]*$/.test(value.name) ||
+            (value.kind === "secret" &&
+              options.secretResolver === "caller" &&
+              isVaultSecretReference(value.name)))
       )
         issue(
           "SECRET_REFERENCE",
@@ -955,6 +966,13 @@ function redactProfile(profile: ServiceProfile): JsonValue {
     value.kind === "literal" ? { kind: "literal", value: "[REDACTED]" } : value;
   return redact({
     ...copy,
+    secrets: copy.secrets
+      ? {
+          ...copy.secrets,
+          address: safe(copy.secrets.address),
+          token: safe(copy.secrets.token),
+        }
+      : undefined,
     topology: copy.topology
       ? {
           ...copy.topology,

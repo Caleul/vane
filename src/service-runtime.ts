@@ -58,7 +58,9 @@ export async function createServiceRuntime<P extends string>(
   bindings: ServiceRuntimeBindings,
 ) {
   const snapshot = structuredClone(configuration);
-  const compiled = compileServiceConfiguration(snapshot, profileName);
+  const compiled = compileServiceConfiguration(snapshot, profileName, {
+    secretResolver: bindings.resolveSecret ? "caller" : "configured",
+  });
   if (!compiled.success)
     throw new ServiceRuntimeError(
       compiled.diagnostics.map((d) => d.code).join(", "),

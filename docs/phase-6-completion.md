@@ -17,7 +17,7 @@ f553e08 includes phases 1–5. See [design decisions](phase-6-design.md),
 ## Validation
 
 Node 24.13.0: lint, strict types, positive/negative public type fixtures, build and
-229 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
+231 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
 all prior phases. The CLI test runs separate operating-system processes and
 verifies successful signal shutdown and terminal replay after restart.
 
@@ -61,3 +61,10 @@ Operational CLI failures emit safe codes; outbox construction requires its real
 failure table, and failed rollback cannot hide the original operation error.
 Regression tests cover ambiguous scopes, missing failure storage and rollback
 failure; the negative Vault provider type fixture now supplies all other fields.
+
+Further Codex feedback reproduced literal Vault bootstrap leakage into generated
+artifacts and rejection of custom-resolver symbolic names. Bootstrap address and
+token now follow the shared redaction path. Embedded compilation can explicitly
+select caller resolver validation, matching runtime precedence, while standalone
+configuration still requires valid Vault selectors. Artifact and runtime tests
+prove both fixes and preserve the deployment hash check.

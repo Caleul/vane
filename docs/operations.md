@@ -73,7 +73,13 @@ requires HTTPS, refuses redirects and has a request deadline. Resolution errors
 are generic; tokens and returned values never enter diagnostics or artifacts.
 A new runtime resolves fresh values after rotation. Generated deployments also
 support provisioned `VANE_BINDING_n` values through the existing explicit binding
-inventory; supplying a caller resolver takes precedence over Vault.
+inventory; supplying a caller resolver takes precedence over Vault, including
+symbolic names without a Vault field selector. For an embedded deployment using
+that override, `compileServiceConfiguration(config, profile, { secretResolver:
+"caller" })` validates the same names as `createServiceRuntime` with
+`resolveSecret`. Standalone CLI/generated deployments validate the configured
+provider and require Vault path#field references. Resolver choice does not change
+the configuration hash; resolved values remain external runtime bindings.
 
 ## CLI
 

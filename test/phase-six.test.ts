@@ -4,8 +4,10 @@ import {
   DEFAULT_EXECUTION_POLICY,
   RuntimeTelemetry,
   compileServiceConfiguration,
+  createServiceRuntime,
   createVaultSecretResolver,
   env,
+  generateServiceDeployment,
   localSecret,
   monolith,
   node,
@@ -282,4 +284,84 @@ it("preserves the operation error when rollback also fails", async () => {
     (error) => error === original,
   );
   assert.equal(released, true);
+});
+
+it("omits literal Vault bootstrap values from every generated artifact", () => {
+  const configuration = phaseFiveConfiguration({
+    secrets: {
+      provider: "vault-kv-v2",
+      address: localSecret("https://vault-bootstrap-marker.invalid"),
+      token: localSecret("vault-bootstrap-token-marker"),
+      mount: "secret",
+      timeoutMs: 100,
+    },
+  });
+  const compiled = compileServiceConfiguration(configuration, "development");
+  assert.ok(compiled.success);
+  const artifacts = generateServiceDeployment(
+    compiled.plan,
+    configuration.project,
+  );
+  for (const serialized of [
+    JSON.stringify(compiled.plan),
+    ...Object.values(artifacts),
+  ]) {
+    assert.equal(serialized.includes("vault-bootstrap-token-marker"), false);
+    assert.equal(serialized.includes("vault-bootstrap-marker"), false);
+  }
+});
+
+it("lets an explicit caller resolver override Vault for symbolic and Vault names", async () => {
+  const mapping =
+    phaseFiveConfiguration().profiles.development.acls?.[
+      "Sales.Gateway.Authorize"
+    ];
+  assert.ok(mapping);
+  for (const name of ["gateway-token", "app/gateway#token"]) {
+    const configuration = phaseFiveConfiguration({
+      secrets: {
+        provider: "vault-kv-v2",
+        address: env("VAULT_ADDR"),
+        token: env("VAULT_TOKEN"),
+        mount: "secret",
+        timeoutMs: 100,
+      },
+      acls: {
+        "Sales.Gateway.Authorize": {
+          ...mapping,
+          headers: { Authorization: { kind: "secret", name } },
+        },
+      },
+    });
+    const plan = compileServiceConfiguration(configuration, "development", {
+      secretResolver: "caller",
+    });
+    assert.ok(plan.success);
+    const seen: string[] = [];
+    const runtime = await createServiceRuntime(configuration, "development", {
+      expectedInputHash: plan.plan.inputHash,
+      pool: {
+        connect: async () => {
+          throw new Error("unexpected database access");
+        },
+      },
+      fetch: async () => {
+        throw new Error("Vault must not be called");
+      },
+      resolveSecret: (value, slot) => {
+        seen.push(slot);
+        return value.kind === "secret"
+          ? "resolved-caller-value"
+          : "https://gateway.invalid";
+      },
+    });
+    assert.equal(runtime.state, "stopped");
+    assert.ok(
+      seen.includes("acls.Sales.Gateway.Authorize.headers.Authorization"),
+    );
+    assert.equal(
+      seen.some((slot) => slot.startsWith("secrets.")),
+      false,
+    );
+  }
 });
