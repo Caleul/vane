@@ -160,3 +160,48 @@ it("CLI inspects Event and computes deterministic migration diff without secrets
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+it("rejects Vault references that its installed resolver cannot execute", () => {
+  const base = phaseFiveConfiguration();
+  const acls = base.profiles.development.acls;
+  assert.ok(acls);
+  const mapping = acls["Sales.Gateway.Authorize"];
+  assert.ok(mapping);
+  for (const name of [
+    "gateway-token",
+    "app//token#value",
+    "app/../token#value",
+    "app/token.value#value",
+  ]) {
+    const c = phaseFiveConfiguration({
+      secrets: {
+        provider: "vault-kv-v2",
+        address: env("VAULT_ADDR"),
+        token: env("VAULT_TOKEN"),
+        mount: "secret",
+        timeoutMs: 100,
+      },
+      acls: {
+        "Sales.Gateway.Authorize": {
+          ...mapping,
+          headers: { Authorization: { kind: "secret", name } },
+        },
+      },
+    });
+    const compiled = compileServiceConfiguration(c, "production");
+    assert.equal(
+      compiled.success,
+      false,
+      `Unexpected valid Vault reference: ${name}`,
+    );
+  }
+  const custom = phaseFiveConfiguration({
+    acls: {
+      "Sales.Gateway.Authorize": {
+        ...mapping,
+        headers: { Authorization: { kind: "secret", name: "gateway-token" } },
+      },
+    },
+  });
+  assert.equal(compileServiceConfiguration(custom, "production").success, true);
+});

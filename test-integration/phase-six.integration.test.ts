@@ -329,3 +329,97 @@ it("retrying compensation remains durable and does not publish an early terminal
       2,
     );
   }, 100));
+
+it("upgrades the phase-five outbox constraint with reviewed migration and retains accepted work", async () => {
+  const { approvePostgreSqlMigrationPlan } = await import("../src/index.js");
+  await withTestDatabase("phase6_upgrade", async (db) => {
+    const base = phaseFiveConfiguration();
+    const p = base.profiles.development;
+    assert.ok(p.topology);
+    const configuration = phaseFiveConfiguration({
+      topology: {
+        ...p.topology,
+        service: {
+          ...p.topology.service,
+          persistence: {
+            ...p.topology.service.persistence,
+            namespace: db.schema,
+          },
+        },
+      },
+    });
+    const compiled = compileServiceConfiguration(configuration, "test");
+    assert.ok(compiled.success);
+    const next = compiled.plan.storage;
+    const previous = {
+      ...next,
+      tables: next.tables.map((t) =>
+        t.semanticId === "vane.infrastructure.outbox"
+          ? {
+              ...t,
+              constraints: t.constraints.map((c) =>
+                c.expression?.includes("'failed'")
+                  ? { ...c, expression: c.expression.replace(", 'failed'", "") }
+                  : c,
+              ),
+            }
+          : t,
+      ),
+    };
+    await applyPostgreSqlMigrationPlan(
+      db.pool,
+      createPostgreSqlMigrationPlan({ previous: null, next: previous }),
+    );
+    const sagaTable = next.tables.find(
+      (t) => t.semanticId === "vane.infrastructure.sagas",
+    );
+    assert.ok(sagaTable);
+    const sagaId = randomUUID();
+    await db.query(
+      `INSERT INTO ${db.qualifiedSchema}."${sagaTable.name}" (saga_id,saga_identity,state) VALUES ($1,'retained',$2::jsonb)`,
+      [
+        sagaId,
+        JSON.stringify({
+          schema: "vane.saga-state",
+          version: 1,
+          status: "registered",
+          steps: [],
+          terminal: null,
+        }),
+      ],
+    );
+    const migration = createPostgreSqlMigrationPlan({ previous, next });
+    assert.equal(migration.noOp, false);
+    const approval =
+      migration.classification === "safe"
+        ? undefined
+        : approvePostgreSqlMigrationPlan(migration, {
+            classification: migration.classification,
+            reason: "Reviewed additive outbox terminal status",
+          });
+    if (approval)
+      await assert.rejects(
+        applyPostgreSqlMigrationPlan(db.pool, migration),
+        /approval/i,
+      );
+    assert.equal(
+      (await applyPostgreSqlMigrationPlan(db.pool, migration, approval)).status,
+      "applied",
+    );
+    assert.equal(
+      (
+        await db.query(
+          `SELECT saga_id FROM ${db.qualifiedSchema}."${sagaTable.name}" WHERE saga_id=$1`,
+          [sagaId],
+        )
+      ).rowCount,
+      1,
+    );
+    const runtime = await createServiceRuntime(configuration, "test", {
+      pool: db.pool,
+      resolveSecret: async () => "https://gateway.invalid",
+    });
+    await runtime.start();
+    await runtime.stop();
+  });
+});

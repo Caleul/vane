@@ -24,6 +24,12 @@ export async function resolveEnvironmentSecret(
   if (!result) throw new SecretResolutionError();
   return result;
 }
+/** Shared by static compilation and the installed KV v2 resolver. */
+export function isVaultSecretReference(name: string): boolean {
+  return /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*#[A-Za-z_][A-Za-z0-9_-]*$/.test(
+    name,
+  );
+}
 /** Names use path#field. No caching: a fresh runtime resolves rotated values. */
 export async function createVaultSecretResolver(
   configuration: VaultConfiguration,
@@ -56,7 +62,7 @@ export async function createVaultSecretResolver(
           parts.length !== 2 ||
           !path ||
           !field ||
-          path.split("/").some((s) => !/^[a-zA-Z0-9_-]+$/.test(s))
+          !isVaultSecretReference(value.name)
         )
           throw new SecretResolutionError();
         const response = await transport(

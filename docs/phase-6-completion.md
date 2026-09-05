@@ -17,7 +17,7 @@ f553e08 includes phases 1–5. See [design decisions](phase-6-design.md),
 ## Validation
 
 Node 24.13.0: lint, strict types, positive/negative public type fixtures, build and
-225 unit tests passed. PostgreSQL 16.15: 45 integration tests passed, including
+226 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
 all prior phases. The CLI test runs separate operating-system processes and
 verifies successful signal shutdown and terminal replay after restart.
 
@@ -45,3 +45,12 @@ Local smoke resources were removed; no remote infrastructure was applied.
   other production databases/runtimes and public progress remain outside v0.1.
 
 PR review and any resulting corrections are recorded in the PR history.
+
+## PR review corrections
+
+Codex identified a mismatch between static Vault reference validation and the
+installed resolver. A failing regression reproduced acceptance of a missing
+field selector. Both boundaries now share path#field validation, including
+rejection of empty/traversal/dotted path segments; custom resolvers retain their
+existing symbolic-name contract. The upgrade integration also proves the
+reviewed outbox constraint migration preserves preexisting Saga records.

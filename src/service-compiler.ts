@@ -15,6 +15,7 @@ import type { PostgreSqlSagaRuntime } from "./postgresql/saga-runtime.js";
 import type { PostgreSqlStorageIr } from "./postgresql/storage-ir.js";
 import { materializePublicEventPlan } from "./saga-plan.js";
 import { type SagaPlan, materializeSagaPlan } from "./saga-plan.js";
+import { isVaultSecretReference } from "./secrets.js";
 import {
   BUILTIN_PROVIDERS,
   type ExecutionPolicy,
@@ -413,17 +414,15 @@ function compile(
       bindings.push({ slot, source: "literal" });
     } else {
       if (
-        !(
-          value.kind === "secret"
-            ? /^[A-Za-z_][A-Za-z0-9_.\/-]*(?:#[A-Za-z_][A-Za-z0-9_-]*)?$/
-            : /^[A-Za-z_][A-Za-z0-9_]*$/
-        ).test(value.name)
+        !(value.kind === "secret" && profile.secrets
+          ? isVaultSecretReference(value.name)
+          : /^[A-Za-z_][A-Za-z0-9_.\/-]*$/.test(value.name))
       )
         issue(
           "SECRET_REFERENCE",
           [slot],
           "Secret reference name is invalid.",
-          "Use a symbolic identifier, never a credential or URL.",
+          "Use a symbolic identifier; Vault KV v2 references require path#field with alphanumeric, underscore or hyphen segments.",
         );
       bindings.push({ slot, source: value.kind, name: value.name });
     }
