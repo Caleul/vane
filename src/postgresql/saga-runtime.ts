@@ -4,6 +4,7 @@ import type { AclEventRuntime } from "../acl-runtime.js";
 import type { JsonValue } from "../declaration.js";
 import {
   DEFAULT_EXECUTION_POLICY,
+  isExecutionPolicy,
   retryDelay,
   retryableFailure,
   transientPostgreSqlFailure,
@@ -199,10 +200,21 @@ export interface PostgreSqlSagaRuntimeOptions {
 export class PostgreSqlSagaRuntime {
   readonly #plans: ReadonlyMap<string, SagaPlan>;
   readonly #store: PostgreSqlSagaStore;
+  readonly #policies: Readonly<Record<string, ExecutionPolicy>>;
   #stopping = false;
   #loop: Promise<void> | null = null;
   #active = new Set<Promise<boolean>>();
   constructor(readonly options: PostgreSqlSagaRuntimeOptions) {
+    const policies =
+      options.policies === undefined ? {} : structuredClone(options.policies);
+    if (
+      !policies ||
+      typeof policies !== "object" ||
+      Array.isArray(policies) ||
+      Object.values(policies).some((policy) => !isExecutionPolicy(policy))
+    )
+      throw new SagaStateError("Execution policy is invalid.");
+    this.#policies = policies;
     for (const plan of options.plans) {
       assertSagaPlan(plan);
       const imported = plan.importedHashes ?? {};
@@ -337,7 +349,7 @@ export class PostgreSqlSagaRuntime {
       input: structuredClone(input),
       status: "running",
       steps: records,
-      policies: structuredClone(this.options.policies ?? {}),
+      policies: structuredClone(this.#policies),
       fail: null,
       terminal: null,
     });

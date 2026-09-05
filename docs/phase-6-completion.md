@@ -17,7 +17,7 @@ f553e08 includes phases 1–5. See [design decisions](phase-6-design.md),
 ## Validation
 
 Node 24.13.0: lint, strict types, positive/negative public type fixtures, build and
-234 unit tests passed. PostgreSQL 16.15: 47 integration tests passed, including
+237 unit tests passed. PostgreSQL 16.15: 47 integration tests passed, including
 all prior phases. The CLI test runs separate operating-system processes and
 verifies successful signal shutdown and terminal replay after restart.
 
@@ -91,3 +91,9 @@ Failure inspection prioritizes unresolved work and supports CLI/API pagination.
 The real-process CLI regression seeds 101 resolved historical failures and two
 unresolved failures, then verifies default visibility, subsequent pages and
 rejection of invalid offsets. Retention no longer hides current failures.
+
+Outbox policies are validated and copied before claiming any work, including
+bounds, retry strategy and required durability guarantees. Invalid JavaScript or
+deserialized input cannot connect to storage or publish. Caller mutation during
+claim cannot change the retry budget. The low-level Saga API validates and copies
+its policy catalog at installation as well.

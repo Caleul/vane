@@ -140,3 +140,9 @@ within each group, with a stable failure-ID tie-breaker. The default page has 10
 records; `--limit` accepts 1–1000 and `--offset` selects later pages. The internal
 API exposes the same `failures(limit, offset)` arguments. Offset pages are live,
 so concurrent insertions or resolutions can move records between pages.
+
+
+The low-level outbox and Saga APIs reject malformed complete execution policies
+before touching durable work. Outbox captures a policy per dispatch, and Saga
+captures its policy catalog when installed; later mutation by the caller does
+not change those execution decisions.

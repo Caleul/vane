@@ -550,3 +550,47 @@ it("contains asynchronous telemetry rejection without changing execution", async
   assert.equal(telemetry.exporterFailures, 1);
   assert.equal(telemetry.metrics()["event.success"]?.count, 1);
 });
+
+it("rejects invalid low-level Saga policy catalogs before admission", () => {
+  const compiled = compileServiceConfiguration(
+    phaseFiveConfiguration(),
+    "test",
+  );
+  assert.ok(compiled.success);
+  const store = new PostgreSqlSagaStore(
+    {
+      connect: async () => {
+        throw new Error("must not connect");
+      },
+    },
+    compiled.plan.storage,
+  );
+  const events = {
+    semanticHash: "unused",
+    dispatch: async () => {
+      throw new Error("must not dispatch");
+    },
+  };
+  const views = {
+    semanticHash: "unused",
+    execute: async () => {
+      throw new Error("must not query");
+    },
+  };
+  assert.throws(
+    () =>
+      new PostgreSqlSagaRuntime({
+        plans: [],
+        store,
+        events,
+        views,
+        policies: {
+          "Order.Place": {
+            ...DEFAULT_EXECUTION_POLICY,
+            retry: { ...DEFAULT_EXECUTION_POLICY.retry, attempts: 0 },
+          },
+        },
+      }),
+    /Execution policy is invalid/,
+  );
+});

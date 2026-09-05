@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { retryDelay } from "../execution-policy.js";
+import { isExecutionPolicy, retryDelay } from "../execution-policy.js";
 import type { ExecutionPolicy } from "../service-configuration.js";
 import type { RuntimeTelemetry } from "../telemetry.js";
 import { type EventEnvelope, assertValidEventEnvelope } from "./envelope.js";
@@ -177,6 +177,12 @@ export class PostgreSqlOutboxDispatcher {
   async dispatch(
     request: DispatchOutboxRequest,
   ): Promise<DispatchOutboxReport> {
+    const policy =
+      request.policy === undefined
+        ? undefined
+        : structuredClone(request.policy);
+    if (policy !== undefined && !isExecutionPolicy(policy))
+      throw new InvalidOutboxClaimError("Execution policy is invalid.");
     const claims = await this.claim(request);
     let published = 0;
     let rescheduled = 0;
@@ -198,7 +204,7 @@ export class PostgreSqlOutboxDispatcher {
           );
         else await work();
       } catch (error) {
-        if (request.policy && claim.attempt >= request.policy.retry.attempts) {
+        if (policy && claim.attempt >= policy.retry.attempts) {
           await this.#exhaust(claim, request.workerId);
           exhausted++;
           continue;
@@ -208,9 +214,9 @@ export class PostgreSqlOutboxDispatcher {
           messageId: claim.messageId,
           workerId: request.workerId,
           leaseToken: claim.leaseToken,
-          availableAt: request.policy
+          availableAt: policy
             ? new Date(
-                Date.now() + retryDelay(request.policy, claim.attempt),
+                Date.now() + retryDelay(policy, claim.attempt),
               ).toISOString()
             : request.retryAt(claim, error),
           error: "Outbox publication failed.",
@@ -235,7 +241,7 @@ export class PostgreSqlOutboxDispatcher {
       claimed: claims.length,
       published,
       rescheduled,
-      ...(request.policy ? { exhausted } : {}),
+      ...(policy ? { exhausted } : {}),
     };
   }
 

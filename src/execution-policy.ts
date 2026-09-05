@@ -48,3 +48,37 @@ export function transientPostgreSqlFailure(error: unknown): string | null {
     return "VANE_EVENT_UNAVAILABLE";
   return null;
 }
+
+/** Full policy validation for JavaScript and deserialized runtime callers. */
+export function isExecutionPolicy(value: unknown): value is ExecutionPolicy {
+  const record = (v: unknown): v is Record<string, unknown> =>
+    typeof v === "object" && v !== null && !Array.isArray(v);
+  const bounded = (v: unknown, minimum: number): v is number =>
+    typeof v === "number" &&
+    Number.isSafeInteger(v) &&
+    v >= minimum &&
+    v <= 2147483647;
+  if (
+    !record(value) ||
+    Object.keys(value).some(
+      (key) =>
+        !["timeoutMs", "retry", "idempotency", "deduplication"].includes(key),
+    )
+  )
+    return false;
+  const retry = value.retry;
+  return (
+    bounded(value.timeoutMs, 1) &&
+    value.idempotency === "required" &&
+    value.deduplication === "durable" &&
+    record(retry) &&
+    !Object.keys(retry).some(
+      (key) => !["attempts", "backoff", "delayMs", "maxDelayMs"].includes(key),
+    ) &&
+    bounded(retry.attempts, 1) &&
+    (retry.backoff === "fixed" || retry.backoff === "exponential") &&
+    bounded(retry.delayMs, 0) &&
+    bounded(retry.maxDelayMs, 0) &&
+    retry.maxDelayMs >= retry.delayMs
+  );
+}
