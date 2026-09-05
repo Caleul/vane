@@ -6,6 +6,7 @@ import type {
   ViewValueDeclaration,
 } from "../declaration.js";
 import { hashSemanticModule } from "../module-fingerprint.js";
+import { importedModuleHashes } from "../module-scope.js";
 import type { SemanticModule, SemanticView } from "../semantic-ir.js";
 import type { RuntimeTelemetry } from "../telemetry.js";
 import {
@@ -71,6 +72,10 @@ export class PostgreSqlViewRuntime {
 
   get semanticHash(): string {
     return hashSemanticModule(this.#module);
+  }
+
+  get importedHashes(): Readonly<Record<string, string>> {
+    return importedModuleHashes(this.#module, this.#modules);
   }
 
   async execute(request: ExecuteViewInput): Promise<ViewExecutionResult> {

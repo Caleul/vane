@@ -703,7 +703,7 @@ function compile(
           "Associate the public ACL Event with a declared Saga.",
         );
       if (!operation.saga) {
-        sagaPlans.push(materializePublicEventPlan(module, operation));
+        sagaPlans.push(materializePublicEventPlan(module, operation, modules));
         continue;
       }
       const plan = sagaPlans.find(

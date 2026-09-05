@@ -4,7 +4,7 @@ import { validateAclAdapter } from "./acl-runtime.js";
 import type { JsonValue } from "./declaration.js";
 import { validatePublicInput } from "./http-runtime.js";
 import { hashSemanticModule } from "./module-fingerprint.js";
-import { moduleScope } from "./module-scope.js";
+import { importedModuleHashes, moduleScope } from "./module-scope.js";
 import { canonicalJson } from "./postgresql/envelope.js";
 import type {
   SemanticEventInput,
@@ -153,11 +153,7 @@ export function materializeSagaPlan(
     semanticHash: hashSemanticModule(module),
     ...(scope.length > 1
       ? {
-          importedHashes: Object.fromEntries(
-            scope
-              .filter((m) => m.name !== module.name)
-              .map((m) => [m.name, hashSemanticModule(m)]),
-          ),
+          importedHashes: importedModuleHashes(module, modules),
         }
       : {}),
     saga: saga.name,
@@ -259,12 +255,15 @@ export function assertSagaPlan(plan: SagaPlan): void {
 export function materializePublicEventPlan(
   module: SemanticModule,
   operation: import("./contract-ir.js").ContractEventOperation,
+  modules: readonly SemanticModule[] = [module],
 ): SagaPlan {
+  const importedHashes = importedModuleHashes(module, modules);
   const content: Omit<SagaPlan, "hash"> = {
     schema: "vane.saga-plan",
     version: 1,
     module: module.name,
     semanticHash: hashSemanticModule(module),
+    ...(Object.keys(importedHashes).length ? { importedHashes } : {}),
     saga: `vane.event.${operation.identity}`,
     input: operation.input.map(({ name, type, optional }) => ({
       name,

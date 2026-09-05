@@ -1,3 +1,4 @@
+import { hashSemanticModule } from "./module-fingerprint.js";
 import type { SemanticModule } from "./semantic-ir.js";
 
 /** Explicit import closure only; no implicit access to neighboring Modules. */
@@ -31,4 +32,15 @@ export function moduleScope(
     }
   }
   return scope;
+}
+
+export function importedModuleHashes(
+  module: SemanticModule,
+  modules: readonly SemanticModule[],
+): Readonly<Record<string, string>> {
+  return Object.fromEntries(
+    moduleScope(module, modules)
+      .filter((m) => m.name !== module.name)
+      .map((m) => [m.name, hashSemanticModule(m)]),
+  );
 }

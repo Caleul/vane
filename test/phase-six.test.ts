@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   DEFAULT_EXECUTION_POLICY,
+  PostgreSqlSagaRuntime,
+  PostgreSqlSagaStore,
   RuntimeTelemetry,
   compileServiceConfiguration,
   createServiceRuntime,
@@ -9,6 +11,7 @@ import {
   env,
   generateServiceDeployment,
   localSecret,
+  materializeSagaPlan,
   monolith,
   node,
   postgres,
@@ -16,6 +19,7 @@ import {
 } from "../src/index.js";
 import { PostgreSqlOperations } from "../src/postgresql/operations.js";
 import { phaseFiveConfiguration } from "./phase-five-fixture.js";
+import { phaseFourModule } from "./phase-four-fixture.js";
 
 describe("phase six policies and secrets", () => {
   it("caps exponential backoff", () => {
@@ -364,4 +368,99 @@ it("lets an explicit caller resolver override Vault for symbolic and Vault names
       false,
     );
   }
+});
+
+it("rejects missing or stale imported hashes before installing a Saga plan", () => {
+  const root = { ...phaseFourModule(), imports: ["Billing"] };
+  const billing = {
+    ...phaseFourModule(),
+    name: "Billing",
+    imports: [],
+    entities: [],
+    views: [],
+    sagas: [],
+    antiCorruptionLayers: [],
+  };
+  const plan = materializeSagaPlan(
+    root,
+    "PlaceOrder",
+    {},
+    [
+      {
+        eventIdentity: "Gateway.Authorize",
+        version: "1",
+        results: ["approved", "declined"],
+        idempotency: "eventId",
+        execute: async () => ({
+          result: "approved",
+          data: { reference: "ok" },
+        }),
+      },
+    ],
+    [root, billing],
+  );
+  const compiled = compileServiceConfiguration(
+    phaseFiveConfiguration(),
+    "test",
+  );
+  assert.ok(compiled.success);
+  const store = new PostgreSqlSagaStore(
+    {
+      connect: async () => {
+        throw new Error("must not connect");
+      },
+    },
+    compiled.plan.storage,
+  );
+  assert.ok(plan.importedHashes);
+  const events = {
+    semanticHash: plan.semanticHash,
+    importedHashes: plan.importedHashes,
+    dispatch: async () => {
+      throw new Error("must not dispatch");
+    },
+  };
+  const views = {
+    semanticHash: plan.semanticHash,
+    importedHashes: plan.importedHashes,
+    execute: async () => {
+      throw new Error("must not query");
+    },
+  };
+  const acls = {
+    bindings: plan.adapters,
+    dispatch: async () => {
+      throw new Error("must not dispatch");
+    },
+  };
+  for (const hashes of [{}, { Billing: "changed" }]) {
+    const changedEvents = { ...events, importedHashes: hashes };
+    assert.throws(
+      () =>
+        new PostgreSqlSagaRuntime({
+          plans: [plan],
+          store,
+          events: changedEvents,
+          views,
+          acls,
+        }),
+      /imported/,
+    );
+    const changedViews = { ...views, importedHashes: hashes };
+    assert.throws(
+      () =>
+        new PostgreSqlSagaRuntime({
+          plans: [plan],
+          store,
+          events,
+          views: changedViews,
+          acls,
+        }),
+      /imported/,
+    );
+  }
+  assert.doesNotThrow(
+    () =>
+      new PostgreSqlSagaRuntime({ plans: [plan], store, events, views, acls }),
+  );
 });

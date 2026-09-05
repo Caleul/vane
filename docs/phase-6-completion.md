@@ -17,7 +17,7 @@ f553e08 includes phases 1–5. See [design decisions](phase-6-design.md),
 ## Validation
 
 Node 24.13.0: lint, strict types, positive/negative public type fixtures, build and
-231 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
+232 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
 all prior phases. The CLI test runs separate operating-system processes and
 verifies successful signal shutdown and terminal replay after restart.
 
@@ -68,3 +68,10 @@ token now follow the shared redaction path. Embedded compilation can explicitly
 select caller resolver validation, matching runtime precedence, while standalone
 configuration still requires valid Vault selectors. Artifact and runtime tests
 prove both fixes and preserve the deployment hash check.
+
+The final runtime review also reproduced installation of stale imported-module
+semantics. Saga construction now verifies the complete imported hash inventory
+against both installed Event and View runtimes; missing or changed inventories
+fail before database access. Standalone public plans carry the same import
+fingerprints. The regression covers missing/stale fingerprints on both runtime
+boundaries and acceptance of matching fingerprints.

@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { AclEventRuntime, httpAclAdapter } from "./acl-runtime.js";
 import { PublicHttpRuntime, createNodeHttpHandler } from "./http-runtime.js";
 import { hashSemanticModule } from "./module-fingerprint.js";
-import { moduleScope } from "./module-scope.js";
+import { importedModuleHashes, moduleScope } from "./module-scope.js";
 import { PostgreSqlModuleRuntime } from "./postgresql/module-runtime.js";
 import { PostgreSqlOperations } from "./postgresql/operations.js";
 import { PostgreSqlPublicSagaAdmission } from "./postgresql/public-saga-admission.js";
@@ -197,6 +197,10 @@ export async function createServiceRuntime<P extends string>(
         aclDispatchers.set(module.name, acls);
         const scopedEvents = {
           semanticHash: hashSemanticModule(module),
+          importedHashes: importedModuleHashes(
+            module,
+            snapshot.project.modules,
+          ),
           dispatch: (
             envelope: Parameters<PostgreSqlModuleRuntime["dispatch"]>[0],
             timeoutMs?: number,

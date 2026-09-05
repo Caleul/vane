@@ -117,3 +117,10 @@ records per CLI invocation. Saga/terminal/mailbox receipts and unpublished
 outbox entries are retained indefinitely. There is no background cleanup.
 
 See the [reference quickstart](../examples/sales-billing/README.md).
+
+
+Low-level cross-Module Saga wiring must expose `importedHashes` on its Event and
+View executors, calculated from the installed semantic Modules. Saga construction
+requires an exact match with the materialized plan and rejects missing hashes.
+The service runtime and PostgreSQL View runtime provide this inventory directly;
+single-Module callers remain compatible without it.

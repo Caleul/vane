@@ -187,9 +187,14 @@ export interface PostgreSqlSagaRuntimeOptions {
   readonly policies?: Readonly<Record<string, ExecutionPolicy>>;
   readonly plans: readonly SagaPlan[];
   readonly store: PostgreSqlSagaStore;
-  readonly events: Pick<PostgreSqlModuleRuntime, "dispatch" | "semanticHash">;
+  readonly events: Pick<
+    PostgreSqlModuleRuntime,
+    "dispatch" | "semanticHash"
+  > & { readonly importedHashes?: Readonly<Record<string, string>> };
   readonly acls?: Pick<AclEventRuntime, "dispatch" | "bindings">;
-  readonly views: Pick<PostgreSqlViewRuntime, "execute" | "semanticHash">;
+  readonly views: Pick<PostgreSqlViewRuntime, "execute" | "semanticHash"> & {
+    readonly importedHashes?: Readonly<Record<string, string>>;
+  };
 }
 export class PostgreSqlSagaRuntime {
   readonly #plans: ReadonlyMap<string, SagaPlan>;
@@ -200,6 +205,21 @@ export class PostgreSqlSagaRuntime {
   constructor(readonly options: PostgreSqlSagaRuntimeOptions) {
     for (const plan of options.plans) {
       assertSagaPlan(plan);
+      const imported = plan.importedHashes ?? {};
+      for (const installed of [
+        options.events.importedHashes ?? {},
+        options.views.importedHashes ?? {},
+      ]) {
+        if (
+          Object.keys(installed).length !== Object.keys(imported).length ||
+          Object.entries(imported).some(
+            ([name, hash]) => installed[name] !== hash,
+          )
+        )
+          throw new SagaStateError(
+            "Saga plan imported semantics differ from the installed Event or View runtime.",
+          );
+      }
       if (
         plan.semanticHash !== options.events.semanticHash ||
         plan.semanticHash !== options.views.semanticHash
