@@ -7,8 +7,12 @@ import {
   createVaultSecretResolver,
   env,
   localSecret,
+  monolith,
+  node,
+  postgres,
   retryDelay,
 } from "../src/index.js";
+import { PostgreSqlOperations } from "../src/postgresql/operations.js";
 import { phaseFiveConfiguration } from "./phase-five-fixture.js";
 
 describe("phase six policies and secrets", () => {
@@ -204,4 +208,78 @@ it("rejects Vault references that its installed resolver cannot execute", () => 
     },
   });
   assert.equal(compileServiceConfiguration(custom, "production").success, true);
+});
+
+it("rejects ambiguous imported Event owners before policy resolution", () => {
+  const configuration = phaseFiveConfiguration();
+  const sales = configuration.project.modules[0];
+  assert.ok(sales);
+  const billing = {
+    ...sales,
+    name: "Billing",
+    imports: [],
+    antiCorruptionLayers: [],
+    sagas: [],
+    views: [],
+  };
+  const result = compileServiceConfiguration(
+    {
+      ...configuration,
+      project: {
+        ...configuration.project,
+        modules: [{ ...sales, imports: ["Billing"] }, billing],
+      },
+      profiles: {
+        ...configuration.profiles,
+        test: {
+          ...configuration.profiles.test,
+          topology: monolith({
+            name: "api",
+            modules: ["Sales", "Billing"],
+            runtime: node(),
+            persistence: {
+              provider: postgres(),
+              namespace: "vane_five",
+              targetVersion: 16,
+              connection: env("DATABASE_URL"),
+            },
+          }),
+        },
+      },
+    },
+    "test",
+  );
+  assert.equal(result.success, false);
+  if (!result.success)
+    assert.equal(result.diagnostics[0]?.code, "VANE_SVC_IMPORT_SCOPE");
+});
+
+it("preserves the operation error when rollback also fails", async () => {
+  const compiled = compileServiceConfiguration(
+    phaseFiveConfiguration(),
+    "test",
+  );
+  assert.ok(compiled.success);
+  const original = new Error("operation failed");
+  let released = false;
+  const operations = new PostgreSqlOperations(
+    {
+      connect: async () => ({
+        query: async (sql: string) => {
+          if (sql === "BEGIN") return { rows: [], rowCount: 0 };
+          if (sql === "ROLLBACK") throw new Error("connection lost");
+          throw original;
+        },
+        release: () => {
+          released = true;
+        },
+      }),
+    },
+    compiled.plan.storage,
+  );
+  await assert.rejects(
+    operations.retryOutboxFailure("failure"),
+    (error) => error === original,
+  );
+  assert.equal(released, true);
 });

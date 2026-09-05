@@ -109,7 +109,7 @@ export class PostgreSqlOperations {
       await c.query("COMMIT");
       return true;
     } catch (error) {
-      await c.query("ROLLBACK");
+      await c.query("ROLLBACK").catch(() => {});
       throw error;
     } finally {
       c.release();

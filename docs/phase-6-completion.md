@@ -17,7 +17,7 @@ f553e08 includes phases 1–5. See [design decisions](phase-6-design.md),
 ## Validation
 
 Node 24.13.0: lint, strict types, positive/negative public type fixtures, build and
-226 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
+229 unit tests passed. PostgreSQL 16.15: 46 integration tests passed, including
 all prior phases. The CLI test runs separate operating-system processes and
 verifies successful signal shutdown and terminal replay after restart.
 
@@ -54,3 +54,10 @@ field selector. Both boundaries now share path#field validation, including
 rejection of empty/traversal/dotted path segments; custom resolvers retain their
 existing symbolic-name contract. The upgrade integration also proves the
 reviewed outbox constraint migration preserves preexisting Saga records.
+
+The complementary review also hardened raw Semantic IR import scopes against
+ambiguous Event owners, preventing policy and executor collisions before runtime.
+Operational CLI failures emit safe codes; outbox construction requires its real
+failure table, and failed rollback cannot hide the original operation error.
+Regression tests cover ambiguous scopes, missing failure storage and rollback
+failure; the negative Vault provider type fixture now supplies all other fields.

@@ -129,6 +129,14 @@ export async function operationalCommand(
     await runtime.start();
     const server = createServer((req, res) => {
       void runtime.handler(req, res).catch(() => {
+        runtime.telemetry.record(
+          "http.handler",
+          { code: "VANE_HTTP_HANDLER_FAILED" },
+          "fail",
+        );
+        process.stderr.write(
+          "VANE_HTTP_HANDLER_FAILED: request processing failed.\n",
+        );
         if (!res.headersSent) res.writeHead(500);
         res.end();
       });
@@ -161,6 +169,14 @@ export async function operationalCommand(
         inputHash: plan.inputHash,
       });
       void runtime.runWorkers().catch(() => {
+        runtime.telemetry.record(
+          "worker",
+          { code: "VANE_WORKER_FAILED" },
+          "fail",
+        );
+        process.stderr.write(
+          "VANE_WORKER_FAILED: worker stopped unexpectedly.\n",
+        );
         process.exitCode = 1;
         void stop();
       });

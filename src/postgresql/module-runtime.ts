@@ -154,7 +154,7 @@ export class PostgreSqlModuleRuntime {
   #startPromise: Promise<void> | null = null;
   #stopPromise: Promise<void> | null = null;
 
-  constructor(readonly options: PostgreSqlModuleRuntimeOptions) {
+  constructor(private readonly options: PostgreSqlModuleRuntimeOptions) {
     this.#module = options.module;
     this.#pool = options.pool;
     this.#storage = options.storage;

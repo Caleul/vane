@@ -25,7 +25,15 @@ void createVaultSecretResolver({
 }).then((resolve) => resolve(secret("app/db#password")));
 // @ts-expect-error unsupported exporter cannot silently activate telemetry
 const bad: ServiceProfile = { telemetry: { exporter: "automatic" } };
-// @ts-expect-error provider is explicit and restricted to implemented Vault KV v2
-const badVault: ServiceProfile = { secrets: { provider: "automatic" } };
+const badVault: ServiceProfile = {
+  secrets: {
+    // @ts-expect-error provider is explicit and restricted to implemented Vault KV v2
+    provider: "automatic",
+    address: env("VAULT_ADDR"),
+    token: env("VAULT_TOKEN"),
+    mount: "secret",
+    timeoutMs: 5000,
+  },
+};
 void bad;
 void badVault;

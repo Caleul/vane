@@ -58,6 +58,15 @@ const storage: PostgreSqlStorageIr = {
   provider: { name: "postgresql", minimumVersion: 16, namespace: "vane" },
   tables: [
     {
+      semanticId: "vane.infrastructure.failures",
+      module: null,
+      name: "__vane_failures",
+      technical: true,
+      columns: [],
+      constraints: [],
+      indexes: [],
+    },
+    {
       semanticId: "vane.infrastructure.outbox",
       module: null,
       name: "__vane_outbox",
@@ -77,6 +86,25 @@ const envelope = createEventEnvelope({
 });
 
 describe("PostgreSQL outbox delivery", () => {
+  it("rejects a missing failure queue before claiming work", () => {
+    assert.throws(
+      () =>
+        new PostgreSqlOutboxDispatcher(
+          {
+            connect: async () => {
+              throw new Error("must not connect");
+            },
+          },
+          {
+            ...storage,
+            tables: storage.tables.filter(
+              (t) => t.semanticId !== "vane.infrastructure.failures",
+            ),
+          },
+        ),
+      /failure queue/,
+    );
+  });
   it("claims due work with SKIP LOCKED and a fenced lease", async () => {
     const client = new QueueClient([
       response(),

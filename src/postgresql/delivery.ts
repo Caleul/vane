@@ -99,9 +99,13 @@ export class PostgreSqlOutboxDispatcher {
   ) {
     this.#pool = pool;
     const failures = storage.tables.find(
-      (t) => t.semanticId === "vane.infrastructure.failures",
+      (t) => t.semanticId === "vane.infrastructure.failures" && t.technical,
     );
-    this.#failures = `${quotePostgreSqlIdentifier(storage.provider.namespace)}.${quotePostgreSqlIdentifier(failures?.name ?? "__vane_failures")}`;
+    if (!failures)
+      throw new InvalidOutboxClaimError(
+        "Storage IR has no technical failure queue table.",
+      );
+    this.#failures = `${quotePostgreSqlIdentifier(storage.provider.namespace)}.${quotePostgreSqlIdentifier(failures.name)}`;
     const table = storage.tables.find(
       (candidate) =>
         candidate.semanticId === OUTBOX_SEMANTIC_ID && candidate.technical,

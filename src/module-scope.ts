@@ -16,5 +16,19 @@ export function moduleScope(
     }
   };
   visit(module);
-  return [...found.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const scope = [...found.values()].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+  const owners = new Set<string>();
+  for (const visible of scope) {
+    for (const owner of [
+      ...visible.entities,
+      ...visible.antiCorruptionLayers,
+    ]) {
+      if (owners.has(owner.name))
+        throw new Error("Ambiguous imported Event owner.");
+      owners.add(owner.name);
+    }
+  }
+  return scope;
 }

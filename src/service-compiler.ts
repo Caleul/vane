@@ -1,9 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-  type AclEventAdapter,
-  httpAclAdapter,
-  validateAclAdapter,
-} from "./acl-runtime.js";
+import { httpAclAdapter, validateAclAdapter } from "./acl-runtime.js";
 import { type ContractIr, materializeContract } from "./contract-ir.js";
 import type { JsonValue } from "./declaration.js";
 import type { Diagnostic } from "./diagnostic.js";
@@ -13,8 +9,11 @@ import { materializePostgreSql } from "./postgresql/materializer.js";
 import { PostgreSqlPublicSagaAdmission } from "./postgresql/public-saga-admission.js";
 import type { PostgreSqlSagaRuntime } from "./postgresql/saga-runtime.js";
 import type { PostgreSqlStorageIr } from "./postgresql/storage-ir.js";
-import { materializePublicEventPlan } from "./saga-plan.js";
-import { type SagaPlan, materializeSagaPlan } from "./saga-plan.js";
+import {
+  type SagaPlan,
+  materializePublicEventPlan,
+  materializeSagaPlan,
+} from "./saga-plan.js";
 import { isVaultSecretReference } from "./secrets.js";
 import {
   BUILTIN_PROVIDERS,
@@ -305,6 +304,18 @@ function compile(
       "Every Module and Entity must have exactly one explicit owner.",
       "Map every compiled Module exactly once to the monolithic service.",
     );
+  for (const module of modules) {
+    try {
+      moduleScope(module, modules);
+    } catch {
+      issue(
+        "IMPORT_SCOPE",
+        ["project", "modules", module.name, "imports"],
+        "Imported Modules are missing or contain ambiguous Event owners.",
+        "Compile a semantic project with distinct visible Entity and ACL names and explicit imports.",
+      );
+    }
+  }
   if (!profile.communication || !profile.http)
     issue(
       "PROVIDERS_MISSING",
@@ -568,7 +579,6 @@ function compile(
   const sagaPlans: SagaPlan[] = [];
   const contracts: ContractIr[] = [];
   for (const module of modules) {
-    const moduleAdapters: AclEventAdapter[] = [];
     for (const event of module.antiCorruptionLayers.flatMap((a) => a.events)) {
       const identity = `${module.name}.${event.identity}`;
       knownAcls.add(identity);
@@ -621,7 +631,6 @@ function compile(
           headers: () => ({}),
         });
         validateAclAdapter(event, adapter);
-        moduleAdapters.push(adapter);
       } catch {
         issue(
           "ACL_MAPPING",
