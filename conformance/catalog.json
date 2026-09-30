@@ -1,0 +1,3327 @@
+{
+  "schema": "entity-event.conformance-catalog",
+  "version": 1,
+  "baseline": "v0.1-candidate",
+  "authority": [
+    "Vocabulary",
+    "Functional PRD v0.1",
+    "Validation & Release PRD Phase7",
+    "Decided implementation pivots"
+  ],
+  "requirements": [
+    {
+      "id": "EE-ENT-001",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "declarar Entity com nome único no Module.",
+      "precondition": "Two Entities in one Module, then a duplicate Entity name",
+      "action": "Compile both declarations and compare acceptance",
+      "expected": "declarar Entity com nome único no Module.",
+      "sources": [
+        {
+          "id": "FR-ENT-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 143
+        }
+      ],
+      "tests": ["semantic.entity-duplicate"]
+    },
+    {
+      "id": "EE-ENT-002",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "exigir identidade simples na v0.1.",
+      "precondition": "Entity with one identity, no identity, then multiple identities",
+      "action": "Compile each variant",
+      "expected": "exigir identidade simples na v0.1.",
+      "sources": [
+        {
+          "id": "FR-ENT-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 144
+        }
+      ],
+      "tests": ["semantic.identity-composite", "semantic.identity-missing"]
+    },
+    {
+      "id": "EE-ENT-003",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "mapear uma Entity para exatamente uma tabela.",
+      "precondition": "Module containing N distinct Entities and declared Columns",
+      "action": "Materialize PostgreSQL storage and count nontechnical tables and inspect rows after persistence",
+      "expected": "mapear uma Entity para exatamente uma tabela.",
+      "sources": [
+        {
+          "id": "FR-ENT-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 145
+        }
+      ],
+      "tests": ["persistence.entity-table", "postgres.physical-types-and-owner"]
+    },
+    {
+      "id": "EE-ENT-004",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "impedir ownership por mais de um serviço no mesmo perfil.",
+      "precondition": "Profile assigning one Entity to two services",
+      "action": "Compile the profile",
+      "expected": "impedir ownership por mais de um serviço no mesmo perfil.",
+      "sources": [
+        {
+          "id": "FR-ENT-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 146
+        }
+      ],
+      "tests": [],
+      "evidenceGap": "Monolithic ownership validation is exercised elsewhere; rejection of the same Entity assigned to multiple services needs a supported multi-service representation or an explicit scope decision."
+    },
+    {
+      "id": "EE-ENT-005",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "permitir Events pertencentes à Entity.",
+      "precondition": "Entity with a named persistent Event",
+      "action": "Compile and inspect public Semantic IR ownership",
+      "expected": "permitir Events pertencentes à Entity.",
+      "sources": [
+        {
+          "id": "FR-ENT-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 147
+        }
+      ],
+      "tests": ["semantic.owner-event"]
+    },
+    {
+      "id": "EE-COL-001",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "suportar string, integer, decimal, boolean, date, datetime, UUID e JSON.",
+      "precondition": "Entities containing all eight normative Column types",
+      "action": "Compile and materialize PostgreSQL types",
+      "expected": "suportar string, integer, decimal, boolean, date, datetime, UUID e JSON.",
+      "sources": [
+        {
+          "id": "FR-COL-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 148
+        }
+      ],
+      "tests": ["persistence.column-types", "postgres.physical-types-and-owner"]
+    },
+    {
+      "id": "EE-COL-002",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "suportar nulabilidade, unicidade, mínimo, máximo, geração e valor padrão.",
+      "precondition": "Columns with nullable/unique/min/max/generated/default variants and conflicting values",
+      "action": "Compile, inspect constraints and execute boundary writes in PostgreSQL",
+      "expected": "suportar nulabilidade, unicidade, mínimo, máximo, geração e valor padrão.",
+      "sources": [
+        {
+          "id": "FR-COL-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 149
+        }
+      ],
+      "tests": [
+        "postgres.column-boundaries",
+        "postgres.datetime-default-startup"
+      ]
+    },
+    {
+      "id": "EE-COL-003",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "permitir referência tipada a outra Entity.",
+      "precondition": "Typed Column reference to an existing Entity identity and an incompatible reference",
+      "action": "Compile both variants and inspect reference",
+      "expected": "permitir referência tipada a outra Entity.",
+      "sources": [
+        {
+          "id": "FR-COL-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 150
+        }
+      ],
+      "tests": ["semantic.column-reference"]
+    },
+    {
+      "id": "EE-COL-004",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "validar compatibilidade de propriedades com o provider.",
+      "precondition": "Column configuration requiring unsupported provider capability",
+      "action": "Compile against the selected provider",
+      "expected": "validar compatibilidade de propriedades com o provider.",
+      "sources": [
+        {
+          "id": "FR-COL-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 151
+        }
+      ],
+      "tests": [
+        "persistence.unsupported-target",
+        "service.rejects-unenforceable-columns-and-rules"
+      ]
+    },
+    {
+      "id": "EE-COL-005",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "rejeitar configurações contraditórias.",
+      "precondition": "Contradictory nullable identity, range, generation/default and type configurations",
+      "action": "Compile each invalid declaration",
+      "expected": "rejeitar configurações contraditórias.",
+      "sources": [
+        {
+          "id": "FR-COL-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 152
+        }
+      ],
+      "tests": [
+        "semantic.column-contradiction",
+        "semantic.column-contradictions"
+      ]
+    },
+    {
+      "id": "EE-COL-006",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "permitir materialização física opcional pela ServiceConfiguration ou pelo provider.",
+      "precondition": "Column with optional physical materialization configuration supported by provider",
+      "action": "Compile two physical configurations and compare unchanged semantic meaning",
+      "expected": "permitir materialização física opcional pela ServiceConfiguration ou pelo provider.",
+      "sources": [
+        {
+          "id": "FR-COL-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 153
+        }
+      ],
+      "tests": [],
+      "evidenceGap": "The baseline optional physical-Column customization surface needs clarification: the public configuration currently exposes provider/namespace, but no independent Column physical override fixture has been identified."
+    },
+    {
+      "id": "EE-RUL-001",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "exigir pelo menos duas Columns.",
+      "precondition": "Rules referencing two distinct Columns and only one Column",
+      "action": "Compile both variants",
+      "expected": "exigir pelo menos duas Columns.",
+      "sources": [
+        {
+          "id": "FR-RUL-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 154
+        }
+      ],
+      "tests": ["semantic.rule-single-column"]
+    },
+    {
+      "id": "EE-RUL-002",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "exigir que todas pertençam à mesma Entity.",
+      "precondition": "Rule referencing local Columns and a different Entity Column",
+      "action": "Compile both variants",
+      "expected": "exigir que todas pertençam à mesma Entity.",
+      "sources": [
+        {
+          "id": "FR-RUL-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 155
+        }
+      ],
+      "tests": ["semantic.rule-foreign-column"]
+    },
+    {
+      "id": "EE-RUL-003",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "compilar para garantia no PostgreSQL.",
+      "precondition": "Valid two-Column Rule and violating record",
+      "action": "Generate PostgreSQL CHECK and attempt invalid persistence",
+      "expected": "compilar para garantia no PostgreSQL.",
+      "sources": [
+        {
+          "id": "FR-RUL-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 156
+        }
+      ],
+      "tests": [
+        "persistence.rule-ddl",
+        "postgres.rule-and-column-rejection",
+        "postgres.rule-column-order-startup"
+      ]
+    },
+    {
+      "id": "EE-RUL-004",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "falhar se o provider não puder garantir a Rule.",
+      "precondition": "Provider unable to enforce a declared Rule",
+      "action": "Compile/materialize with its insufficient capabilities",
+      "expected": "falhar se o provider não puder garantir a Rule.",
+      "sources": [
+        {
+          "id": "FR-RUL-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 157
+        }
+      ],
+      "tests": ["service.rejects-unenforceable-columns-and-rules"]
+    },
+    {
+      "id": "EE-RUL-005",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "impedir validação de Column única como Rule.",
+      "precondition": "Single-Column condition expressed as Rule instead of Column constraint",
+      "action": "Compile the declaration",
+      "expected": "impedir validação de Column única como Rule.",
+      "sources": [
+        {
+          "id": "FR-RUL-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+          "line": 158
+        }
+      ],
+      "tests": ["semantic.rule-single-column"]
+    },
+    {
+      "id": "EE-EVT-001",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "todo Event possui identidade estável `Owner.Event`.",
+      "precondition": "Entity and ACL each declaring a named Event",
+      "action": "Compile and inspect stable Owner.Event identities",
+      "expected": "todo Event possui identidade estável `Owner.Event`.",
+      "sources": [
+        {
+          "id": "FR-EVT-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 160
+        }
+      ],
+      "tests": ["causality.composed-domain", "semantic.owner-event"]
+    },
+    {
+      "id": "EE-EVT-002",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "aceita input tipado e, quando pertence a uma Entity, declara exatamente uma operação persistente.",
+      "precondition": "Entity Event with typed input and zero/one/multiple persistent operations",
+      "action": "Compile each declaration and typecheck the public input",
+      "expected": "aceita input tipado e, quando pertence a uma Entity, declara exatamente uma operação persistente.",
+      "sources": [
+        {
+          "id": "FR-EVT-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 161
+        }
+      ],
+      "tests": [
+        "semantic.exact-operation-and-input",
+        "semantic.operation-missing"
+      ]
+    },
+    {
+      "id": "EE-EVT-003",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "possui somente success e fail.",
+      "precondition": "Entity/ACL Event with successful, failed and invalid intermediate outcomes",
+      "action": "Execute and inspect each public terminal result",
+      "expected": "possui somente success e fail.",
+      "sources": [
+        {
+          "id": "FR-EVT-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 162
+        }
+      ],
+      "tests": []
+    },
+    {
+      "id": "EE-EVT-004",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "Event de Entity sempre realiza persistência.",
+      "precondition": "Valid Entity Event and instrumented real PostgreSQL database",
+      "action": "Execute Event and verify committed owner row before success",
+      "expected": "Event de Entity sempre realiza persistência.",
+      "sources": [
+        {
+          "id": "FR-EVT-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 163
+        }
+      ],
+      "tests": ["postgres.physical-types-and-owner"]
+    },
+    {
+      "id": "EE-EVT-005",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "Event de Entity persiste somente sua Entity.",
+      "precondition": "Owner Event attempting mutation of another Entity",
+      "action": "Compile invalid target and execute valid owner-only operation",
+      "expected": "Event de Entity persiste somente sua Entity.",
+      "sources": [
+        {
+          "id": "FR-EVT-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 164
+        }
+      ],
+      "tests": [
+        "postgres.physical-types-and-owner",
+        "semantic.operation-foreign-target"
+      ]
+    },
+    {
+      "id": "EE-EVT-006",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "para afetar outra Entity, ordena um Event dela.",
+      "precondition": "Two Entities connected through an ordered Event",
+      "action": "Execute first Event and verify second Entity changes only through its Event",
+      "expected": "para afetar outra Entity, ordena um Event dela.",
+      "sources": [
+        {
+          "id": "FR-EVT-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 165
+        }
+      ],
+      "tests": ["postgres.ordered-second-entity"]
+    },
+    {
+      "id": "EE-EVT-007",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "valores iguais não eliminam a escrita.",
+      "precondition": "Persisted row and Event assigning its current values",
+      "action": "Execute Event and verify actual database write occurred",
+      "expected": "valores iguais não eliminam a escrita.",
+      "sources": [
+        {
+          "id": "FR-EVT-007",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 166
+        }
+      ],
+      "tests": ["postgres.crud-and-concurrent-derived-write"]
+    },
+    {
+      "id": "EE-EVT-008",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "permite Columns técnicas automáticas.",
+      "precondition": "Entity with automatic technical Column",
+      "action": "Execute Event and observe automatically updated technical value",
+      "expected": "permite Columns técnicas automáticas.",
+      "sources": [
+        {
+          "id": "FR-EVT-008",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 167
+        }
+      ],
+      "tests": ["postgres.crud-and-concurrent-derived-write"]
+    },
+    {
+      "id": "EE-EVT-009",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "success pode indicar uma View terminal.",
+      "precondition": "Terminal Entity Event mapped to a View",
+      "action": "Compile and execute final query after Event completion",
+      "expected": "success pode indicar uma View terminal.",
+      "sources": [
+        {
+          "id": "FR-EVT-009",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 168
+        }
+      ],
+      "tests": ["postgres.http-terminal-stream-and-telemetry"]
+    },
+    {
+      "id": "EE-EVT-010",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "fail possui código estável, mensagem segura e correlação.",
+      "precondition": "Failed Event with unsafe underlying exception and correlation",
+      "action": "Observe stable code, safe message and preserved correlation",
+      "expected": "fail possui código estável, mensagem segura e correlação.",
+      "sources": [
+        {
+          "id": "FR-EVT-010",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 169
+        }
+      ],
+      "tests": ["postgres.rule-and-column-rejection"]
+    },
+    {
+      "id": "EE-EVT-011",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "Event não declara políticas técnicas.",
+      "precondition": "Event declaration containing retry/timeout/transport/provider settings",
+      "action": "Compile invalid semantic declaration",
+      "expected": "Event não declara políticas técnicas.",
+      "sources": [
+        {
+          "id": "FR-EVT-011",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 170
+        }
+      ],
+      "tests": ["semantic.technical-policy-rejection"]
+    },
+    {
+      "id": "EE-EVT-012",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "compensação referencia outro Event existente.",
+      "precondition": "Saga step with existing and missing compensation Event references",
+      "action": "Compile both graphs",
+      "expected": "compensação referencia outro Event existente.",
+      "sources": [
+        {
+          "id": "FR-EVT-012",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 171
+        }
+      ],
+      "tests": ["causality.dag-validation"]
+    },
+    {
+      "id": "EE-EVT-013",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "a operação persistente é parte semântica do Event e aparece no Semantic IR, nunca como callback ou configuração técnica.",
+      "precondition": "Entity Event with explicit persistent operation or callback/technical substitution",
+      "action": "Compile and inspect operation in Semantic IR; reject nonsemantic substitute",
+      "expected": "a operação persistente é parte semântica do Event e aparece no Semantic IR, nunca como callback ou configuração técnica.",
+      "sources": [
+        {
+          "id": "FR-EVT-013",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 172
+        }
+      ],
+      "tests": ["semantic.operation-missing", "semantic.owner-event"]
+    },
+    {
+      "id": "EE-EVT-014",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "a v0.1 suporta create, update, delete e upsert sobre a identidade simples da Entity dona.",
+      "precondition": "create/update/delete/upsert operations on single owner identity",
+      "action": "Compile all four and inspect validated operation forms",
+      "expected": "a v0.1 suporta create, update, delete e upsert sobre a identidade simples da Entity dona.",
+      "sources": [
+        {
+          "id": "FR-EVT-014",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 173
+        }
+      ],
+      "tests": [
+        "postgres.crud-and-concurrent-derived-write",
+        "semantic.operation-kinds"
+      ]
+    },
+    {
+      "id": "EE-EVT-015",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "valores da operação formam AST fechado e validável, composto por input, literal, Column atual e aritmética tipada mínima.",
+      "precondition": "Input/literal/current Column/arithmetic operation expressions plus unknown AST kind",
+      "action": "Compile positive and negative expression variants",
+      "expected": "valores da operação formam AST fechado e validável, composto por input, literal, Column atual e aritmética tipada mínima.",
+      "sources": [
+        {
+          "id": "FR-EVT-015",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 174
+        }
+      ],
+      "tests": [
+        "semantic.operation-kinds",
+        "semantic.operation-open-expression"
+      ]
+    },
+    {
+      "id": "EE-EVT-016",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "toda referência de input, Column, identidade e tipo da operação é validada antes da materialização; falha não produz IR parcial.",
+      "precondition": "Operation with missing input/Column, invalid identity and incompatible type",
+      "action": "Compile each variant and assert diagnostics with no partial IR",
+      "expected": "toda referência de input, Column, identidade e tipo da operação é validada antes da materialização; falha não produz IR parcial.",
+      "sources": [
+        {
+          "id": "FR-EVT-016",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+          "line": 175
+        }
+      ],
+      "tests": [
+        "semantic.invalid-operation-identity",
+        "semantic.operation-foreign-target",
+        "semantic.operation-unknown-input",
+        "semantic.operation-wrong-type"
+      ]
+    },
+    {
+      "id": "EE-VIEW-001",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "declarar input e output tipados.",
+      "precondition": "View with typed inputs and projected outputs",
+      "action": "Compile/typecheck and validate runtime query inputs/output types",
+      "expected": "declarar input e output tipados.",
+      "sources": [
+        {
+          "id": "FR-VIEW-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+          "line": 177
+        }
+      ],
+      "tests": []
+    },
+    {
+      "id": "EE-VIEW-002",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "possuir query obrigatória.",
+      "precondition": "View with and without query",
+      "action": "Compile both declarations",
+      "expected": "possuir query obrigatória.",
+      "sources": [
+        {
+          "id": "FR-VIEW-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+          "line": 178
+        }
+      ],
+      "tests": ["view.query-required"]
+    },
+    {
+      "id": "EE-VIEW-003",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "rejeitar persistência.",
+      "precondition": "View declaring persistence or mutation",
+      "action": "Compile invalid declaration",
+      "expected": "rejeitar persistência.",
+      "sources": [
+        {
+          "id": "FR-VIEW-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+          "line": 179
+        }
+      ],
+      "tests": ["view.persistence-rejected"]
+    },
+    {
+      "id": "EE-VIEW-004",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "suportar filtros, projeção, ordenação e paginação.",
+      "precondition": "View with filters, projection, sorting and pagination over known rows",
+      "action": "Execute query and compare exact projected/ordered/paginated results",
+      "expected": "suportar filtros, projeção, ordenação e paginação.",
+      "sources": [
+        {
+          "id": "FR-VIEW-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+          "line": 180
+        }
+      ],
+      "tests": ["postgres.view-query-and-identities"]
+    },
+    {
+      "id": "EE-VIEW-005",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "validar Entities e Columns referenciadas.",
+      "precondition": "View referencing existing and absent Entity/Column",
+      "action": "Compile positive and negative references",
+      "expected": "validar Entities e Columns referenciadas.",
+      "sources": [
+        {
+          "id": "FR-VIEW-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+          "line": 181
+        }
+      ],
+      "tests": ["view.reference-validation"]
+    },
+    {
+      "id": "EE-VIEW-006",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "executar a query terminal após a persistência requerida.",
+      "precondition": "Terminal View depending on Event persistence",
+      "action": "Execute Event and verify final query sees its committed change",
+      "expected": "executar a query terminal após a persistência requerida.",
+      "sources": [
+        {
+          "id": "FR-VIEW-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+          "line": 182
+        }
+      ],
+      "tests": ["postgres.ordered-second-entity"]
+    },
+    {
+      "id": "EE-VIEW-007",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "ser a única representação pública de sucesso.",
+      "precondition": "Public success attempting EntityDTO/raw ACL/progress versus View result",
+      "action": "Compile/execute and inspect every public success boundary",
+      "expected": "ser a única representação pública de sucesso.",
+      "sources": [
+        {
+          "id": "FR-VIEW-007",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+          "line": 183
+        }
+      ],
+      "tests": []
+    },
+    {
+      "id": "EE-ACL-001",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "permitir ACLs nomeadas no Module.",
+      "precondition": "Module with named ACL and duplicate ACL name",
+      "action": "Compile declarations",
+      "expected": "permitir ACLs nomeadas no Module.",
+      "sources": [
+        {
+          "id": "FR-ACL-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+          "line": 185
+        }
+      ],
+      "tests": ["causality.composed-domain"]
+    },
+    {
+      "id": "EE-ACL-002",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "permitir Events com identidade `ACL.Event`.",
+      "precondition": "Named ACL Event",
+      "action": "Compile and inspect ACL.Event identity",
+      "expected": "permitir Events com identidade `ACL.Event`.",
+      "sources": [
+        {
+          "id": "FR-ACL-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+          "line": 186
+        }
+      ],
+      "tests": ["causality.composed-domain"]
+    },
+    {
+      "id": "EE-ACL-003",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "definir semanticamente input e interpretação de success/fail.",
+      "precondition": "ACL Event with typed input and success/fail interpretations",
+      "action": "Execute with external result variants and verify semantic interpretation",
+      "expected": "definir semanticamente input e interpretação de success/fail.",
+      "sources": [
+        {
+          "id": "FR-ACL-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+          "line": 187
+        }
+      ],
+      "tests": [
+        "acl.interpreted-success-and-fail",
+        "acl.rejects-malformed-results"
+      ]
+    },
+    {
+      "id": "EE-ACL-004",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "manter endpoint, protocolo, credencial, serialização, timeout, retry e idempotência somente na ServiceConfiguration.",
+      "precondition": "ACL semantic declaration containing endpoint/auth/serialization/retry/timeout",
+      "action": "Compile and reject technical configuration outside ServiceConfiguration",
+      "expected": "manter endpoint, protocolo, credencial, serialização, timeout, retry e idempotência somente na ServiceConfiguration.",
+      "sources": [
+        {
+          "id": "FR-ACL-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+          "line": 188
+        }
+      ],
+      "tests": ["acl.technical-settings-rejected"]
+    },
+    {
+      "id": "EE-ACL-005",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "falhar quando Event e provider forem incompatíveis.",
+      "precondition": "ACL binding to incompatible provider",
+      "action": "Compile profile and inspect actionable rejection",
+      "expected": "falhar quando Event e provider forem incompatíveis.",
+      "sources": [
+        {
+          "id": "FR-ACL-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+          "line": 189
+        }
+      ],
+      "tests": ["service.acl-binding-incompatibility"]
+    },
+    {
+      "id": "EE-ACL-006",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "excluir credenciais do Semantic IR e dos artefatos públicos.",
+      "precondition": "Sentinel credential supplied through supported configuration",
+      "action": "Inspect Semantic IR and all generated public artifacts for absence",
+      "expected": "excluir credenciais do Semantic IR e dos artefatos públicos.",
+      "sources": [
+        {
+          "id": "FR-ACL-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+          "line": 190
+        }
+      ],
+      "tests": ["service.secret-public-surfaces", "service.secret-slots"]
+    },
+    {
+      "id": "EE-SAGA-001",
+      "category": "saga",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "ordenar sequência ou grafo acíclico de Events.",
+      "precondition": "Linear and branching DAG, cyclic graph",
+      "action": "Compile each graph; accept acyclic causal graph and reject cycles",
+      "expected": "ordenar sequência ou grafo acíclico de Events.",
+      "sources": [
+        {
+          "id": "FR-SAGA-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+          "line": 192
+        }
+      ],
+      "tests": ["causality.dag-validation"]
+    },
+    {
+      "id": "EE-SAGA-002",
+      "category": "saga",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "validar todos os Events referenciados.",
+      "precondition": "Saga references existing and absent Entity/ACL Event",
+      "action": "Compile graph variants",
+      "expected": "validar todos os Events referenciados.",
+      "sources": [
+        {
+          "id": "FR-SAGA-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+          "line": 193
+        }
+      ],
+      "tests": ["causality.dag-validation"]
+    },
+    {
+      "id": "EE-SAGA-003",
+      "category": "saga",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "propagar `sagaId`, `causationId`, `correlationId` e identidade do Event.",
+      "precondition": "Multistep Saga mixing Entity and ACL Events",
+      "action": "Execute and inspect public causal envelopes for required identifiers",
+      "expected": "propagar `sagaId`, `causationId`, `correlationId` e identidade do Event.",
+      "sources": [
+        {
+          "id": "FR-SAGA-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+          "line": 194
+        }
+      ],
+      "tests": ["postgres.saga-restart-recovery"]
+    },
+    {
+      "id": "EE-SAGA-004",
+      "category": "saga",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "persistir a situação técnica da Saga.",
+      "precondition": "Accepted Saga followed by process restart",
+      "action": "Inspect durable state and resumed Saga outcome",
+      "expected": "persistir a situação técnica da Saga.",
+      "sources": [
+        {
+          "id": "FR-SAGA-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+          "line": 195
+        }
+      ],
+      "tests": ["postgres.saga-restart-recovery"]
+    },
+    {
+      "id": "EE-SAGA-005",
+      "category": "saga",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "associar Events de compensação.",
+      "precondition": "Failed Saga with declared compensation Event",
+      "action": "Execute failure and verify compensation Event identity and effect",
+      "expected": "associar Events de compensação.",
+      "sources": [
+        {
+          "id": "FR-SAGA-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+          "line": 196
+        }
+      ],
+      "tests": ["postgres.saga-failure-and-compensation"]
+    },
+    {
+      "id": "EE-SAGA-006",
+      "category": "saga",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "impedir espera ou retorno intermediário entre etapas.",
+      "precondition": "Saga step configured with awaited/intermediate return dependency",
+      "action": "Compile invalid graph or exercise one-way dispatch",
+      "expected": "impedir espera ou retorno intermediário entre etapas.",
+      "sources": [
+        {
+          "id": "FR-SAGA-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+          "line": 197
+        }
+      ],
+      "tests": []
+    },
+    {
+      "id": "EE-SAGA-007",
+      "category": "saga",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "Saga Stream emite somente View final ou fail terminal.",
+      "precondition": "Successful and failed Saga with retries/compensation",
+      "action": "Observe stream through completion and reject intermediate emissions",
+      "expected": "Saga Stream emite somente View final ou fail terminal.",
+      "sources": [
+        {
+          "id": "FR-SAGA-007",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+          "line": 198
+        }
+      ],
+      "tests": ["postgres.http-terminal-stream-and-telemetry"]
+    },
+    {
+      "id": "EE-SAGA-008",
+      "category": "saga",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "retries e compensações aparecem somente na telemetria interna.",
+      "precondition": "Saga retry and compensation with internal telemetry enabled",
+      "action": "Compare internal records to strictly terminal public stream",
+      "expected": "retries e compensações aparecem somente na telemetria interna.",
+      "sources": [
+        {
+          "id": "FR-SAGA-008",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+          "line": 199
+        }
+      ],
+      "tests": ["postgres.http-terminal-stream-and-telemetry"]
+    },
+    {
+      "id": "EE-MOD-001",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "compor Entities, Views, ACLs e Sagas.",
+      "precondition": "Explicit Module containing Entity, View, ACL and Saga",
+      "action": "Compile and inspect all declared components",
+      "expected": "compor Entities, Views, ACLs e Sagas.",
+      "sources": [
+        {
+          "id": "FR-MOD-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+          "line": 201
+        }
+      ],
+      "tests": ["causality.composed-domain"]
+    },
+    {
+      "id": "EE-MOD-002",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "permitir imports explícitos.",
+      "precondition": "Modules with explicit known and absent imports",
+      "action": "Compile project and inspect resolved composition/rejection",
+      "expected": "permitir imports explícitos.",
+      "sources": [
+        {
+          "id": "FR-MOD-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+          "line": 202
+        }
+      ],
+      "tests": ["semantic.imports"]
+    },
+    {
+      "id": "EE-MOD-003",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "detectar nomes duplicados e referências ausentes.",
+      "precondition": "Duplicate names and unresolved references across declarations",
+      "action": "Compile invalid variants and inspect diagnostics",
+      "expected": "detectar nomes duplicados e referências ausentes.",
+      "sources": [
+        {
+          "id": "FR-MOD-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+          "line": 203
+        }
+      ],
+      "tests": [
+        "semantic.duplicate-name-matrix",
+        "semantic.entity-duplicate",
+        "semantic.imports"
+      ]
+    },
+    {
+      "id": "EE-MOD-004",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "produzir Semantic IR determinístico.",
+      "precondition": "Equivalent declarations supplied in different orders",
+      "action": "Compile and compare serialized Semantic IR bytes",
+      "expected": "produzir Semantic IR determinístico.",
+      "sources": [
+        {
+          "id": "FR-MOD-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+          "line": 204
+        }
+      ],
+      "tests": ["semantic.determinism"]
+    },
+    {
+      "id": "EE-MOD-005",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "exigir que o usuário crie explicitamente cada Module.",
+      "precondition": "DSL source with and without explicit Module",
+      "action": "Compile both sources",
+      "expected": "exigir que o usuário crie explicitamente cada Module.",
+      "sources": [
+        {
+          "id": "FR-MOD-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+          "line": 205
+        }
+      ],
+      "tests": ["semantic.public-dsl"]
+    },
+    {
+      "id": "EE-SVC-001",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "existe uma única ServiceConfiguration raiz por aplicação.",
+      "precondition": "Application configuration with one root and invalid competing roots",
+      "action": "Validate root structure",
+      "expected": "existe uma única ServiceConfiguration raiz por aplicação.",
+      "sources": [
+        {
+          "id": "FR-SVC-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+          "line": 208
+        }
+      ],
+      "tests": ["service.canonical-root"]
+    },
+    {
+      "id": "EE-SVC-002",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "suporta perfis tipados, como development, test, staging e production.",
+      "precondition": "development/test/staging/production profile definitions and invalid types",
+      "action": "Typecheck and validate each profile",
+      "expected": "suporta perfis tipados, como development, test, staging e production.",
+      "sources": [
+        {
+          "id": "FR-SVC-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+          "line": 209
+        }
+      ],
+      "tests": ["package.public-types"]
+    },
+    {
+      "id": "EE-SVC-003",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "cada perfil pode selecionar providers e topologias diferentes.",
+      "precondition": "Same Module combined with distinct supported provider/topology profiles",
+      "action": "Compile each profile; compare technical plans and unchanged semantics",
+      "expected": "cada perfil pode selecionar providers e topologias diferentes.",
+      "sources": [
+        {
+          "id": "FR-SVC-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+          "line": 210
+        }
+      ],
+      "tests": [],
+      "evidenceGap": "Four environment profiles are validated; genuinely different supported provider/topology selections are not demonstrated in the Node/PostgreSQL monolithic v0.1 surface."
+    },
+    {
+      "id": "EE-SVC-004",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "todo perfil é validável sem iniciar a aplicação.",
+      "precondition": "Valid profiles with unavailable remote infrastructure",
+      "action": "Validate every profile without connecting to providers",
+      "expected": "todo perfil é validável sem iniciar a aplicação.",
+      "sources": [
+        {
+          "id": "FR-SVC-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+          "line": 211
+        }
+      ],
+      "tests": ["service.profile-inheritance"]
+    },
+    {
+      "id": "EE-SVC-005",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "herança é permitida, mas a configuração efetiva deve ser resolvida e exibível.",
+      "precondition": "Base and inherited profile with overrides",
+      "action": "Compile child and inspect fully resolved effective values",
+      "expected": "herança é permitida, mas a configuração efetiva deve ser resolvida e exibível.",
+      "sources": [
+        {
+          "id": "FR-SVC-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+          "line": 212
+        }
+      ],
+      "tests": ["service.profile-inheritance"]
+    },
+    {
+      "id": "EE-SVC-006",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "na topologia monolítica, vários Modules podem rodar em um serviço.",
+      "precondition": "Monolithic service containing several Modules",
+      "action": "Compile profile and bootstrap supported monolith",
+      "expected": "na topologia monolítica, vários Modules podem rodar em um serviço.",
+      "sources": [
+        {
+          "id": "FR-SVC-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+          "line": 214
+        }
+      ],
+      "tests": ["service.multi-module-ownership"]
+    },
+    {
+      "id": "EE-SVC-007",
+      "category": "operations",
+      "required": false,
+      "applicability": "not-applicable",
+      "statement": "na distribuição futura, cada serviço mapeia explicitamente um ou mais Modules.",
+      "precondition": "Future distributed topology with explicit Module-to-service map",
+      "action": "Inspect representable ownership mapping; production distributed runtime remains out of v0.1",
+      "expected": "na distribuição futura, cada serviço mapeia explicitamente um ou mais Modules.",
+      "sources": [
+        {
+          "id": "FR-SVC-007",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+          "line": 215
+        }
+      ],
+      "reason": "Productive multi-service topology is explicitly future scope (PRD §6, §16, §17). Preservation of semantic boundaries/mapping is still required by EE-COMP-004; no waiver of that obligation.",
+      "tests": []
+    },
+    {
+      "id": "EE-SVC-008",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "o framework não cria serviços nem decide fronteiras.",
+      "precondition": "Only explicitly declared service/Module boundaries",
+      "action": "Compile and inspect absence of invented services",
+      "expected": "o framework não cria serviços nem decide fronteiras.",
+      "sources": [
+        {
+          "id": "FR-SVC-008",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+          "line": 216
+        }
+      ],
+      "tests": []
+    },
+    {
+      "id": "EE-SVC-009",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "cada Entity tem exatamente um serviço responsável.",
+      "precondition": "Every Entity assigned to exactly one service",
+      "action": "Compile valid profile and inspect ownership inventory",
+      "expected": "cada Entity tem exatamente um serviço responsável.",
+      "sources": [
+        {
+          "id": "FR-SVC-009",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+          "line": 217
+        }
+      ],
+      "tests": ["service.multi-module-ownership"]
+    },
+    {
+      "id": "EE-SVC-010",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "cada serviço tem exatamente uma configuração de persistência.",
+      "precondition": "Service with zero/one/multiple persistence configurations",
+      "action": "Compile variants",
+      "expected": "cada serviço tem exatamente uma configuração de persistência.",
+      "sources": [
+        {
+          "id": "FR-SVC-010",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+          "line": 218
+        }
+      ],
+      "tests": ["service.multi-module-ownership"]
+    },
+    {
+      "id": "EE-SVC-011",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "serviços distintos podem apontar explicitamente para o mesmo banco físico.",
+      "precondition": "Two explicitly configured services targeting the same physical database",
+      "action": "Compile ownership/persistence mapping; productive distribution outside v0.1",
+      "expected": "serviços distintos podem apontar explicitamente para o mesmo banco físico.",
+      "sources": [
+        {
+          "id": "FR-SVC-011",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+          "line": 219
+        }
+      ],
+      "evidenceGap": "Closed baseline decision permits distinct services sharing a physical database; a supported same-profile multi-service mapping or normative scope decision is still needed.",
+      "tests": []
+    },
+    {
+      "id": "EE-SVC-012",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "ownership ausente ou ambíguo deve falhar.",
+      "precondition": "Profile with missing or ambiguous ownership",
+      "action": "Compile and require diagnostics without partial plan",
+      "expected": "ownership ausente ou ambíguo deve falhar.",
+      "sources": [
+        {
+          "id": "FR-SVC-012",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+          "line": 220
+        }
+      ],
+      "tests": ["service.invalid-profiles-and-ownership"]
+    },
+    {
+      "id": "EE-SVC-013",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "runtime é selecionado diretamente por provider, com APIs como `nest()` e `bun()` quando disponíveis.",
+      "precondition": "Runtime selected directly through registered provider",
+      "action": "Compile runtime selection without framework-specific semantic declaration",
+      "expected": "runtime é selecionado diretamente por provider, com APIs como `nest()` e `bun()` quando disponíveis.",
+      "sources": [
+        {
+          "id": "FR-SVC-013",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+          "line": 222
+        }
+      ],
+      "tests": ["service.multi-module-ownership"]
+    },
+    {
+      "id": "EE-SVC-014",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "providers são registrados explicitamente.",
+      "precondition": "Known registered providers and unknown provider ID",
+      "action": "Compile each selection",
+      "expected": "providers são registrados explicitamente.",
+      "sources": [
+        {
+          "id": "FR-SVC-014",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+          "line": 223
+        }
+      ],
+      "tests": ["service.provider-negotiation"]
+    },
+    {
+      "id": "EE-SVC-015",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "providers declaram capabilities e compatibilidades.",
+      "precondition": "Provider declarations with interface version/capabilities",
+      "action": "Inspect negotiated capabilities and compatibility in compiled plan",
+      "expected": "providers declaram capabilities e compatibilidades.",
+      "sources": [
+        {
+          "id": "FR-SVC-015",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+          "line": 224
+        }
+      ],
+      "tests": ["service.provider-metadata-contract"]
+    },
+    {
+      "id": "EE-SVC-016",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "combinação incompatível falha com diagnóstico acionável.",
+      "precondition": "Incompatible runtime/persistence/ACL/provider combination",
+      "action": "Compile and require actionable diagnostic",
+      "expected": "combinação incompatível falha com diagnóstico acionável.",
+      "sources": [
+        {
+          "id": "FR-SVC-016",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+          "line": 225
+        }
+      ],
+      "tests": ["service.provider-negotiation"]
+    },
+    {
+      "id": "EE-SVC-017",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "a v0.1 fornece Node.js; integração específica pode incluir NestJS.",
+      "precondition": "Supported Node.js runtime provider",
+      "action": "Compile and execute on supported Node version",
+      "expected": "a v0.1 fornece Node.js; integração específica pode incluir NestJS.",
+      "sources": [
+        {
+          "id": "FR-SVC-017",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+          "line": 226
+        }
+      ],
+      "tests": ["cli.static-validation-and-plan"]
+    },
+    {
+      "id": "EE-SVC-018",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "idempotência, retry, deduplicação, timeout e backoff existem somente na ServiceConfiguration.",
+      "precondition": "Technical idempotency/retry/dedup/timeout/backoff policy in config and semantic Event",
+      "action": "Compile both placements; execute resolved configured policies",
+      "expected": "idempotência, retry, deduplicação, timeout e backoff existem somente na ServiceConfiguration.",
+      "sources": [
+        {
+          "id": "FR-SVC-018",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+          "line": 228
+        }
+      ],
+      "tests": ["service.complete-policy-precedence"]
+    },
+    {
+      "id": "EE-SVC-019",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "há defaults e overrides por serviço, Event de Entity e Event de ACL.",
+      "precondition": "Defaults and service/Entity Event/ACL Event overrides",
+      "action": "Compile and inspect effective policies at every level",
+      "expected": "há defaults e overrides por serviço, Event de Entity e Event de ACL.",
+      "sources": [
+        {
+          "id": "FR-SVC-019",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+          "line": 229
+        }
+      ],
+      "tests": [
+        "service.complete-policy-precedence",
+        "service.policy-precedence",
+        "service.rejects-weakened-policies"
+      ]
+    },
+    {
+      "id": "EE-SVC-020",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "a precedência é explícita e exibida no plano compilado.",
+      "precondition": "Overlapping policy values at every scope",
+      "action": "Compile and compare effective plan to documented precedence",
+      "expected": "a precedência é explícita e exibida no plano compilado.",
+      "sources": [
+        {
+          "id": "FR-SVC-020",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+          "line": 230
+        }
+      ],
+      "tests": [
+        "service.complete-policy-precedence",
+        "service.policy-precedence",
+        "service.rejects-weakened-policies"
+      ]
+    },
+    {
+      "id": "EE-SVC-021",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "nenhum Event redefine essas políticas no Module.",
+      "precondition": "Module Event attempts to override execution policy",
+      "action": "Compile and reject semantic technical policy",
+      "expected": "nenhum Event redefine essas políticas no Module.",
+      "sources": [
+        {
+          "id": "FR-SVC-021",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+          "line": 231
+        }
+      ],
+      "tests": ["semantic.technical-policy-rejection"]
+    },
+    {
+      "id": "EE-SVC-022",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "mailbox, outbox, registro de Saga e fila de falhas possuem providers explícitos.",
+      "precondition": "Explicit mailbox/outbox/Saga/failure providers and missing/incompatible selection",
+      "action": "Compile profile and inspect all provider bindings",
+      "expected": "mailbox, outbox, registro de Saga e fila de falhas possuem providers explícitos.",
+      "sources": [
+        {
+          "id": "FR-SVC-022",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+          "line": 232
+        }
+      ],
+      "tests": ["service.multi-module-ownership"]
+    },
+    {
+      "id": "EE-SVC-023",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "toda configuração técnica de ACL fica na ServiceConfiguration.",
+      "precondition": "ACL meaning in Module and technical configuration in profile",
+      "action": "Compile each stage and compare separation",
+      "expected": "toda configuração técnica de ACL fica na ServiceConfiguration.",
+      "sources": [
+        {
+          "id": "FR-SVC-023",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 234
+        }
+      ],
+      "tests": ["acl.technical-separation-and-http-binding"]
+    },
+    {
+      "id": "EE-SVC-024",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "ACL Events podem ser mapeados para providers, endpoints, autenticação e serialização.",
+      "precondition": "ACL Events with provider/endpoint/auth/serialization bindings",
+      "action": "Compile profile and exercise controlled adapter request",
+      "expected": "ACL Events podem ser mapeados para providers, endpoints, autenticação e serialização.",
+      "sources": [
+        {
+          "id": "FR-SVC-024",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 235
+        }
+      ],
+      "tests": ["acl.technical-separation-and-http-binding"]
+    },
+    {
+      "id": "EE-SVC-025",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "exposição pública de Events e Views é configurável.",
+      "precondition": "Profile configuring Event/View exposure and aliases",
+      "action": "Compile and inspect only explicitly configured public routes",
+      "expected": "exposição pública de Events e Views é configurável.",
+      "sources": [
+        {
+          "id": "FR-SVC-025",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 236
+        }
+      ],
+      "tests": ["contract.exposure-and-openapi", "contract.invalid-exposure"]
+    },
+    {
+      "id": "EE-SVC-026",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "a identidade interna `Owner.Event` sempre existe, mesmo sem rota pública.",
+      "precondition": "Unexposed Event and exposed alias of same Event",
+      "action": "Compile both; internal Owner.Event remains identical",
+      "expected": "a identidade interna `Owner.Event` sempre existe, mesmo sem rota pública.",
+      "sources": [
+        {
+          "id": "FR-SVC-026",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 237
+        }
+      ],
+      "tests": ["service.semantic-independence"]
+    },
+    {
+      "id": "EE-SVC-027",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "autenticação, autorização, CORS, rate limiting e Saga Stream são configuráveis.",
+      "precondition": "Configured auth/authorization/CORS/rate limiting/Saga transport",
+      "action": "Compile and exercise accepted and denied HTTP/SSE requests",
+      "expected": "autenticação, autorização, CORS, rate limiting e Saga Stream são configuráveis.",
+      "sources": [
+        {
+          "id": "FR-SVC-027",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 238
+        }
+      ],
+      "tests": [
+        "service.explicit-http-security",
+        "service.http-security-enforcement"
+      ]
+    },
+    {
+      "id": "EE-SVC-028",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "perfis locais/teste podem aceitar segredos literais com aviso.",
+      "precondition": "Local/test profile containing sentinel literal secret",
+      "action": "Compile; require warning and redacted public artifacts",
+      "expected": "perfis locais/teste podem aceitar segredos literais com aviso.",
+      "sources": [
+        {
+          "id": "FR-SVC-028",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 239
+        }
+      ],
+      "tests": ["service.secret-slots"]
+    },
+    {
+      "id": "EE-SVC-029",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "staging/produção exigem referências simbólicas.",
+      "precondition": "staging/production literal and symbolic secrets",
+      "action": "Compile; reject literal and accept appropriate symbolic references",
+      "expected": "staging/produção exigem referências simbólicas.",
+      "sources": [
+        {
+          "id": "FR-SVC-029",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 240
+        }
+      ],
+      "tests": ["service.secret-slots"]
+    },
+    {
+      "id": "EE-SVC-030",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "segredos são proibidos nos artefatos públicos.",
+      "precondition": "Sentinel credentials in configuration and bootstrap bindings",
+      "action": "Generate all artifacts and scan for credential absence",
+      "expected": "segredos são proibidos nos artefatos públicos.",
+      "sources": [
+        {
+          "id": "FR-SVC-030",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 241
+        }
+      ],
+      "tests": ["service.secret-public-surfaces", "service.secret-slots"]
+    },
+    {
+      "id": "EE-SVC-031",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "a v0.1 gera manifests, imagens e planos de deploy.",
+      "precondition": "Compiled profile and target output directory",
+      "action": "Generate manifests/image description/deployment plan from public API/CLI",
+      "expected": "a v0.1 gera manifests, imagens e planos de deploy.",
+      "sources": [
+        {
+          "id": "FR-SVC-031",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 242
+        }
+      ],
+      "tests": ["service.deterministic-artifacts"],
+      "evidenceGap": "Manifests, Dockerfile and deployment plan are generated; an independent generated image build/run remains unverified."
+    },
+    {
+      "id": "EE-SVC-032",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "a v0.1 não aplica mudanças em infraestrutura remota.",
+      "precondition": "Valid infrastructure generation request",
+      "action": "Generate local artifacts and assert no remote apply action/API is offered",
+      "expected": "a v0.1 não aplica mudanças em infraestrutura remota.",
+      "sources": [
+        {
+          "id": "FR-SVC-032",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+          "line": 243
+        }
+      ],
+      "tests": []
+    },
+    {
+      "id": "EE-COMP-001",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "analisar a DSL sem provider técnico.",
+      "precondition": "Valid public DSL without any technical provider",
+      "action": "Run semantic compiler",
+      "expected": "analisar a DSL sem provider técnico.",
+      "sources": [
+        {
+          "id": "FR-COMP-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 287
+        }
+      ],
+      "tests": ["semantic.owner-event"]
+    },
+    {
+      "id": "EE-COMP-002",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "produzir Semantic IR determinístico, serializável e versionado.",
+      "precondition": "Equivalent valid inputs and fixed compiler version",
+      "action": "Compile, serialize, deserialize and compare deterministic versioned Semantic IR",
+      "expected": "produzir Semantic IR determinístico, serializável e versionado.",
+      "sources": [
+        {
+          "id": "FR-COMP-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 288
+        }
+      ],
+      "tests": ["semantic.determinism"]
+    },
+    {
+      "id": "EE-COMP-003",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "validar identidade, referências, tipos, soberania dos Events, Views e grafo de Saga.",
+      "precondition": "Invalid identities/references/types/ownership/Views/Saga graph",
+      "action": "Compile each family and reject before materialization",
+      "expected": "validar identidade, referências, tipos, soberania dos Events, Views e grafo de Saga.",
+      "sources": [
+        {
+          "id": "FR-COMP-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 289
+        }
+      ],
+      "tests": [
+        "causality.dag-validation",
+        "semantic.column-reference",
+        "semantic.identity-composite",
+        "semantic.identity-missing",
+        "semantic.operation-foreign-target",
+        "semantic.operation-unknown-input",
+        "semantic.operation-wrong-type",
+        "view.persistence-rejected",
+        "view.query-required",
+        "view.reference-validation"
+      ]
+    },
+    {
+      "id": "EE-COMP-004",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "preservar informação suficiente para topologias futuras.",
+      "precondition": "Multiple Modules and explicit imports/ownership",
+      "action": "Inspect IR retains stable independent boundaries for future distribution",
+      "expected": "preservar informação suficiente para topologias futuras.",
+      "sources": [
+        {
+          "id": "FR-COMP-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 290
+        }
+      ],
+      "tests": []
+    },
+    {
+      "id": "EE-COMP-005",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "resolver o perfil selecionado.",
+      "precondition": "Configuration with several profiles and selected profile",
+      "action": "Compile selected effective profile",
+      "expected": "resolver o perfil selecionado.",
+      "sources": [
+        {
+          "id": "FR-COMP-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 292
+        }
+      ],
+      "tests": ["service.profile-inheritance"]
+    },
+    {
+      "id": "EE-COMP-006",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "negociar capabilities dos providers.",
+      "precondition": "Providers requiring and offering compatible/incompatible capabilities",
+      "action": "Compile and inspect negotiated capabilities/rejection",
+      "expected": "negociar capabilities dos providers.",
+      "sources": [
+        {
+          "id": "FR-COMP-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 293
+        }
+      ],
+      "tests": ["service.provider-negotiation"]
+    },
+    {
+      "id": "EE-COMP-007",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "produzir IRs separados de runtime, persistência, contrato e infraestrutura.",
+      "precondition": "Valid Semantic IR and selected configuration",
+      "action": "Compile and inspect distinct Runtime/Storage/Contract/Infrastructure IR",
+      "expected": "produzir IRs separados de runtime, persistência, contrato e infraestrutura.",
+      "sources": [
+        {
+          "id": "FR-COMP-007",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 294
+        }
+      ],
+      "tests": [
+        "service.deterministic-artifacts",
+        "service.profile-inheritance"
+      ]
+    },
+    {
+      "id": "EE-COMP-008",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "diagnosticar com código, caminho, causa e correção provável.",
+      "precondition": "Invalid semantic or technical configuration",
+      "action": "Inspect diagnostic code/path/cause/correction",
+      "expected": "diagnosticar com código, caminho, causa e correção provável.",
+      "sources": [
+        {
+          "id": "FR-COMP-008",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 295
+        }
+      ],
+      "tests": ["service.invalid-profiles-and-ownership"]
+    },
+    {
+      "id": "EE-COMP-009",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "impedir geração parcial quando uma incompatibilidade comprometer garantias.",
+      "precondition": "Incompatible provider configuration",
+      "action": "Compile and assert no partial plan/artifacts",
+      "expected": "impedir geração parcial quando uma incompatibilidade comprometer garantias.",
+      "sources": [
+        {
+          "id": "FR-COMP-009",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 296
+        }
+      ],
+      "tests": [
+        "service.invalid-profiles-and-ownership",
+        "service.provider-negotiation"
+      ]
+    },
+    {
+      "id": "EE-COMP-010",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "gerar plano inspecionável sem segredos.",
+      "precondition": "Valid profile containing secrets",
+      "action": "Inspect generated resolved plan and verify redaction",
+      "expected": "gerar plano inspecionável sem segredos.",
+      "sources": [
+        {
+          "id": "FR-COMP-010",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+          "line": 297
+        }
+      ],
+      "tests": ["service.secret-slots"]
+    },
+    {
+      "id": "EE-PG-001",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "gerar schema a partir de Entities, Columns e Rules.",
+      "precondition": "Entities, typed Columns and two-Column Rule",
+      "action": "Generate schema, create database tables and test constraints",
+      "expected": "gerar schema a partir de Entities, Columns e Rules.",
+      "sources": [
+        {
+          "id": "FR-PG-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 299
+        }
+      ],
+      "tests": ["persistence.rule-ddl", "postgres.physical-types-and-owner"]
+    },
+    {
+      "id": "EE-PG-002",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "gerar migrações versionadas e determinísticas.",
+      "precondition": "Same prior/next storage snapshots and version",
+      "action": "Generate migrations twice and compare versioned bytes/hash",
+      "expected": "gerar migrações versionadas e determinísticas.",
+      "sources": [
+        {
+          "id": "FR-PG-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 300
+        }
+      ],
+      "tests": ["persistence.migration-determinism"]
+    },
+    {
+      "id": "EE-PG-003",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "manter snapshot físico e calcular diff.",
+      "precondition": "Identical and modified physical snapshots",
+      "action": "Roundtrip snapshot and calculate no-op versus changed diff",
+      "expected": "manter snapshot físico e calcular diff.",
+      "sources": [
+        {
+          "id": "FR-PG-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 301
+        }
+      ],
+      "tests": ["persistence.migration-determinism"]
+    },
+    {
+      "id": "EE-PG-004",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "exigir confirmação para mudanças potencialmente destrutivas.",
+      "precondition": "Potentially unsafe/destructive migration without, wrong and matching approval",
+      "action": "Attempt application and inspect approval bound to exact content hash",
+      "expected": "exigir confirmação para mudanças potencialmente destrutivas.",
+      "sources": [
+        {
+          "id": "FR-PG-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 302
+        }
+      ],
+      "tests": ["migrations.exact-approval", "persistence.destructive-approval"]
+    },
+    {
+      "id": "EE-PG-005",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "combinar transação e outbox/mailbox para persistência e mensagem obrigatória.",
+      "precondition": "Event requiring owner mutation plus mandatory communication; injected failure",
+      "action": "Execute in PostgreSQL and prove atomic commit/rollback and recoverable mailbox/outbox",
+      "expected": "combinar transação e outbox/mailbox para persistência e mensagem obrigatória.",
+      "sources": [
+        {
+          "id": "FR-PG-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 303
+        }
+      ],
+      "tests": ["postgres.outbox-transaction-rollback"]
+    },
+    {
+      "id": "EE-PG-006",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "persistir deduplicação, registro de Saga e fila de falhas.",
+      "precondition": "Duplicate accepted Event, durable Saga and exhausted failure",
+      "action": "Restart and query durable deduplication/Saga/failure records",
+      "expected": "persistir deduplicação, registro de Saga e fila de falhas.",
+      "sources": [
+        {
+          "id": "FR-PG-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 304
+        }
+      ],
+      "tests": [
+        "postgres.durable-deduplication",
+        "postgres.saga-failure-and-compensation",
+        "postgres.saga-restart-recovery"
+      ]
+    },
+    {
+      "id": "EE-RUN-001",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "executar em Node.js.",
+      "precondition": "Installed package and supported Node.js version",
+      "action": "Load public API and run CLI",
+      "expected": "executar em Node.js.",
+      "sources": [
+        {
+          "id": "FR-RUN-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 305
+        }
+      ],
+      "tests": ["cli.static-validation-and-plan"]
+    },
+    {
+      "id": "EE-RUN-002",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "iniciar somente após validar o plano compilado.",
+      "precondition": "Invalid compiled plan or mismatched project",
+      "action": "Bootstrap and verify rejection before database/secret/network access",
+      "expected": "iniciar somente após validar o plano compilado.",
+      "sources": [
+        {
+          "id": "FR-RUN-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 306
+        }
+      ],
+      "tests": ["service.runtime-plan-guard"]
+    },
+    {
+      "id": "EE-RUN-003",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "despachar Events e Views por identidade.",
+      "precondition": "Registered and unknown Event/View identities",
+      "action": "Dispatch and verify correct target or rejection",
+      "expected": "despachar Events e Views por identidade.",
+      "sources": [
+        {
+          "id": "FR-RUN-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 307
+        }
+      ],
+      "tests": ["postgres.view-query-and-identities"]
+    },
+    {
+      "id": "EE-RUN-004",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "realizar graceful shutdown sem perder mensagens aceitas.",
+      "precondition": "Accepted messages with process receiving shutdown signal",
+      "action": "Stop/restart process and verify accepted work retained",
+      "expected": "realizar graceful shutdown sem perder mensagens aceitas.",
+      "sources": [
+        {
+          "id": "FR-RUN-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 308
+        }
+      ],
+      "tests": ["lifecycle.graceful-and-abrupt-process-restart"]
+    },
+    {
+      "id": "EE-RUN-005",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "recuperar mensagens pendentes após reinício.",
+      "precondition": "Pending durable message and abrupt process restart",
+      "action": "Resume worker and verify pending work completion",
+      "expected": "recuperar mensagens pendentes após reinício.",
+      "sources": [
+        {
+          "id": "FR-RUN-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 309
+        }
+      ],
+      "tests": [
+        "lifecycle.graceful-and-abrupt-process-restart",
+        "postgres.outbox-restart-recovery",
+        "postgres.saga-restart-recovery"
+      ]
+    },
+    {
+      "id": "EE-RUN-006",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "separar logs operacionais dos resultados públicos.",
+      "precondition": "Operation emitting logs and terminal public result",
+      "action": "Compare channels; operational data absent from public result",
+      "expected": "separar logs operacionais dos resultados públicos.",
+      "sources": [
+        {
+          "id": "FR-RUN-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+          "line": 310
+        }
+      ],
+      "tests": ["postgres.http-terminal-stream-and-telemetry"]
+    },
+    {
+      "id": "EE-HTTP-001",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "rotas públicas derivam da ServiceConfiguration.",
+      "precondition": "ServiceConfiguration exposing selected Events/Views at explicit routes",
+      "action": "Compile contract and call public routes",
+      "expected": "rotas públicas derivam da ServiceConfiguration.",
+      "sources": [
+        {
+          "id": "FR-HTTP-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+          "line": 312
+        }
+      ],
+      "tests": ["contract.exposure-and-openapi", "http.terminal-only-contract"]
+    },
+    {
+      "id": "EE-HTTP-002",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "Event assíncrono retorna `202` e `sagaId`.",
+      "precondition": "Valid asynchronous Event request",
+      "action": "Assert response status202 and sagaId without intermediate result",
+      "expected": "Event assíncrono retorna `202` e `sagaId`.",
+      "sources": [
+        {
+          "id": "FR-HTTP-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+          "line": 313
+        }
+      ],
+      "tests": ["http.terminal-only-contract"]
+    },
+    {
+      "id": "EE-HTTP-003",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "View síncrona retorna output tipado.",
+      "precondition": "Typed synchronous View request",
+      "action": "Assert returned output follows declared View types",
+      "expected": "View síncrona retorna output tipado.",
+      "sources": [
+        {
+          "id": "FR-HTTP-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+          "line": 314
+        }
+      ],
+      "tests": ["http.synchronous-view-contract"]
+    },
+    {
+      "id": "EE-HTTP-004",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "fail público usa envelope estável, mensagem segura e correlação.",
+      "precondition": "Internal failure carrying unsafe detail",
+      "action": "Assert public envelope contains stable code/safe message/correlation only",
+      "expected": "fail público usa envelope estável, mensagem segura e correlação.",
+      "sources": [
+        {
+          "id": "FR-HTTP-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+          "line": 315
+        }
+      ],
+      "tests": ["http.safe-failure-contract"]
+    },
+    {
+      "id": "EE-HTTP-005",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "Saga Stream inicial usa SSE.",
+      "precondition": "Accepted Saga with configured SSE transport",
+      "action": "Subscribe and inspect SSE content type/framing",
+      "expected": "Saga Stream inicial usa SSE.",
+      "sources": [
+        {
+          "id": "FR-HTTP-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+          "line": 316
+        }
+      ],
+      "tests": ["http.terminal-only-contract"]
+    },
+    {
+      "id": "EE-HTTP-006",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "SSE emite somente View final ou fail terminal.",
+      "precondition": "Saga with intermediate/retry/compensation activity",
+      "action": "Observe SSE until final; only final View or terminal fail appears",
+      "expected": "SSE emite somente View final ou fail terminal.",
+      "sources": [
+        {
+          "id": "FR-HTTP-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+          "line": 317
+        }
+      ],
+      "tests": ["http.safe-failure-contract", "http.terminal-only-contract"]
+    },
+    {
+      "id": "EE-HTTP-007",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "o contrato é gerável em OpenAPI.",
+      "precondition": "Versioned Contract IR",
+      "action": "Generate valid OpenAPI describing Event/View/fail/SSE contracts",
+      "expected": "o contrato é gerável em OpenAPI.",
+      "sources": [
+        {
+          "id": "FR-HTTP-007",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+          "line": 318
+        }
+      ],
+      "tests": ["contract.exposure-and-openapi"]
+    },
+    {
+      "id": "EE-HTTP-008",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "nomes públicos não alteram identidades internas.",
+      "precondition": "Two public aliases of same internal Event",
+      "action": "Compare compiled identities and route behavior",
+      "expected": "nomes públicos não alteram identidades internas.",
+      "sources": [
+        {
+          "id": "FR-HTTP-008",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+          "line": 319
+        }
+      ],
+      "tests": ["contract.exposure-and-openapi"]
+    },
+    {
+      "id": "EE-OBS-001",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "logs estruturados com identidades e correlação.",
+      "precondition": "Correlated Event/Saga execution with telemetry sink",
+      "action": "Inspect structured records for Event and causal identities",
+      "expected": "logs estruturados com identidades e correlação.",
+      "sources": [
+        {
+          "id": "FR-OBS-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+          "line": 321
+        }
+      ],
+      "tests": ["postgres.http-terminal-stream-and-telemetry"]
+    },
+    {
+      "id": "EE-OBS-002",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "spans para Event, persistência, publicação, consumo, ACL e View.",
+      "precondition": "Event/persistence/publication/consumption/ACL/View execution",
+      "action": "Capture a span for every named operation",
+      "expected": "spans para Event, persistência, publicação, consumo, ACL e View.",
+      "sources": [
+        {
+          "id": "FR-OBS-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+          "line": 322
+        }
+      ],
+      "tests": ["postgres.all-operation-telemetry-spans"]
+    },
+    {
+      "id": "EE-OBS-003",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "métricas de latência, success, fail, retry, deduplicação, fila e Saga.",
+      "precondition": "Success/failure/retry/dedup/queue/Saga scenarios",
+      "action": "Inspect latency and count metrics for each scenario",
+      "expected": "métricas de latência, success, fail, retry, deduplicação, fila e Saga.",
+      "sources": [
+        {
+          "id": "FR-OBS-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+          "line": 323
+        }
+      ],
+      "tests": ["postgres.http-terminal-stream-and-telemetry"]
+    },
+    {
+      "id": "EE-OBS-004",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "reconstrução interna da linha causal.",
+      "precondition": "Multistep durable Saga with causation",
+      "action": "Use inspection API/CLI to reconstruct causal chain",
+      "expected": "reconstrução interna da linha causal.",
+      "sources": [
+        {
+          "id": "FR-OBS-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+          "line": 324
+        }
+      ],
+      "tests": ["postgres.http-terminal-stream-and-telemetry"]
+    },
+    {
+      "id": "EE-OBS-005",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "progresso interno nunca aparece automaticamente no Saga Stream.",
+      "precondition": "Operational progress with terminal stream open",
+      "action": "Assert progress exists internally but not in public stream",
+      "expected": "progresso interno nunca aparece automaticamente no Saga Stream.",
+      "sources": [
+        {
+          "id": "FR-OBS-005",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+          "line": 325
+        }
+      ],
+      "tests": ["postgres.http-terminal-stream-and-telemetry"]
+    },
+    {
+      "id": "EE-OBS-006",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "redação configurável de dados sensíveis.",
+      "precondition": "Configured sensitive-field redaction and sentinel payload",
+      "action": "Capture logs/spans/inspection and assert sensitive values absent",
+      "expected": "redação configurável de dados sensíveis.",
+      "sources": [
+        {
+          "id": "FR-OBS-006",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+          "line": 326
+        }
+      ],
+      "tests": ["operations.configured-redaction"]
+    },
+    {
+      "id": "EE-CLI-001",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "saída legível e modo JSON.",
+      "precondition": "Valid and invalid public configuration file",
+      "action": "Run CLI human and JSON modes; parse JSON and inspect readable output",
+      "expected": "saída legível e modo JSON.",
+      "sources": [
+        {
+          "id": "FR-CLI-001",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 337
+        }
+      ],
+      "tests": [
+        "cli.invalid-configuration-and-generation",
+        "cli.static-validation-and-plan"
+      ]
+    },
+    {
+      "id": "EE-CLI-002",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "validação estática não exige infraestrutura remota.",
+      "precondition": "Valid static configuration with remote endpoints unavailable",
+      "action": "Run validate without network/database access",
+      "expected": "validação estática não exige infraestrutura remota.",
+      "sources": [
+        {
+          "id": "FR-CLI-002",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 338
+        }
+      ],
+      "tests": ["cli.static-validation-and-plan"]
+    },
+    {
+      "id": "EE-CLI-003",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "plan mostra configuração efetiva, ownership, providers, capabilities e artefatos.",
+      "precondition": "Profile with inheritance/providers/ownership",
+      "action": "Run plan and inspect effective values/capabilities/artifacts",
+      "expected": "plan mostra configuração efetiva, ownership, providers, capabilities e artefatos.",
+      "sources": [
+        {
+          "id": "FR-CLI-003",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 339
+        }
+      ],
+      "tests": ["cli.static-validation-and-plan"]
+    },
+    {
+      "id": "EE-CLI-004",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "nenhum comando imprime segredos.",
+      "precondition": "Sentinel secrets across successful and failing CLI commands",
+      "action": "Capture stdout/stderr for every CLI family and assert no secret",
+      "expected": "nenhum comando imprime segredos.",
+      "sources": [
+        {
+          "id": "FR-CLI-004",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 340
+        }
+      ],
+      "tests": [
+        "cli.invalid-configuration-and-generation",
+        "lifecycle.operational-cli"
+      ]
+    },
+    {
+      "id": "EE-NFR-001",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Mesmas entradas e versões produzem os mesmos IRs e artefatos.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-205",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Determinismo e tipagem",
+          "line": 343
+        }
+      ],
+      "precondition": "Same application, configuration, provider/compiler versions and input bytes.",
+      "action": "Compile and generate twice from clean output directories.",
+      "expected": "Semantic/technical IRs and generated artifacts are byte-equivalent after only documented nondeterministic-envelope normalization.",
+      "tests": ["service.deterministic-artifacts"]
+    },
+    {
+      "id": "EE-NFR-002",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- DSL, providers, inputs de Events e outputs de Views possuem inferência TypeScript.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-206",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Determinismo e tipagem",
+          "line": 344
+        }
+      ],
+      "precondition": "Public DSL/provider declarations, Event inputs and View outputs with positive and negative type fixtures.",
+      "action": "Run TypeScript type checking from the supported package.",
+      "expected": "Types are inferred correctly; wrong values fail rather than escaping through any.",
+      "evidenceGap": "Public Column/provider/Event positive and negative types are exercised; full input/output/View inference remains untested.",
+      "tests": ["package.public-types"]
+    },
+    {
+      "id": "EE-NFR-003",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Configurações estaticamente inválidas falham no editor ou build.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-207",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Determinismo e tipagem",
+          "line": 345
+        }
+      ],
+      "precondition": "Statically invalid public configurations.",
+      "action": "Typecheck/build each invalid fixture.",
+      "expected": "Invalid configurations fail before runtime with attributable diagnostics.",
+      "tests": ["package.public-types"]
+    },
+    {
+      "id": "EE-NFR-004",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Segredos não entram no Semantic IR, logs, OpenAPI, snapshots ou diagnósticos.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-208",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Segurança",
+          "line": 347
+        }
+      ],
+      "precondition": "Sentinel secret configured through supported local and production paths.",
+      "action": "Compile, generate contracts/snapshots and trigger diagnostic/log paths.",
+      "expected": "Sentinel absent from Semantic IR, logs, OpenAPI, snapshots and diagnostics.",
+      "tests": ["service.secret-public-surfaces"]
+    },
+    {
+      "id": "EE-NFR-005",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Erros públicos não expõem stack trace nem credenciais.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-209",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Segurança",
+          "line": 348
+        }
+      ],
+      "precondition": "Requests producing internal errors and credential-related failures.",
+      "action": "Observe public HTTP/SSE error envelopes.",
+      "expected": "No stack traces or credentials appear in public error output.",
+      "tests": ["http.safe-failure-contract"]
+    },
+    {
+      "id": "EE-NFR-006",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Produção privilegia negação explícita.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-210",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Segurança",
+          "line": 349
+        }
+      ],
+      "precondition": "Production profile with missing or nonmatching authorization.",
+      "action": "Attempt protected Event and View access.",
+      "expected": "Access is denied by explicit production policy rather than permitted implicitly. Exact policy ambiguity must be resolved before claiming compliance.",
+      "tests": ["service.http-security-enforcement"]
+    },
+    {
+      "id": "EE-NFR-007",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Mensagem aceita não depende somente da memória do processo.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-211",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Confiabilidade",
+          "line": 351
+        }
+      ],
+      "precondition": "Accepted work and a real PostgreSQL16 database.",
+      "action": "Terminate process after acceptance, restart and inspect durable work.",
+      "expected": "Accepted message remains recoverable independent of process memory.",
+      "tests": [
+        "lifecycle.graceful-and-abrupt-process-restart",
+        "postgres.outbox-restart-recovery"
+      ]
+    },
+    {
+      "id": "EE-NFR-008",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- A entrega pode ser pelo menos uma vez; efeitos protegidos usam deduplicação/idempotência conforme política.\n- mensagem duplicada → um único efeito protegido;",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-212",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Confiabilidade",
+          "line": 352
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-247",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+          "line": 411
+        }
+      ],
+      "precondition": "Duplicate deliveries with a configured protected/idempotent effect.",
+      "action": "Deliver the same accepted operation more than once including recovery.",
+      "expected": "At-least-once delivery creates exactly one protected effect according to the declared policy.",
+      "tests": ["postgres.durable-deduplication"]
+    },
+    {
+      "id": "EE-PERF-001",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- `validate` do projeto de referência conclui em até 5 segundos em máquina de desenvolvimento.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-214",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Desempenho inicial",
+          "line": 355
+        }
+      ],
+      "precondition": "Official reference app, fixed compiler/package versions and documented development machine.",
+      "action": "Measure validate elapsed wall-clock time.",
+      "expected": "Validation completes within5seconds; hardware and method reported.",
+      "tests": [],
+      "evidenceGap": "Unmeasured: establish reference application inputs and development-machine provenance, then time installed CLI validate against the 5-second bound."
+    },
+    {
+      "id": "EE-PERF-002",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Overhead mediano do dispatcher, sem banco e rede, fica abaixo de 10 ms.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-215",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Desempenho inicial",
+          "line": 356
+        }
+      ],
+      "precondition": "Dispatcher benchmark excluding database and network, documented runtime/machine and sample method.",
+      "action": "Collect dispatcher overhead samples and compute median.",
+      "expected": "Median dispatcher overhead is strictly below10ms.",
+      "tests": [],
+      "evidenceGap": "Unmeasured: define dispatcher timing boundaries excluding database/network and representative sample/warmup protocol before comparing median to 10ms."
+    },
+    {
+      "id": "EE-PERF-003",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Saga Stream entrega o final em até 1 segundo após sua persistência em condições nominais.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-216",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Desempenho inicial",
+          "line": 357
+        }
+      ],
+      "precondition": "Nominal running SSE client with persisted terminal Saga result.",
+      "action": "Measure time between persistence commit and client terminal reception.",
+      "expected": "Final arrives within1second after persistence under documented nominal conditions.",
+      "tests": [],
+      "evidenceGap": "Unmeasured: record final persistence and client delivery timestamps under declared nominal conditions before asserting the 1-second bound."
+    },
+    {
+      "id": "EE-NFR-009",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- IRs são versionados.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-217",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Evolução",
+          "line": 359
+        }
+      ],
+      "precondition": "Semantic and all technical IRs generated.",
+      "action": "Inspect public serialized IR envelopes.",
+      "expected": "Every IR records a version.",
+      "tests": ["service.versioned-ir-envelopes"]
+    },
+    {
+      "id": "EE-NFR-010",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Providers declaram versão de interface e capabilities.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-218",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Evolução",
+          "line": 360
+        }
+      ],
+      "precondition": "Registered supported provider descriptors.",
+      "action": "Inspect and negotiate their public metadata.",
+      "expected": "Provider interface version and capabilities explicitly declared.",
+      "tests": ["service.provider-metadata-contract"]
+    },
+    {
+      "id": "EE-NFR-011",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Mudanças incompatíveis geram diagnóstico de migração.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-219",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Evolução",
+          "line": 361
+        }
+      ],
+      "precondition": "Previously serialized artifacts/configurations incompatible with current versions.",
+      "action": "Load or migrate incompatible artifacts through supported public workflow.",
+      "expected": "Actionable migration diagnostic produced rather than silent incompatible acceptance.",
+      "tests": ["migrations.exact-approval"]
+    },
+    {
+      "id": "EE-ART-001",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- bootstrap e adapters;",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-225",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+          "line": 384
+        }
+      ],
+      "precondition": "Valid reference application compiled through public workflow.",
+      "action": "Generate bootstrap and adapters and start application using them.",
+      "expected": "Generated bootstrap/adapters exist and execute without hand-written replacement domain handlers.",
+      "tests": ["service.deterministic-artifacts"],
+      "evidenceGap": "Generated bootstrap/configuration/adapters artifacts are inspected; executing the generated bootstrap and adapter wiring remains unverified."
+    },
+    {
+      "id": "EE-ART-002",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "Todo artefato deve registrar versões e hash das entradas, sem segredos.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-228",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+          "line": 387
+        }
+      ],
+      "precondition": "All artifact types from baseline section11.",
+      "action": "Inspect every generated artifact metadata and sentinel-secret exposure.",
+      "expected": "Artifacts record versions and input hashes, without secrets.",
+      "tests": [],
+      "evidenceGap": "Every generated artifact needs explicit version/input-hash provenance evidence; current plan hashes alone do not certify each standalone output."
+    },
+    {
+      "id": "EE-REF-001",
+      "category": "runtime",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- Modules `Sales` e `Billing`;\n- Entities `Order` e `Payment`;\n- ACL `PaymentGateway`;\n- Events `Order.Place`, `Payment.Create` e `PaymentGateway.Authorize`;\n- Views `OrderDetails` e `PaymentReceipt`;\n- Saga `PlaceOrder`;\n- Rule real com duas Columns;\n- perfis development, test e production;\n- execução monolítica;\n- representação no IR do futuro mapeamento por serviços.\n- a aplicação de referência for declarada sem controllers, repositories ou handlers manuais;",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-252",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 418
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-253",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 419
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-254",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 420
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-255",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 421
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-256",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 422
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-257",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 423
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-258",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 424
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-259",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 425
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-260",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 426
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-261",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+          "line": 427
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-262",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+          "line": 430
+        }
+      ],
+      "precondition": "Official reference fixture created using supported DSL/configuration.",
+      "action": "Compile and execute Sales/Billing reference and inspect declared model/profile contracts.",
+      "expected": "Contains Sales/Billing,Order/Payment,PaymentGateway,Order.Place/Payment.Create/PaymentGateway.Authorize,OrderDetails/PaymentReceipt,PlaceOrder,a real two-Column Rule,development/test/production,monolithic execution and future service mapping in IR; no manual controller/repository/domain handler.",
+      "tests": [],
+      "evidenceGap": "The official Sales/Billing reference application still needs independent reproduction through the installed package covering every listed component/profile and generated bootstrap."
+    },
+    {
+      "id": "EE-SEM-001",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- todos os conceitos normativos existirem no Semantic IR;",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-263",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+          "line": 431
+        }
+      ],
+      "precondition": "Reference Module covering every normative semantic element.",
+      "action": "Compile with public API and inspect serialized Semantic IR.",
+      "expected": "All normative semantic concepts represented without technical policies contaminating Module.",
+      "tests": ["semantic.ontology-and-event-owners"]
+    },
+    {
+      "id": "EE-DOC-001",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- DSL pública documentada e tipada.\n- Projeto de referência e guia de início rápido.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-288",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+          "line": 482
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-299",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+          "line": 493
+        }
+      ],
+      "precondition": "Supported package API and reference app.",
+      "action": "Review public DSL documentation and follow reference quickstart literally.",
+      "expected": "DSL is documented and typed; public quickstart leads to functional reference application.",
+      "tests": [],
+      "evidenceGap": "Manual public documentation/quickstart review against the tested package is outstanding; existing documentation and type tests are not silently adopted as conformance proof."
+    },
+    {
+      "id": "EE-SEM-002",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- troca de perfil sem mudar Module.\n- futura distribuição não exigir mudança semântica nos Modules.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-251",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+          "line": 415
+        },
+        {
+          "anchor": "EE-SOURCE-PRD-272",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+          "line": 440
+        }
+      ],
+      "precondition": "Same Module combined with multiple valid technical profiles.",
+      "action": "Compile each profile and compare semantic outputs.",
+      "expected": "Technical materialization may change; Module meaning and Semantic IR stay unchanged.",
+      "tests": ["service.profile-semantic-stability"],
+      "evidenceGap": "Switching existing profiles preserves semantics; future distributed service mapping without semantic changes remains independently unverified."
+    },
+    {
+      "id": "EE-CMD-001",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- `entity-event validate`",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-193",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 328
+        }
+      ],
+      "precondition": "Valid isolated application and prerequisites for validate.",
+      "action": "Invoke documented public validate CLI command.",
+      "expected": "Command performs its documented operation; invalid invocation fails consistently and never prints secrets.",
+      "tests": ["cli.static-validation-and-plan"]
+    },
+    {
+      "id": "EE-CMD-002",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- `entity-event plan --profile <name>`",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-194",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 329
+        }
+      ],
+      "precondition": "Valid isolated application and prerequisites for plan.",
+      "action": "Invoke documented public plan CLI command.",
+      "expected": "Command performs its documented operation; invalid invocation fails consistently and never prints secrets.",
+      "tests": ["cli.static-validation-and-plan"]
+    },
+    {
+      "id": "EE-CMD-003",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- `entity-event generate`",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-195",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 330
+        }
+      ],
+      "precondition": "Valid isolated application and prerequisites for generate.",
+      "action": "Invoke documented public generate CLI command.",
+      "expected": "Command performs its documented operation; invalid invocation fails consistently and never prints secrets.",
+      "tests": ["cli.invalid-configuration-and-generation"]
+    },
+    {
+      "id": "EE-CMD-004",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- `entity-event migrate diff`",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-196",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 331
+        }
+      ],
+      "precondition": "Valid isolated application and prerequisites for migrate-diff.",
+      "action": "Invoke documented public migrate-diff CLI command.",
+      "expected": "Command performs its documented operation; invalid invocation fails consistently and never prints secrets.",
+      "tests": ["lifecycle.operational-cli"]
+    },
+    {
+      "id": "EE-CMD-005",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- `entity-event migrate apply`",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-197",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 332
+        }
+      ],
+      "precondition": "Valid isolated application and prerequisites for migrate-apply.",
+      "action": "Invoke documented public migrate-apply CLI command.",
+      "expected": "Command performs its documented operation; invalid invocation fails consistently and never prints secrets.",
+      "tests": ["lifecycle.operational-cli"]
+    },
+    {
+      "id": "EE-CMD-006",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- `entity-event dev`",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-198",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 333
+        }
+      ],
+      "precondition": "Valid isolated application and prerequisites for dev.",
+      "action": "Invoke documented public dev CLI command.",
+      "expected": "Command performs its documented operation; invalid invocation fails consistently and never prints secrets.",
+      "tests": ["lifecycle.operational-cli"]
+    },
+    {
+      "id": "EE-CMD-007",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- `entity-event inspect event <identity>`",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-199",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 334
+        }
+      ],
+      "precondition": "Valid isolated application and prerequisites for inspect-event.",
+      "action": "Invoke documented public inspect-event CLI command.",
+      "expected": "Command performs its documented operation; invalid invocation fails consistently and never prints secrets.",
+      "tests": ["lifecycle.operational-cli"]
+    },
+    {
+      "id": "EE-CMD-008",
+      "category": "operations",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "- `entity-event inspect saga <sagaId>`",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PRD-200",
+          "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+          "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+          "line": 335
+        }
+      ],
+      "precondition": "Valid isolated application and prerequisites for inspect-saga.",
+      "action": "Invoke documented public inspect-saga CLI command.",
+      "expected": "Command performs its documented operation; invalid invocation fails consistently and never prints secrets.",
+      "tests": ["lifecycle.operational-cli"]
+    },
+    {
+      "id": "EE-VOC-001",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "Além das Entities, a Anti-Corruption Layer é a única estrutura que pode possuir Events. Um Event pertencente a uma ACL representa um acontecimento realizado no sistema externo:",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-VOC-069",
+          "url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+          "section": "Anti-Corruption Layer",
+          "line": 179
+        }
+      ],
+      "precondition": "Entities, ACLs and another semantic structure attempting Event ownership.",
+      "action": "Compile valid Entity/ACL owners and invalid nonowner fixture.",
+      "expected": "Only Entities and ACLs may own Events.",
+      "tests": ["semantic.ontology-and-event-owners"]
+    },
+    {
+      "id": "EE-VOC-002",
+      "category": "contract",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "Toda leitura pública é uma View, inclusive quando apresenta uma única Entity sem relações ou cálculos adicionais. Uma View pode navegar pelas Entities e pelas relações existentes entre elas e pode produzir valores deterministicamente derivados de suas Columns.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-VOC-061",
+          "url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+          "section": "View",
+          "line": 155
+        }
+      ],
+      "precondition": "View using relations and deterministic computed values.",
+      "action": "Compile/execute public View query against persisted related Entities.",
+      "expected": "Public result traverses declared relations and yields deterministic values derived from Columns.",
+      "tests": []
+    },
+    {
+      "id": "EE-PIVOT-001",
+      "category": "semantic",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "`Column(options)`, `Event(options)` e `ACLEvent(options)` são factories usadas como inicializadores de propriedades públicas de instância. Seus retornos opacos preservam contratos de opções e inferência; em `Column`, `options.type` determina o tipo semântico do retorno. A existência, ownership e kind dos nomes passados a `field`, `reference`, `eventRef` e `event` são validados pelo compilador a partir do AST, não inferidos de brands estruturais copiáveis. Anotações explícitas em inicializadores, membros estáticos, modificadores incompatíveis e a combinação da sintaxe antiga de decorator com factories são rejeitados. Decorators permanecem para classes semânticas e Rules.\n- **Compatibilidade/migração:** a gramática provisória com `@Column`, `@Event` e `@ACLEvent` em membros é rejeitada; ainda não havia versão pública estável.\nO gate exige testes positivos de inferência, testes negativos de forma/opções e regressões do compilador para tipo copiado com `typeof`, propriedade comum, anotação explícita, membros não públicos/de instância e combinação da sintaxe antiga de decorator com a nova factory. No commit [`51f1c72`](https://github.com/Caleul/vane/commit/51f1c7267c2fb5687b27c05c3b217b5860ee56e2), lint, typecheck, build, empacotamento e 87/87 testes passam.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PIVOT-004",
+          "url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+          "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Nova decisão",
+          "line": 68
+        },
+        {
+          "anchor": "EE-SOURCE-PIVOT-010",
+          "url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+          "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Impactos",
+          "line": 75
+        },
+        {
+          "anchor": "EE-SOURCE-PIVOT-011",
+          "url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+          "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Validação",
+          "line": 77
+        }
+      ],
+      "precondition": "Public DSL fixtures using Column/Event/ACLEvent factory initializers and invalid member forms.",
+      "action": "Typecheck and compile positives plus copied brands/typeof, explicit annotations, static/nonpublic members and old-decorator/factory hybrids.",
+      "expected": "Factories on public instance properties define members; Column.type governs inferred type; AST validates reference existence/ownership/kind; invalid forms fail; class and Rule decorators remain supported.",
+      "tests": [
+        "semantic.copied-and-wrong-kind-references",
+        "semantic.pivot-member-shapes"
+      ],
+      "evidenceGap": "Independent source cases cover public factories, explicit/static/private/legacy/hybrid/copied/wrong-kind forms; complete opaque factory type contract evidence remains outstanding."
+    },
+    {
+      "id": "EE-PIVOT-002",
+      "category": "persistence",
+      "required": true,
+      "applicability": "applicable",
+      "statement": "O gate exige testes de tipos, parser e compilador para todas as operações; rejeição de mutação em outra Entity, input/Column/tipo inválido e escrita de identidade; SQL atômico para operações derivadas; escrita obrigatória mesmo quando valores são iguais; rollback com Rule; e outbox na mesma transação.",
+      "sources": [
+        {
+          "anchor": "EE-SOURCE-PIVOT-027",
+          "url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+          "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Validação",
+          "line": 110
+        }
+      ],
+      "precondition": "Owner-only create/update/delete/upsert mutations with derived values, identity-write attempt and Rule violation.",
+      "action": "Compile invalid identities/targets and execute valid concurrent derived mutations, no-op-valued write and Rule-failing mutation.",
+      "expected": "Identity writes/foreign targets rejected; derived SQL mutation atomic; equal values still write; Rule violation rolls back mutation/outbox; accepted mutation and outbox commit atomically.",
+      "tests": ["semantic.exact-operation-and-input"],
+      "evidenceGap": "Independent parser/compiler/runtime cases cover core operation invariants; complete operator-by-operator public TypeScript positive/negative fixtures remain unverified."
+    }
+  ],
+  "sourceDocuments": [
+    {
+      "name": "vocabulary",
+      "url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "lastEdited": "2026-08-30T18:35:12.845Z",
+      "snapshotSha256": "c04ac567028a6fe02e14880ba0ad1f43bb0568b4ff448a81ed5583c42e454988"
+    },
+    {
+      "name": "functional-prd",
+      "url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "lastEdited": "2026-09-05T13:48:27.527Z",
+      "snapshotSha256": "87225bc4d646895a3efc702830c23267af5f52de42deefc873236ff84d0832a6"
+    },
+    {
+      "name": "validation-release-prd",
+      "url": "https://app.notion.com/p/3d251cfc265c814d86e1df25ff45e238?pvs=204",
+      "lastEdited": "2026-09-05T13:44:42.789Z",
+      "snapshotSha256": "7b24f1def986d173ac934e25d4da3e3e8fceff3b0abde4c91809c079ba603582"
+    },
+    {
+      "name": "implementation-pivots",
+      "url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "lastEdited": "2026-08-31T13:11:41.511Z",
+      "snapshotSha256": "85d9e09e9eb4e47b59de097319fafffae33834c0003d096f847c12ee3e185843"
+    },
+    {
+      "name": "catalog-task",
+      "url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "lastEdited": "2026-09-05T13:47:01.742Z",
+      "snapshotSha256": "ef1a7b5d798083dd1b33fe79a02d84de768ba46a2c5c8279d41685f16d159947"
+    },
+    {
+      "name": "harness-task",
+      "url": "https://app.notion.com/p/3d251cfc265c8121b118fa3c45c78c44?pvs=204",
+      "lastEdited": "2026-09-05T13:47:06.126Z",
+      "snapshotSha256": "bb67fe1d75660917190b525c93554aaae1d45def15f3c69ef99a0454837d816d"
+    },
+    {
+      "name": "matrix-task",
+      "url": "https://app.notion.com/p/3d251cfc265c81ad8b22e5104c33fbe8?pvs=204",
+      "lastEdited": "2026-09-05T13:47:12.081Z",
+      "snapshotSha256": "004d297488567959791e2e543d5bdbab69eed3c18df8b8acb6b432b1b2fcf215"
+    }
+  ]
+}
