@@ -414,6 +414,10 @@ async function validatePostgreSqlDatabase(
 ): Promise<void> {
   const client = await pool.connect();
   try {
+    // Catalog literal deparsing follows DateStyle. Keep it deterministic without
+    // changing the connection settings returned to the caller's pool.
+    await client.query("BEGIN READ ONLY");
+    await client.query("SET LOCAL DateStyle = 'ISO, YMD'");
     const result = await client.query<PostgreSqlVersionRow>(
       "SHOW server_version_num",
     );
@@ -503,7 +507,11 @@ async function validatePostgreSqlDatabase(
         `PostgreSQL storage history is ${JSON.stringify(installedHash ?? null)}, but runtime requires ${JSON.stringify(expectedHash)}.`,
       );
   } finally {
-    client.release();
+    try {
+      await client.query("ROLLBACK");
+    } finally {
+      client.release();
+    }
   }
 }
 
@@ -523,6 +531,14 @@ function normalizeDefault(
   type: PostgreSqlStorageIr["tables"][number]["columns"][number]["type"],
 ): string | null {
   if (value === null) return null;
+  if (type === "timestamptz") {
+    // Do not use generic cast stripping here: a cast through date (for example)
+    // changes the instant and must never collapse to the enclosed literal.
+    let expression = value.trim();
+    while (hasSingleOuterParentheses(expression))
+      expression = expression.slice(1, -1).trim();
+    return normalizeTimestampLiteral(expression) ?? expression;
+  }
   const normalized = normalizeCatalogExpression(value);
   if (type !== "jsonb" || normalized === null) return normalized;
   const literal = /^'(.*)'$/su.exec(normalized);
@@ -536,6 +552,59 @@ function normalizeDefault(
   } catch {
     return normalized;
   }
+}
+
+/** Compare literal instants exactly, retaining PostgreSQL's microsecond precision.
+ * Expressions and unsupported literal forms retain strict textual comparison.
+ */
+function normalizeTimestampLiteral(value: string): string | null {
+  const match =
+    /^'(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|([+-])(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?)'(?:\s*::\s*(?:timestamptz|timestamp\s+with\s+time\s+zone))?$/iu.exec(
+      value,
+    );
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const fraction = (match[7] ?? "").replace(/0+$/u, "");
+  const offsetHour = Number(match[10] ?? 0);
+  const offsetMinute = Number(match[11] ?? 0);
+  const offsetSecond = Number(match[12] ?? 0);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const months = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (
+    year < 1 ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > (months[month - 1] ?? 0) ||
+    hour > 23 ||
+    minute > 59 ||
+    second > 59 ||
+    fraction.length > 6 ||
+    offsetHour > 15 ||
+    offsetMinute > 59 ||
+    offsetSecond > 59
+  )
+    return null;
+  const priorYear = year - 1;
+  const days =
+    priorYear * 365 +
+    Math.floor(priorYear / 4) -
+    Math.floor(priorYear / 100) +
+    Math.floor(priorYear / 400) +
+    months.slice(0, month - 1).reduce((sum, length) => sum + length, 0) +
+    day -
+    1;
+  const offset =
+    (offsetHour * 3600 + offsetMinute * 60 + offsetSecond) *
+    (match[9] === "-" ? -1 : 1);
+  const seconds =
+    BigInt(days) * 86400n + BigInt(hour * 3600 + minute * 60 + second - offset);
+  return `timestamptz:${seconds * 1000000n + BigInt(fraction.padEnd(6, "0"))}`;
 }
 
 function assertConstraints(
@@ -582,7 +651,14 @@ function assertConstraints(
       if (
         !found.validated ||
         found.constraint_type !== expectedType ||
-        !sameStrings(found.column_names, constraint.columns) ||
+        !sameStrings(
+          constraint.kind === "check"
+            ? [...found.column_names].sort()
+            : found.column_names,
+          constraint.kind === "check"
+            ? [...constraint.columns].sort()
+            : constraint.columns,
+        ) ||
         (reference !== null &&
           (found.reference_table !== reference.table ||
             !sameNullableStrings(found.reference_columns, [reference.column]) ||
