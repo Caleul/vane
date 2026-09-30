@@ -167,3 +167,37 @@ it("rejects deployment drift before secret resolution or database access", async
   );
   assert.equal(accesses, 0);
 });
+
+it("links every final artifact to versioned, secret-free byte-hashed provenance", async () => {
+  const { createHash } = await import("node:crypto");
+  const configuration = phaseFiveConfiguration();
+  const compiled = compileServiceConfiguration(configuration, "test");
+  assert.ok(compiled.success);
+  const files = generateServiceDeployment(compiled.plan, configuration.project);
+  const manifest = JSON.parse(files["artifacts.json"] as string);
+  assert.equal(manifest.inputHash, compiled.plan.inputHash);
+  assert.equal(manifest.version, 2);
+  assert.equal(manifest.generator.package, "@lilka/vane");
+  assert.match(manifest.generator.version, /^\d+\.\d+\.\d+/);
+  for (const [name, content] of Object.entries(files)) {
+    if (name === "artifacts.json") continue;
+    assert.equal(
+      manifest.files[name],
+      createHash("sha256").update(content).digest("hex"),
+    );
+    if (name.endsWith(".provenance.json")) continue;
+    const companion = manifest.companions[name];
+    assert.equal(companion, `${name}.provenance.json`);
+    const metadata = JSON.parse(files[companion] as string);
+    assert.equal(metadata.artifact, name);
+    assert.equal(metadata.inputHash, compiled.plan.inputHash);
+    assert.equal(metadata.contentHash, manifest.files[name]);
+    assert.equal(metadata.versions.servicePlan, compiled.plan.version);
+  }
+  assert.ok(Array.isArray(JSON.parse(files["contract-ir.json"] as string)));
+  assert.equal(
+    JSON.parse(files["initial-migration.json"] as string).schema,
+    "vane.postgresql-migration-plan",
+  );
+  assert.equal(Object.hasOwn(manifest.files, "artifacts.json"), false);
+});

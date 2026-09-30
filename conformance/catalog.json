@@ -72,8 +72,8 @@
       "required": true,
       "applicability": "applicable",
       "statement": "impedir ownership por mais de um serviço no mesmo perfil.",
-      "precondition": "Profile assigning one Entity to two services",
-      "action": "Compile the profile",
+      "precondition": "Planning allocation assigning one Module/Entity to multiple distinct services, plus a valid complete unique allocation",
+      "action": "Compile valid and invalid planning allocations; distinguish preserved future ownership from actual monolithic runtime ownership",
       "expected": "impedir ownership por mais de um serviço no mesmo perfil.",
       "sources": [
         {
@@ -83,8 +83,11 @@
           "line": 146
         }
       ],
-      "tests": [],
-      "evidenceGap": "Monolithic ownership validation is exercised elsewhere; rejection of the same Entity assigned to multiple services needs a supported multi-service representation or an explicit scope decision."
+      "tests": [
+        "representation.invalid-planned-allocation",
+        "representation.planned-allocation"
+      ],
+      "scopeNote": "Future service allocation is validated inspection-only technical IR; actual execution remains one monolith, as required by v0.1 scope. See docs/phase-7-representation.md."
     },
     {
       "id": "EE-ENT-005",
@@ -215,8 +218,8 @@
       "required": true,
       "applicability": "applicable",
       "statement": "permitir materialização física opcional pela ServiceConfiguration ou pelo provider.",
-      "precondition": "Column with optional physical materialization configuration supported by provider",
-      "action": "Compile two physical configurations and compare unchanged semantic meaning",
+      "precondition": "Unchanged semantic Column declarations and supported PostgreSQL provider configuration",
+      "action": "Materialize through the public provider directly and through ServiceConfiguration; inspect physical SQL types, names, nullability and constraints while comparing unchanged Semantic IR",
       "expected": "permitir materialização física opcional pela ServiceConfiguration ou pelo provider.",
       "sources": [
         {
@@ -226,8 +229,7 @@
           "line": 153
         }
       ],
-      "tests": [],
-      "evidenceGap": "The baseline optional physical-Column customization surface needs clarification: the public configuration currently exposes provider/namespace, but no independent Column physical override fixture has been identified."
+      "tests": ["representation.provider-materialization"]
     },
     {
       "id": "EE-RUL-001",
@@ -386,7 +388,7 @@
           "line": 162
         }
       ],
-      "tests": []
+      "tests": ["remaining.event-terminal-outcomes"]
     },
     {
       "id": "EE-EVT-004",
@@ -666,7 +668,10 @@
           "line": 177
         }
       ],
-      "tests": []
+      "tests": [
+        "remaining.public-payload-inference",
+        "remaining.public-views-only"
+      ]
     },
     {
       "id": "EE-VIEW-002",
@@ -780,7 +785,7 @@
           "line": 183
         }
       ],
-      "tests": []
+      "tests": ["remaining.public-views-only"]
     },
     {
       "id": "EE-ACL-001",
@@ -1011,7 +1016,7 @@
           "line": 197
         }
       ],
-      "tests": []
+      "tests": ["remaining.saga-no-intermediate-return"]
     },
     {
       "id": "EE-SAGA-007",
@@ -1194,8 +1199,8 @@
       "required": true,
       "applicability": "applicable",
       "statement": "cada perfil pode selecionar providers e topologias diferentes.",
-      "precondition": "Same Module combined with distinct supported provider/topology profiles",
-      "action": "Compile each profile; compare technical plans and unchanged semantics",
+      "precondition": "Same Module combined with independently configured supported provider selections in multiple v0.1 monolithic profiles",
+      "action": "Compile profiles with materially different supported HTTP provider configuration; inspect resolved selections/configuration and unchanged semantics; reject unsupported/incompatible providers and productive distributed topology",
       "expected": "cada perfil pode selecionar providers e topologias diferentes.",
       "sources": [
         {
@@ -1205,8 +1210,8 @@
           "line": 210
         }
       ],
-      "tests": [],
-      "evidenceGap": "Four environment profiles are validated; genuinely different supported provider/topology selections are not demonstrated in the Node/PostgreSQL monolithic v0.1 surface."
+      "tests": ["representation.profile-provider-selection"],
+      "scopeNote": "v0.1 requires independently resolved explicit supported-provider/monolithic topology selections; alternative productive providers/topologies apply when available (FR-SVC-013/017, PRD §§16 and 17.13). This evidence does not claim multiple productive runtimes. See docs/phase-7-representation.md."
     },
     {
       "id": "EE-SVC-004",
@@ -1302,7 +1307,7 @@
           "line": 216
         }
       ],
-      "tests": []
+      "tests": ["remaining.explicit-service-boundaries"]
     },
     {
       "id": "EE-SVC-009",
@@ -1348,8 +1353,8 @@
       "required": true,
       "applicability": "applicable",
       "statement": "serviços distintos podem apontar explicitamente para o mesmo banco físico.",
-      "precondition": "Two explicitly configured services targeting the same physical database",
-      "action": "Compile ownership/persistence mapping; productive distribution outside v0.1",
+      "precondition": "Two explicit planned service allocations using one shared physical-database identifier under the supported PostgreSQL provider",
+      "action": "Compile and inspect preserved planned ownership/shared-database intent while actual runtime and infrastructure remain monolithic",
       "expected": "serviços distintos podem apontar explicitamente para o mesmo banco físico.",
       "sources": [
         {
@@ -1359,8 +1364,8 @@
           "line": 219
         }
       ],
-      "evidenceGap": "Closed baseline decision permits distinct services sharing a physical database; a supported same-profile multi-service mapping or normative scope decision is still needed.",
-      "tests": []
+      "tests": ["representation.planned-allocation"],
+      "scopeNote": "Future service allocation is validated inspection-only technical IR; actual execution remains one monolith, as required by v0.1 scope. See docs/phase-7-representation.md."
     },
     {
       "id": "EE-SVC-012",
@@ -1751,8 +1756,7 @@
           "line": 242
         }
       ],
-      "tests": ["service.deterministic-artifacts"],
-      "evidenceGap": "Manifests, Dockerfile and deployment plan are generated; an independent generated image build/run remains unverified."
+      "tests": ["generated.docker-image", "service.deterministic-artifacts"]
     },
     {
       "id": "EE-SVC-032",
@@ -1771,7 +1775,7 @@
           "line": 243
         }
       ],
-      "tests": []
+      "tests": ["remaining.generation-never-applies-remote"]
     },
     {
       "id": "EE-COMP-001",
@@ -1858,7 +1862,8 @@
           "line": 290
         }
       ],
-      "tests": []
+      "tests": ["representation.semantic-boundaries"],
+      "scopeNote": "Future service allocation is validated inspection-only technical IR; actual execution remains one monolith, as required by v0.1 scope. See docs/phase-7-representation.md."
     },
     {
       "id": "EE-COMP-005",
@@ -2600,8 +2605,12 @@
       "precondition": "Public DSL/provider declarations, Event inputs and View outputs with positive and negative type fixtures.",
       "action": "Run TypeScript type checking from the supported package.",
       "expected": "Types are inferred correctly; wrong values fail rather than escaping through any.",
-      "evidenceGap": "Public Column/provider/Event positive and negative types are exercised; full input/output/View inference remains untested.",
-      "tests": ["package.public-types"]
+      "tests": [
+        "package.public-types",
+        "remaining.named-view-static-provenance",
+        "remaining.public-payload-inference"
+      ],
+      "scopeNote": "EventInput extracts instance Event/ACLEvent payloads; ViewInput/ViewOutput extract a statically recognized named View declaration token, not metadata magically added to a decorated class. Inline decorators remain compatible."
     },
     {
       "id": "EE-NFR-003",
@@ -2743,8 +2752,8 @@
       "precondition": "Official reference app, fixed compiler/package versions and documented development machine.",
       "action": "Measure validate elapsed wall-clock time.",
       "expected": "Validation completes within5seconds; hardware and method reported.",
-      "tests": [],
-      "evidenceGap": "Unmeasured: establish reference application inputs and development-machine provenance, then time installed CLI validate against the 5-second bound."
+      "tests": ["performance.reference-validation"],
+      "scopeNote": "Performance evidence applies to the declared measured machine, package/input hashes and nominal protocol recorded in the case evidence; it does not assert a universal bound across all hardware/load."
     },
     {
       "id": "EE-PERF-002",
@@ -2763,8 +2772,8 @@
       "precondition": "Dispatcher benchmark excluding database and network, documented runtime/machine and sample method.",
       "action": "Collect dispatcher overhead samples and compute median.",
       "expected": "Median dispatcher overhead is strictly below10ms.",
-      "tests": [],
-      "evidenceGap": "Unmeasured: define dispatcher timing boundaries excluding database/network and representative sample/warmup protocol before comparing median to 10ms."
+      "tests": ["performance.dispatcher-overhead"],
+      "scopeNote": "Performance evidence applies to the declared measured machine, package/input hashes and nominal protocol recorded in the case evidence; it does not assert a universal bound across all hardware/load."
     },
     {
       "id": "EE-PERF-003",
@@ -2783,8 +2792,8 @@
       "precondition": "Nominal running SSE client with persisted terminal Saga result.",
       "action": "Measure time between persistence commit and client terminal reception.",
       "expected": "Final arrives within1second after persistence under documented nominal conditions.",
-      "tests": [],
-      "evidenceGap": "Unmeasured: record final persistence and client delivery timestamps under declared nominal conditions before asserting the 1-second bound."
+      "tests": ["performance.persisted-sse-latency"],
+      "scopeNote": "Performance evidence applies to the declared measured machine, package/input hashes and nominal protocol recorded in the case evidence; it does not assert a universal bound across all hardware/load."
     },
     {
       "id": "EE-NFR-009",
@@ -2860,8 +2869,10 @@
       "precondition": "Valid reference application compiled through public workflow.",
       "action": "Generate bootstrap and adapters and start application using them.",
       "expected": "Generated bootstrap/adapters exist and execute without hand-written replacement domain handlers.",
-      "tests": ["service.deterministic-artifacts"],
-      "evidenceGap": "Generated bootstrap/configuration/adapters artifacts are inspected; executing the generated bootstrap and adapter wiring remains unverified."
+      "tests": [
+        "generated.reference-bootstrap",
+        "service.deterministic-artifacts"
+      ]
     },
     {
       "id": "EE-ART-002",
@@ -2880,8 +2891,8 @@
       "precondition": "All artifact types from baseline section11.",
       "action": "Inspect every generated artifact metadata and sentinel-secret exposure.",
       "expected": "Artifacts record versions and input hashes, without secrets.",
-      "tests": [],
-      "evidenceGap": "Every generated artifact needs explicit version/input-hash provenance evidence; current plan hashes alone do not certify each standalone output."
+      "tests": ["generated.artifact-provenance"],
+      "scopeNote": "Standalone payload formats retain their schemas; explicit per-file provenance sidecars and a versioned manifest record generator/IR versions, input hash and final UTF-8 byte hashes. The manifest records its own provenance without a recursive self-hash."
     },
     {
       "id": "EE-REF-001",
@@ -2960,8 +2971,7 @@
       "precondition": "Official reference fixture created using supported DSL/configuration.",
       "action": "Compile and execute Sales/Billing reference and inspect declared model/profile contracts.",
       "expected": "Contains Sales/Billing,Order/Payment,PaymentGateway,Order.Place/Payment.Create/PaymentGateway.Authorize,OrderDetails/PaymentReceipt,PlaceOrder,a real two-Column Rule,development/test/production,monolithic execution and future service mapping in IR; no manual controller/repository/domain handler.",
-      "tests": [],
-      "evidenceGap": "The official Sales/Billing reference application still needs independent reproduction through the installed package covering every listed component/profile and generated bootstrap."
+      "tests": ["generated.reference-bootstrap"]
     },
     {
       "id": "EE-SEM-001",
@@ -3005,8 +3015,7 @@
       "precondition": "Supported package API and reference app.",
       "action": "Review public DSL documentation and follow reference quickstart literally.",
       "expected": "DSL is documented and typed; public quickstart leads to functional reference application.",
-      "tests": [],
-      "evidenceGap": "Manual public documentation/quickstart review against the tested package is outstanding; existing documentation and type tests are not silently adopted as conformance proof."
+      "tests": ["generated.literal-quickstart"]
     },
     {
       "id": "EE-SEM-002",
@@ -3031,8 +3040,11 @@
       "precondition": "Same Module combined with multiple valid technical profiles.",
       "action": "Compile each profile and compare semantic outputs.",
       "expected": "Technical materialization may change; Module meaning and Semantic IR stay unchanged.",
-      "tests": ["service.profile-semantic-stability"],
-      "evidenceGap": "Switching existing profiles preserves semantics; future distributed service mapping without semantic changes remains independently unverified."
+      "tests": [
+        "representation.profile-semantic-invariance",
+        "service.profile-semantic-stability"
+      ],
+      "scopeNote": "Future service allocation is validated inspection-only technical IR; actual execution remains one monolith, as required by v0.1 scope. See docs/phase-7-representation.md."
     },
     {
       "id": "EE-CMD-001",
@@ -3222,7 +3234,7 @@
       "precondition": "View using relations and deterministic computed values.",
       "action": "Compile/execute public View query against persisted related Entities.",
       "expected": "Public result traverses declared relations and yields deterministic values derived from Columns.",
-      "tests": []
+      "tests": ["remaining.public-views-only"]
     },
     {
       "id": "EE-PIVOT-001",
@@ -3254,10 +3266,11 @@
       "action": "Typecheck and compile positives plus copied brands/typeof, explicit annotations, static/nonpublic members and old-decorator/factory hybrids.",
       "expected": "Factories on public instance properties define members; Column.type governs inferred type; AST validates reference existence/ownership/kind; invalid forms fail; class and Rule decorators remain supported.",
       "tests": [
+        "remaining.named-view-static-provenance",
+        "remaining.public-payload-inference",
         "semantic.copied-and-wrong-kind-references",
         "semantic.pivot-member-shapes"
-      ],
-      "evidenceGap": "Independent source cases cover public factories, explicit/static/private/legacy/hybrid/copied/wrong-kind forms; complete opaque factory type contract evidence remains outstanding."
+      ]
     },
     {
       "id": "EE-PIVOT-002",
@@ -3276,8 +3289,10 @@
       "precondition": "Owner-only create/update/delete/upsert mutations with derived values, identity-write attempt and Rule violation.",
       "action": "Compile invalid identities/targets and execute valid concurrent derived mutations, no-op-valued write and Rule-failing mutation.",
       "expected": "Identity writes/foreign targets rejected; derived SQL mutation atomic; equal values still write; Rule violation rolls back mutation/outbox; accepted mutation and outbox commit atomically.",
-      "tests": ["semantic.exact-operation-and-input"],
-      "evidenceGap": "Independent parser/compiler/runtime cases cover core operation invariants; complete operator-by-operator public TypeScript positive/negative fixtures remain unverified."
+      "tests": [
+        "remaining.public-payload-inference",
+        "semantic.exact-operation-and-input"
+      ]
     }
   ],
   "sourceDocuments": [

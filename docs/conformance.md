@@ -1,7 +1,9 @@
 # Entity Event v0.1 candidate conformance
 
-This suite is an independent, source-grounded **candidate gate**, not a claim that
-Phase 7 or v0.1 is complete. Required missing evidence is a blocker. Passing the
+This suite is an independent, source-grounded **Phase 7 candidate gate**.
+Completion is established by its executed report, not by the existence of tests.
+Required missing evidence is a blocker; Phase 8 external validation and Phase 9
+release work remain separate. Passing the
 existing Vane unit/integration suite is valuable regression evidence but does not
 silently satisfy this suite.
 
@@ -35,7 +37,11 @@ an entire broader requirement.
 ## Run against the actual packaged API
 
 Requires Node 24+, npm and (for database evidence) a disposable PostgreSQL 16+
-database. Use a test-only database URL; the suite creates randomly named schemas
+database. Generated-image evidence additionally requires a working Docker
+engine on Linux and `VANE_CONFORMANCE_DOCKER=1`; otherwise that requirement
+remains GAP. CI exercises this on its disposable runner with host networking so
+the generated application can reach the test-only PostgreSQL and ACL servers.
+Use a test-only database URL; the suite creates randomly named schemas
 and drops only those schemas in `finally` blocks. Never use production.
 
 ```sh
@@ -55,6 +61,10 @@ snapshots. The package remains `private: true`, version `0.0.0`; packing for tes
 is not publishing a release. Package integrity SHA-256, source commit (including
 an explicit dirty marker), catalog hash, Node/package versions and actual
 PostgreSQL version are report metadata. An unexercised PostgreSQL version is null.
+
+The wrapper also passes the exact tarball path to generated-application cases.
+The runner verifies its bytes against `--tarball-sha256` before exposing it to
+the adapter; an independently supplied `--tarball-path` requires that hash.
 
 For machine-only stdout, build once and invoke the wrapper directly:
 
@@ -90,8 +100,9 @@ JSON and human reports include requirement, status, duration, case IDs and
 observable evidence. Assertion values/errors are deliberately not dumped into
 reports because a failed secrecy test can itself contain credentials. Reproduce
 the named case to investigate locally without publishing sensitive output.
-Each asynchronous case has a 60-second ceiling; the packaged CLI has a 10-minute
-process ceiling. These are execution safety budgets, not normative performance
+Each asynchronous case has a 60-second default ceiling; explicitly declared
+case budgets may extend up to 5 minutes for cold image build/run evidence. The
+packaged CLI has a 10-minute process ceiling. These are execution safety budgets, not normative performance
 measurements. Cases must still bound and clean up their own I/O.
 
 No waiver mechanism currently converts a missing requirement into a pass. Any

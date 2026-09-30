@@ -232,3 +232,31 @@ test("removing a mapped evidence case cannot silently pass a requirement", () =>
     /Missing mapped evidence/,
   );
 });
+
+test("case budgets are bounded and timeout yields structured failure", async () => {
+  for (const timeoutMs of [0, -1, 300001, Number.POSITIVE_INFINITY, 1.5])
+    assert.throws(
+      () => validateCatalog(fixture, [{ ...passing, timeoutMs }]),
+      /Invalid case time budget/,
+    );
+  const report = await runSuite({
+    catalog: fixture,
+    adapter,
+    cases: [{ ...passing, timeoutMs: 5, run: () => new Promise(() => {}) }],
+  });
+  assert.equal(report.exitCode, 1);
+  assert.equal(report.cases[0].status, "FAIL");
+  assert.equal(report.requirements[0].status, "FAIL");
+});
+
+test("source-scoped applicability remains visible in JSON and human evidence", async () => {
+  const scopeNote = "Only the explicitly supported v0.1 monolith is exercised";
+  const report = await runSuite({
+    catalog: { ...fixture, requirements: [{ ...requirement, scopeNote }] },
+    adapter,
+    cases: [passing],
+  });
+  assert.equal(report.requirements[0].scopeNote, scopeNote);
+  assert.ok(humanReport(report).includes(`Scope: ${scopeNote}`));
+  assert.equal(report.requirements[0].status, "PASS");
+});

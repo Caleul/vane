@@ -1,27 +1,49 @@
 # Sales/Billing reference
 
-Node 24 and PostgreSQL 16+ are required. From the repository root:
+Node 24 and PostgreSQL 16+ are required. First build and pack Vane from the
+repository root (`npm ci && npm run build && npm pack`), or use a supplied
+Vane tarball. Set `VANE_TARBALL` to its absolute path and `DATABASE_URL` to your
+PostgreSQL connection. The demo schema defaults to `sales_billing`; choose a
+fresh `VANE_NAMESPACE` to keep it isolated.
+
+Run these commands from the repository root to install the public package in a
+separate application directory and execute the complete quickstart:
 
 ```sh
-npm ci
-npm run build
-export DATABASE_URL=postgresql://vane:vane@localhost:5432/vane
+mkdir -p /tmp/vane-reference
+cp examples/sales-billing/*.mjs examples/sales-billing/*.ts /tmp/vane-reference/
+cd /tmp/vane-reference
+npm init -y
+npm install --ignore-scripts "$VANE_TARBALL"
+node quickstart.mjs
+```
+
+The script validates the installed-package configuration, starts the local
+payment gateway, generates/applies the initial migration, starts `entity-event
+dev`, places an Order, reads its terminal Saga Stream and queries PaymentReceipt.
+It prints one JSON result and shuts down both processes. Rows remain in the
+selected demo schema for inspection. It contains no application domain handlers.
+
+For a long-running application, use the equivalent manual commands from that
+installed example directory:
+
+```sh
 export PAYMENT_GATEWAY_URL=http://127.0.0.1:4000
-node dist/cli.js validate --config examples/sales-billing/configuration.mjs --json
-node dist/cli.js migrate diff --config examples/sales-billing/configuration.mjs --profile development --json > /tmp/vane-initial.json
-node dist/cli.js migrate apply --config examples/sales-billing/configuration.mjs --profile development --migration /tmp/vane-initial.json
+npx --no-install entity-event validate --config configuration.mjs --json
+npx --no-install entity-event migrate diff --config configuration.mjs --profile development --json > /tmp/vane-initial.json
+npx --no-install entity-event migrate apply --config configuration.mjs --profile development --migration /tmp/vane-initial.json
 ```
 
 Start the local external-system stand-in in another terminal:
 
 ```sh
-node examples/sales-billing/gateway.mjs
+node gateway.mjs
 ```
 
 Start the application:
 
 ```sh
-node dist/cli.js dev --config examples/sales-billing/configuration.mjs --profile development --port 3000
+npx --no-install entity-event dev --config configuration.mjs --profile development --port 3000
 ```
 
 Invoke `Order.Place` (use a new UUID for each new order):
@@ -51,4 +73,8 @@ production gateways must honor the Event identity for the full recovery horizon.
 
 Stopping with SIGINT/SIGTERM drains active workers; restarting resumes persisted
 work. Stop the gateway to exercise retry and failure inspection. See the
-[operations guide](../../docs/operations.md) for commands and guarantees.
+[operations guide](https://github.com/Caleul/vane/blob/main/docs/operations.md) for commands and guarantees.
+
+The profile also records a design-only future allocation to `sales-api` and
+`billing-api` sharing the symbolic database `shared-commerce`. This is visible in
+the Runtime IR; the generated application still runs one monolithic service.

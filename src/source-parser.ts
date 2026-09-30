@@ -120,6 +120,7 @@ export type ProjectSourceCompilationResult =
 interface ParserContext {
   readonly sourceFile: ts.SourceFile;
   readonly bindings: ReadonlyMap<string, string>;
+  readonly namedViews: ReadonlyMap<string, ts.CallExpression>;
   readonly semanticBindings: ReadonlyMap<string, string>;
   readonly semanticImportBindings: ReadonlyMap<string, SemanticImportBinding>;
   readonly usedSemanticImports: Map<string, (readonly SemanticClassKind[])[]>;
@@ -201,6 +202,7 @@ function parseModuleSourceInternal(input: ModuleSourceParserInput):
   const context: ParserContext = {
     sourceFile,
     bindings,
+    namedViews: collectNamedViews(sourceFile, bindings),
     semanticBindings: new Map(
       [...semanticImportBindings].map(([localName, binding]) => [
         localName,
@@ -3289,19 +3291,59 @@ function staticPropertyName(
     : undefined;
 }
 
+// A named View token is a local const initialized directly by the public View
+// helper. Resolve its AST, never its runtime value or an arbitrary alias/callback.
+function collectNamedViews(
+  sourceFile: ts.SourceFile,
+  bindings: ReadonlyMap<string, string>,
+): ReadonlyMap<string, ts.CallExpression> {
+  const views = new Map<string, ts.CallExpression>();
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isVariableStatement(statement) ||
+      !(statement.declarationList.flags & ts.NodeFlags.Const)
+    )
+      continue;
+    for (const declaration of statement.declarationList.declarations) {
+      const initializer = declaration.initializer;
+      if (
+        !ts.isIdentifier(declaration.name) ||
+        declaration.type ||
+        !initializer ||
+        !ts.isCallExpression(initializer) ||
+        !ts.isIdentifier(initializer.expression) ||
+        bindings.get(initializer.expression.text) !== "View"
+      )
+        continue;
+      views.set(declaration.name.text, initializer);
+    }
+  }
+  return views;
+}
+function decoratorCall(
+  context: ParserContext,
+  decorator: ts.Decorator,
+):
+  | { readonly symbol: string; readonly expression: ts.CallExpression }
+  | undefined {
+  const expression = decorator.expression;
+  if (ts.isIdentifier(expression)) {
+    const named = context.namedViews.get(expression.text);
+    if (named && named.pos < decorator.pos)
+      return { symbol: "View", expression: named };
+    return undefined;
+  }
+  return dslCall(context, expression);
+}
+
 function hasDecorator(
   context: ParserContext,
   node: ts.Node,
   symbol: string,
 ): boolean {
-  return decoratorsOf(node).some((decorator) => {
-    const expression = decorator.expression;
-    return (
-      ts.isCallExpression(expression) &&
-      ts.isIdentifier(expression.expression) &&
-      context.bindings.get(expression.expression.text) === symbol
-    );
-  });
+  return decoratorsOf(node).some(
+    (decorator) => decoratorCall(context, decorator)?.symbol === symbol,
+  );
 }
 
 function hasDslInitializer(
@@ -3334,12 +3376,8 @@ function oneDecorator(
   path: readonly string[],
 ): ts.CallExpression | undefined {
   const matches = decoratorsOf(node).flatMap((decorator) => {
-    const expression = decorator.expression;
-    return ts.isCallExpression(expression) &&
-      ts.isIdentifier(expression.expression) &&
-      context.bindings.get(expression.expression.text) === symbol
-      ? [expression]
-      : [];
+    const call = decoratorCall(context, decorator);
+    return call?.symbol === symbol ? [call.expression] : [];
   });
   if (matches.length === 1) return matches[0];
   context.diagnostics.push(

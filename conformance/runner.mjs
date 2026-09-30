@@ -4,11 +4,15 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { cases as causality } from "./cases/causality.mjs";
+import { cases as generatedReference } from "./cases/generated-reference.mjs";
 import { cases as lifecycle } from "./cases/lifecycle.mjs";
 import { cases as migrations } from "./cases/migrations.mjs";
 import { cases as operations } from "./cases/operations.mjs";
+import { cases as measuredPerformance } from "./cases/performance.mjs";
 import { cases as persistence } from "./cases/persistence.mjs";
 import { cases as postgres } from "./cases/postgres.mjs";
+import { cases as remainingContracts } from "./cases/remaining-contracts.mjs";
+import { cases as representation } from "./cases/representation.mjs";
 import { cases as semantic } from "./cases/semantic.mjs";
 import { cases as service } from "./cases/service.mjs";
 
@@ -21,6 +25,10 @@ export const allCases = [
   ...operations,
   ...lifecycle,
   ...migrations,
+  ...representation,
+  ...remainingContracts,
+  ...generatedReference,
+  ...measuredPerformance,
 ];
 export const categories = [
   "semantic",
@@ -71,6 +79,13 @@ export function validateCatalog(catalog, cases = allCases) {
       !test.requirements.length
     )
       throw new Error(`Invalid case: ${test.id}`);
+    if (
+      test.timeoutMs !== undefined &&
+      (!Number.isSafeInteger(test.timeoutMs) ||
+        test.timeoutMs < 1 ||
+        test.timeoutMs > 300000)
+    )
+      throw new Error(`Invalid case time budget: ${test.id}`);
     for (const id of test.requirements)
       if (!ids.has(id)) throw new Error(`Unknown case requirement: ${id}`);
   }
@@ -124,13 +139,14 @@ export async function runSuite({
           ),
           { code: "CONFORMANCE_GAP" },
         );
+      const timeoutMs = test.timeoutMs ?? 60000;
       let timer;
       const evidence = await Promise.race([
         test.run(adapter),
         new Promise((_, reject) => {
           timer = setTimeout(
-            () => reject(new Error("Case exceeded 60 second time budget")),
-            60000,
+            () => reject(new Error("Case exceeded its execution time budget")),
+            timeoutMs,
           );
         }),
       ]).finally(() => clearTimeout(timer));
@@ -193,6 +209,7 @@ export async function runSuite({
       category: requirement.category,
       required: requirement.required,
       statement: requirement.statement,
+      ...(requirement.scopeNote ? { scopeNote: requirement.scopeNote } : {}),
       status,
       durationMs: evidence.reduce((sum, t) => sum + t.durationMs, 0),
       evidence: evidence.map((t) => t.id),
@@ -264,7 +281,7 @@ export function humanReport(report) {
     `Commit ${report.environment.commit ?? "unidentified"}; scope ${report.scope.complete ? "complete catalog" : "FILTERED (not a release gate)"}`,
     ...report.requirements.map(
       (r) =>
-        `${r.status.padEnd(4)} ${r.id} (${r.durationMs.toFixed(2)}ms) ${r.statement}\n     ${r.evidence.join(", ") || "no executed evidence"}${r.reason ? `; ${r.reason}` : ""}${report.cases
+        `${r.status.padEnd(4)} ${r.id} (${r.durationMs.toFixed(2)}ms) ${r.statement}${r.scopeNote ? `\n     Scope: ${r.scopeNote}` : ""}\n     ${r.evidence.join(", ") || "no executed evidence"}${r.reason ? `; ${r.reason}` : ""}${report.cases
           .filter((c) => r.evidence.includes(c.id))
           .map((c) => `\n     ${c.id}: ${c.status} ${c.evidence}`)
           .join("")}`,
@@ -282,7 +299,7 @@ async function main() {
     const arg = args[i];
     if (arg === "--help") {
       console.log(
-        "Usage: node runner.mjs --package-root <installed-package> [--adapter <module>] [--id EE-*] [--category semantic|persistence|runtime|contract|saga|operations] [--json] [--out report.json] [--commit sha] [--tarball-sha256 hash]",
+        "Usage: node runner.mjs --package-root <installed-package> [--adapter <module>] [--id EE-*] [--category semantic|persistence|runtime|contract|saga|operations] [--json] [--out report.json] [--commit sha] [--tarball-sha256 hash] [--tarball-path file]",
       );
       return;
     }
@@ -299,6 +316,7 @@ async function main() {
         "--out",
         "--commit",
         "--tarball-sha256",
+        "--tarball-path",
       ].includes(arg) ||
       !args[i + 1] ||
       args[i + 1].startsWith("--")
@@ -323,6 +341,15 @@ async function main() {
     packageRoot: options["package-root"],
   });
   adapter.databaseUrl = process.env.VANE_CONFORMANCE_DATABASE_URL;
+  if (options["tarball-path"]) {
+    const path = resolve(options["tarball-path"]);
+    const hash = createHash("sha256")
+      .update(await readFile(path))
+      .digest("hex");
+    if (!options["tarball-sha256"] || hash !== options["tarball-sha256"])
+      throw new Error("Tarball path must match declared integrity hash");
+    adapter.tarballPath = path;
+  }
   const report = await runSuite({
     catalog,
     adapter,

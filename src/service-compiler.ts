@@ -51,6 +51,13 @@ export interface RuntimeIr {
   /** Resolved technical wiring with redacted secret slots; portable without the root profiles. */
   readonly configuration: JsonValue;
   readonly semanticProjectHash: string;
+  /** Validated planning metadata only. Runtime ownership remains the monolithic service. */
+  readonly plannedAllocation?: readonly {
+    readonly name: string;
+    readonly modules: readonly string[];
+    readonly database: string;
+    readonly entities: readonly string[];
+  }[];
   readonly ownership: readonly {
     readonly entity: string;
     readonly service: string;
@@ -310,6 +317,43 @@ function compile(
       "Every Module and Entity must have exactly one explicit owner.",
       "Map every compiled Module exactly once to the monolithic service.",
     );
+  const plannedAllocation = profile.plannedAllocation
+    ?.map((allocation) => ({
+      ...allocation,
+      modules: [...allocation.modules].sort(),
+      entities: modules
+        .filter((module) => allocation.modules.includes(module.name))
+        .flatMap((module) =>
+          module.entities.map((entity) => `${module.name}.${entity.name}`),
+        )
+        .sort(),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  if (plannedAllocation) {
+    const names = plannedAllocation.map((allocation) => allocation.name);
+    const assigned = plannedAllocation.flatMap(
+      (allocation) => allocation.modules,
+    );
+    if (
+      plannedAllocation.length === 0 ||
+      new Set(names).size !== names.length ||
+      plannedAllocation.some(
+        (allocation) =>
+          !/^[a-z][a-z0-9-]*$/.test(allocation.name) ||
+          !/^[a-z][a-z0-9-]*$/.test(allocation.database) ||
+          allocation.modules.length === 0,
+      ) ||
+      assigned.length !== modules.length ||
+      new Set(assigned).size !== assigned.length ||
+      modules.some((module) => !assigned.includes(module.name))
+    )
+      issue(
+        "PLANNED_OWNERSHIP",
+        ["plannedAllocation"],
+        "Planned allocation must assign every Module and Entity to exactly one named service and one database label.",
+        "Declare unique service names, nonempty Module lists covering the project exactly once, and nonsecret database identifiers. Shared database labels are allowed; v0.1 execution remains monolithic.",
+      );
+  }
   for (const module of modules) {
     try {
       moduleScope(module, modules);
@@ -837,6 +881,10 @@ function compile(
   >;
   const topology = normalized.topology as { service: { modules: string[] } };
   topology.service.modules.sort();
+  if (plannedAllocation)
+    normalized.plannedAllocation = plannedAllocation.map(
+      ({ entities: _entities, ...allocation }) => allocation,
+    );
   const providers = [...selected.values()]
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((p) => ({
@@ -869,6 +917,7 @@ function compile(
     },
     configuration: normalized as JsonValue,
     semanticProjectHash: technicalHash({ ...configuration.project, modules }),
+    ...(plannedAllocation ? { plannedAllocation } : {}),
     ownership: modules
       .flatMap((m) =>
         m.entities.map((e) => ({
@@ -1088,6 +1137,7 @@ function validateShapes(configuration: ServiceConfiguration): void {
       p,
       [
         "extends",
+        "plannedAllocation",
         "environment",
         "topology",
         "communication",
@@ -1101,6 +1151,34 @@ function validateShapes(configuration: ServiceConfiguration): void {
       ],
       ["profiles"],
     );
+    if (p.plannedAllocation !== undefined) {
+      if (!Array.isArray(p.plannedAllocation))
+        issue(
+          "PLANNED_OWNERSHIP",
+          ["plannedAllocation"],
+          "Planned allocation must be an array.",
+          "Supply an explicit list of planning-only service allocations.",
+        );
+      for (const allocation of p.plannedAllocation) {
+        keys(
+          allocation,
+          ["name", "modules", "database"],
+          ["plannedAllocation"],
+        );
+        if (
+          typeof allocation.name !== "string" ||
+          typeof allocation.database !== "string" ||
+          !Array.isArray(allocation.modules) ||
+          allocation.modules.some((name: unknown) => typeof name !== "string")
+        )
+          issue(
+            "PLANNED_OWNERSHIP",
+            ["plannedAllocation"],
+            "Planned service, database and Module identifiers must be strings.",
+            "Use nonsecret identifiers and an explicit Module list.",
+          );
+      }
+    }
     if (p.telemetry) keys(p.telemetry, ["exporter", "redact"], ["telemetry"]);
     if (p.secrets) {
       keys(

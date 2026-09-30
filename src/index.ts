@@ -53,6 +53,7 @@ export {
   type ColumnToken,
   type EventOptions,
   type EventInputOptions,
+  type EventInput,
   type EventOperationValueToken,
   type EntityEventOperationToken,
   type EntityEventOptions,
@@ -68,6 +69,8 @@ export {
   type SagaStepToken,
   type VaneClass,
   type ViewOptions,
+  type ViewInput,
+  type ViewOutput,
 } from "./dsl.js";
 export type {
   AntiCorruptionLayerDeclaration,

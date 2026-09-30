@@ -15,7 +15,7 @@ import {
   postgresSaga,
   serviceConfiguration,
   sse,
-} from "../../dist/index.js";
+} from "@lilka/vane";
 const sources = ["billing.vane.ts", "sales.vane.ts"].map((fileName) => ({
   fileName,
   sourceText: readFileSync(new URL(fileName, import.meta.url), "utf8"),
@@ -29,13 +29,22 @@ export default serviceConfiguration({
   profiles: {
     development: {
       environment: "development",
+      // Design-only allocation. v0.1 still executes one monolithic service.
+      plannedAllocation: [
+        { name: "sales-api", modules: ["Sales"], database: "shared-commerce" },
+        {
+          name: "billing-api",
+          modules: ["Billing"],
+          database: "shared-commerce",
+        },
+      ],
       topology: monolith({
         name: "api",
         modules: ["Sales", "Billing"],
         runtime: node(),
         persistence: {
           provider: postgres(),
-          namespace: "sales_billing",
+          namespace: process.env.VANE_NAMESPACE ?? "sales_billing",
           targetVersion: 16,
           connection: env("DATABASE_URL"),
         },

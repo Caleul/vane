@@ -48,6 +48,7 @@ jobs:
       - run: npm run test:integration
 
   conformance:
+    timeout-minutes: 15
     # This is a real candidate gate: required FAIL and GAP both fail the job.
     # A green regression suite does not imply full normative conformance.
     runs-on: ubuntu-latest
@@ -67,6 +68,7 @@ jobs:
           --health-retries 5
     env:
       VANE_CONFORMANCE_DATABASE_URL: postgresql://vane:vane@localhost:5432/vane_conformance
+      VANE_CONFORMANCE_DOCKER: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
