@@ -94,3 +94,12 @@ validation and the exact runtime boundary for policies deferred to phase 6.
 
 The [phase 6 completion gate](docs/phase-6-completion.md) records robustness,
 recovery, operational tooling and reference application evidence.
+
+## Independent conformance candidate
+
+The [Entity Event conformance suite](docs/conformance.md) installs the packed
+public API in an external consumer and reports source-mapped EE requirements.
+Run `npm run conformance` (set `VANE_CONFORMANCE_DATABASE_URL` for real PostgreSQL
+cases). Required failures **and evidence gaps** exit nonzero. The strict candidate
+CI gate remains blocked until every required obligation is independently proven;
+passing regression tests alone does not declare Phase 7 or v0.1 complete.

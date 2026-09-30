@@ -1,0 +1,3646 @@
+{
+  "schema_version": 1,
+  "scope": "Current v0.1 normative behavior; source clauses consolidated, historical/context/process exclusions explicit. N/A exclusions do not waive negative constraints.",
+  "mappings": [
+    {
+      "source_anchor": "EE-SOURCE-PRD-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.1 Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.1 Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.1 Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.1 Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-005", "EE-COL-001", "EE-RUL-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.1 Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.3 Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-007",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.3 Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-008",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.3 Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-009",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.3 Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-004"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-010",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-013"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-011",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-012",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-013",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-014",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-012"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-015",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-016",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-004"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-017",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-004", "EE-PG-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-018",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-003", "EE-PG-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-019",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-014"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-020",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-021",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-008"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-022",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-005", "EE-EVT-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-023",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de ACL",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-024",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de ACL",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-025",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.4 Event > Event de ACL",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-004"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-026",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.5 View e query",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-027",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.5 View e query",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-028",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.5 View e query",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-009"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-029",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.5 View e query",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-030",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.5 View e query",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-031",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.7 Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-032",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.7 Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-033",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.7 Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-034",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.7 Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-035",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.7 Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-001", "EE-ACL-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-036",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.8 Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-037",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.8 Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-008"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-038",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.8 Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUN-006", "EE-OBS-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-039",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-040",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-013"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-041",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-006", "EE-SVC-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-042",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-007", "EE-SVC-008"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-043",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-009"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-044",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-010"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-045",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-022"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-046",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-025", "EE-SVC-027"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-047",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-027"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-048",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-018"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-049",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 4. Fundamentos normativos > 4.10 ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-031", "EE-OBS-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-050",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-051",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-052",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-053",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-054",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-055",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-056",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-057",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-058",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-059",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-060",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-061",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-062",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-063",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-064",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 6. Fora de escopo da v0.1",
+      "disposition": "not-applicable",
+      "requirement_ids": [],
+      "reason": "Explicit v0.1 out-of-scope capability. Not a waiver of negative prohibitions already required by FR-RUL/EVT/VIEW/SAGA/SVC."
+    },
+    {
+      "source_anchor": "EE-ENT-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ENT-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ENT-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ENT-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ENT-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COL-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COL-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COL-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COL-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COL-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COL-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUL-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUL-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUL-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUL-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUL-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.1 Entity, Column e Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-007",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-007"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-008",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-008"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-009",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-009"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-010",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-010"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-011",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-011"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-012",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-012"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-013",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-013"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-014",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-014"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-015",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-015"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-EVT-016",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.2 Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-016"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-VIEW-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-VIEW-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-VIEW-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-VIEW-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-VIEW-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-VIEW-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-VIEW-007",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.3 View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-007"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ACL-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ACL-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ACL-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ACL-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ACL-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-ACL-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.4 ACL",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SAGA-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SAGA-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SAGA-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SAGA-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SAGA-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SAGA-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SAGA-007",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-007"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SAGA-008",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.5 Saga e Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-008"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-MOD-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-MOD-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-MOD-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-MOD-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-MOD-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-MOD-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-MOD-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-MOD-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-MOD-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.6 Module",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-MOD-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Estrutura e perfis",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-007",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-007"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-008",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-008"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-009",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-009"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-010",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-010"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-011",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-011"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-012",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Serviços, Modules e persistência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-012"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-013",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-013"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-014",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-014"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-015",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-015"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-016",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-016"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-017",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Runtime e providers",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-017"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-018",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-018"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-019",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-019"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-020",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-020"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-021",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-021"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-022",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > Políticas",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-022"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-023",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-023"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-024",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-024"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-025",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-025"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-026",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-026"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-027",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-027"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-028",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-028"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-029",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-029"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-030",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-030"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-031",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-031"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SVC-032",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.7 ServiceConfiguration > ACL, contrato, segredos e infraestrutura",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-032"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-155",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-001", "EE-COMP-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-156",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-005", "EE-COMP-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-COMP-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COMP-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COMP-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COMP-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COMP-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COMP-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COMP-007",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-007"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COMP-008",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-008"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COMP-009",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-009"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-COMP-010",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.8 Compilador em dois estágios",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-010"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-PG-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-PG-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-PG-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-PG-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-PG-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-PG-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUN-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUN-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUN-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUN-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUN-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUN-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUN-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUN-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUN-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUN-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-RUN-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.9 PostgreSQL e runtime",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUN-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-HTTP-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-HTTP-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-HTTP-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-HTTP-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-HTTP-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-HTTP-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-HTTP-007",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-007"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-HTTP-008",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.10 Contrato HTTP",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-008"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-OBS-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-OBS-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-OBS-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-OBS-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-OBS-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-OBS-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-OBS-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-OBS-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-OBS-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-OBS-005"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-OBS-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.11 Observabilidade",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-OBS-006"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-193",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CMD-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-194",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CMD-002"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-195",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CMD-003"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-196",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CMD-004"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-197",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CMD-005"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-198",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CMD-006"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-199",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CMD-007"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-200",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CMD-008"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-CLI-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CLI-001"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-CLI-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CLI-002"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-CLI-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CLI-003"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-CLI-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 8. Requisitos funcionais > 8.12 CLI",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-CLI-004"],
+      "reason": "Exact numbered functional requirement."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-205",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Determinismo e tipagem",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-206",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Determinismo e tipagem",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-002"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-207",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Determinismo e tipagem",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-003"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-208",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Segurança",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-004"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-209",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Segurança",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-005"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-210",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Segurança",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-006"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-211",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Confiabilidade",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-007"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-212",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Confiabilidade",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-008"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-213",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Confiabilidade",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUN-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-214",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Desempenho inicial",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PERF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-215",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Desempenho inicial",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PERF-002"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-216",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Desempenho inicial",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PERF-003"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-217",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Evolução",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-009"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-218",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Evolução",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-010"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-219",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 9. Requisitos não funcionais > Evolução",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-011"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-220",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-221",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-005", "EE-CLI-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-222",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-223",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-002", "EE-PG-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-224",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-007", "EE-VIEW-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-225",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ART-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-226",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-031"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-227",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-006", "EE-COMP-008"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-228",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 11. Artefatos gerados",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ART-002"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-229",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Regressões de vocabulário",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-230",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Regressões de vocabulário",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-231",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Regressões de vocabulário",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-004", "EE-EVT-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-232",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Regressões de vocabulário",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-233",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Regressões de vocabulário",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-002", "EE-ACL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-234",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Regressões de vocabulário",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-235",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Regressões de vocabulário",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-008"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-236",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Regressões de vocabulário",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-011"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-237",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Compilação e tipos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-002", "EE-COMP-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-238",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Compilação e tipos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-005", "EE-SVC-020"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-239",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Compilação e tipos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-240",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Compilação e tipos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-008", "EE-COMP-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-241",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Compilação e tipos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-002", "EE-VIEW-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-242",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Compilação e tipos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-016", "EE-SVC-012", "EE-ENT-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-243",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-004", "EE-VIEW-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-244",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-005", "EE-EVT-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-245",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-246",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-018", "EE-PG-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-247",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-NFR-008"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-248",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUN-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-249",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-005", "EE-SAGA-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-250",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-251",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 12. Estratégia de testes > Integração e ponta a ponta",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SEM-002"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-252",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-253",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-254",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-255",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-256",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-257",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-258",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-259",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-260",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-261",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 13. Projeto de referência",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-262",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-REF-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-263",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SEM-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-264",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-011"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-265",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-004", "EE-PG-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-266",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-003", "EE-RUL-004"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-267",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-002", "EE-ACL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-268",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-269",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-010", "EE-CLI-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-270",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-002", "EE-COMP-002", "EE-HTTP-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-271",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-008", "EE-SVC-016"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-272",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 14. Critérios de sucesso",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SEM-002"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-273",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-274",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-002", "EE-SVC-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-275",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-MOD-005", "EE-SVC-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-276",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-008"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-277",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-009"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-278",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-010"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-279",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-011"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-280",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-023"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-281",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-014"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-282",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-019"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-283",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-011"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-284",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-001", "EE-COMP-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-285",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-006", "EE-COMP-004"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-286",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 17. Decisões fechadas sobre ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-031", "EE-SVC-032"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-287",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Suite-level coverage/automation acceptance criterion enforced by the Phase7 coverage map and report; not an additional runtime behavior."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-288",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-DOC-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-289",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-001", "EE-COMP-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-290",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COMP-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-291",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PG-002", "EE-PG-005", "EE-PG-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-292",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-004", "EE-ACL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-293",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-294",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-003", "EE-SAGA-004", "EE-SAGA-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-295",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-296",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": [
+        "EE-SVC-002",
+        "EE-SVC-014",
+        "EE-SVC-018",
+        "EE-CLI-003"
+      ],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-297",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-HTTP-001", "EE-HTTP-005", "EE-HTTP-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-298",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-OBS-001", "EE-RUN-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-299",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-DOC-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-300",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-006", "EE-SVC-030", "EE-OBS-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PRD-301",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81b78834d4649a9048fb?pvs=204",
+      "section": "PRD — Entity Event Framework v0.1 > 19. Definition of Done",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Suite-level coverage/automation acceptance criterion enforced by the Phase7 coverage map and report; not an additional runtime behavior."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-001",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Entity Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SEM-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-002",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Entity Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-003", "EE-EVT-004", "EE-ACL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-003",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-004",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-005",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SEM-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-006",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-007",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-008",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-009",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-011", "EE-SVC-023"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-010",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-011",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-012",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-013",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-014",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-015",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-016",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-017",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-018",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-019",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-020",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SEM-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-021",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Ubiquitous Language",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-022",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Tangential Abstraction",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-023",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Tangential Abstraction",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-024",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Tangential Abstraction",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-025",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Tangential Abstraction",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-026",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Tangential Abstraction",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-027",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Tangential Abstraction",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-028",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Tangential Abstraction",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-029",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-030",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-031",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-032",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-033",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-003", "EE-COL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-034",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Entity",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-035",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Column",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-001", "EE-COL-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-036",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Column",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ENT-002", "EE-COL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-037",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Column",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-038",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Column",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-004", "EE-PG-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-039",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Column",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-COL-004"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-040",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-041",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Rule",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-042",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-003", "EE-RUL-004"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-043",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Rule",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-RUL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-044",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-004"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-045",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-013"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-046",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-047",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-048",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-049",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-050",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-051",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-052",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-053",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-054",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-055",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-056",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-004", "EE-PG-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-057",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-003", "EE-PG-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-058",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-007", "EE-EVT-008"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-059",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Event",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-EVT-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-060",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-061",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VOC-002"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-062",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-063",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-064",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-065",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "View",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-066",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "View",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VIEW-006", "EE-EVT-009"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-067",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Anti-Corruption Layer",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-068",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Anti-Corruption Layer",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-069",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Anti-Corruption Layer",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-VOC-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-070",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Anti-Corruption Layer",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-002", "EE-ACL-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-071",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Anti-Corruption Layer",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-003", "EE-SAGA-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-072",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-073",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-074",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-006"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-075",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-005"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-076",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-003"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-077",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-018"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-078",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-079",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-080",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-007"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-081",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SAGA-007", "EE-SAGA-008"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-082",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Saga Stream",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-027"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-083",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Module",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-MOD-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-084",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Module",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SEM-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-085",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-086",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "ServiceConfiguration",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-087",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-013"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-088",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-007", "EE-SVC-009"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-089",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-010", "EE-SVC-031"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-090",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SVC-018"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-091",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "ServiceConfiguration",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SEM-002", "EE-MOD-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-092",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Fluxo completo",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Definition introduction, explanatory example, domain-discovery heuristic or illustrative syntax; surrounding observable obligation mapped separately. Vocabulary examples do not freeze DSL syntax."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-093",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Fluxo completo",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-ACL-003", "EE-SAGA-001"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-VOC-094",
+      "source_url": "https://app.notion.com/p/3ca51cfc265c81608ca5c34039ad121f?pvs=204",
+      "section": "Fluxo completo",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-SEM-002"],
+      "reason": "Equivalent normative obligation; consolidated without dropping this source clause."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-001",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Decisão anterior",
+      "disposition": "superseded",
+      "requirement_ids": [],
+      "reason": "Prior decision retained as history; current decisions PIVOT001 factories and PIVOT002 explicit mutation supersede it."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-002",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Evidência de implementação",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-003",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Diagnóstico",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-004",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Nova decisão",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PIVOT-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-005",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Impactos",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-006",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PIVOT-001"],
+      "reason": "Public member factory syntax supersedes earlier illustrative decorators."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-007",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PIVOT-001"],
+      "reason": "Public member factory syntax supersedes earlier illustrative decorators."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-008",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PIVOT-001"],
+      "reason": "Public member factory syntax supersedes earlier illustrative decorators."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-009",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Impactos",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-010",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PIVOT-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-011",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Validação",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PIVOT-001"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-012",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Referências",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-013",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Referências",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-014",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Template de pivô > PIVOT-001 — Membros semânticos inferidos por factories > Referências",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-015",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-016",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Decisão anterior",
+      "disposition": "superseded",
+      "requirement_ids": [],
+      "reason": "Prior decision retained as history; current decisions PIVOT001 factories and PIVOT002 explicit mutation supersede it."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-017",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Evidência de implementação",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-018",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Diagnóstico",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-019",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Nova decisão",
+      "disposition": "mapped",
+      "requirement_ids": [
+        "EE-EVT-013",
+        "EE-EVT-014",
+        "EE-EVT-015",
+        "EE-EVT-016"
+      ],
+      "reason": "PIVOT002 incorporated into normative FR-EVT013–016; v5 persistence-only grammar superseded."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-020",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": [
+        "EE-EVT-013",
+        "EE-EVT-014",
+        "EE-EVT-015",
+        "EE-EVT-016"
+      ],
+      "reason": "PIVOT002 incorporated into normative FR-EVT013–016; v5 persistence-only grammar superseded."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-021",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": [
+        "EE-EVT-013",
+        "EE-EVT-014",
+        "EE-EVT-015",
+        "EE-EVT-016"
+      ],
+      "reason": "PIVOT002 incorporated into normative FR-EVT013–016; v5 persistence-only grammar superseded."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-022",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": [
+        "EE-EVT-013",
+        "EE-EVT-014",
+        "EE-EVT-015",
+        "EE-EVT-016"
+      ],
+      "reason": "PIVOT002 incorporated into normative FR-EVT013–016; v5 persistence-only grammar superseded."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-023",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": [
+        "EE-EVT-013",
+        "EE-EVT-014",
+        "EE-EVT-015",
+        "EE-EVT-016"
+      ],
+      "reason": "PIVOT002 incorporated into normative FR-EVT013–016; v5 persistence-only grammar superseded."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-024",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Impactos",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-025",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": [
+        "EE-EVT-013",
+        "EE-EVT-014",
+        "EE-EVT-015",
+        "EE-EVT-016"
+      ],
+      "reason": "PIVOT002 incorporated into normative FR-EVT013–016; v5 persistence-only grammar superseded."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-026",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Impactos",
+      "disposition": "mapped",
+      "requirement_ids": [
+        "EE-EVT-013",
+        "EE-EVT-014",
+        "EE-EVT-015",
+        "EE-EVT-016"
+      ],
+      "reason": "PIVOT002 incorporated into normative FR-EVT013–016; v5 persistence-only grammar superseded."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-027",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Validação",
+      "disposition": "mapped",
+      "requirement_ids": ["EE-PIVOT-002"],
+      "reason": "Observable normative requirement beyond or refining numbered FR baseline."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-028",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Referências",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-PIVOT-029",
+      "source_url": "https://app.notion.com/p/3cb51cfc265c81b59f14f4b267250094?pvs=204",
+      "section": "Linha de base > PIVOT-002 — A operação persistente pertence ao Event > Referências",
+      "disposition": "contextual",
+      "requirement_ids": [],
+      "reason": "Historical evidence, diagnosis, document-update instruction or reference, not an additional normative behavior; current decision mapped separately."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-001",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Entregável",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-002",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Categorias mínimas",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-003",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Categorias mínimas",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-004",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Categorias mínimas",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-005",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Categorias mínimas",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-006",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Categorias mínimas",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-007",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Categorias mínimas",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-008",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Definition of Done",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-009",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Definition of Done",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-010",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Definition of Done",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-011",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Definition of Done",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-CAT-012",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81938dffc32782c8b282?pvs=204",
+      "section": "Definition of Done",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-HARNESS-001",
+      "source_url": "https://app.notion.com/p/3d251cfc265c8121b118fa3c45c78c44?pvs=204",
+      "section": "Requisitos do harness",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-HARNESS-002",
+      "source_url": "https://app.notion.com/p/3d251cfc265c8121b118fa3c45c78c44?pvs=204",
+      "section": "Requisitos do harness",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-HARNESS-003",
+      "source_url": "https://app.notion.com/p/3d251cfc265c8121b118fa3c45c78c44?pvs=204",
+      "section": "Requisitos do harness",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-HARNESS-004",
+      "source_url": "https://app.notion.com/p/3d251cfc265c8121b118fa3c45c78c44?pvs=204",
+      "section": "Requisitos do harness",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-HARNESS-005",
+      "source_url": "https://app.notion.com/p/3d251cfc265c8121b118fa3c45c78c44?pvs=204",
+      "section": "Requisitos do harness",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-HARNESS-006",
+      "source_url": "https://app.notion.com/p/3d251cfc265c8121b118fa3c45c78c44?pvs=204",
+      "section": "Requisitos do harness",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-HARNESS-007",
+      "source_url": "https://app.notion.com/p/3d251cfc265c8121b118fa3c45c78c44?pvs=204",
+      "section": "Anti-acoplamento",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-HARNESS-008",
+      "source_url": "https://app.notion.com/p/3d251cfc265c8121b118fa3c45c78c44?pvs=204",
+      "section": "Teste de sanidade",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-MATRIX-001",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81ad8b22e5104c33fbe8?pvs=204",
+      "section": "Fechar matriz de conformidade e relatório candidato",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-MATRIX-002",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81ad8b22e5104c33fbe8?pvs=204",
+      "section": "Fechar matriz de conformidade e relatório candidato",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-MATRIX-003",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81ad8b22e5104c33fbe8?pvs=204",
+      "section": "Fechar matriz de conformidade e relatório candidato",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-MATRIX-004",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81ad8b22e5104c33fbe8?pvs=204",
+      "section": "Fechar matriz de conformidade e relatório candidato",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-MATRIX-005",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81ad8b22e5104c33fbe8?pvs=204",
+      "section": "Fechar matriz de conformidade e relatório candidato",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    },
+    {
+      "source_anchor": "EE-SOURCE-MATRIX-006",
+      "source_url": "https://app.notion.com/p/3d251cfc265c81ad8b22e5104c33fbe8?pvs=204",
+      "section": "Fechar matriz de conformidade e relatório candidato",
+      "disposition": "process",
+      "requirement_ids": [],
+      "reason": "Phase7 suite/catalog/report acceptance obligation; retain in process checklist rather than count as an Entity Event implementation invariant."
+    }
+  ]
+}

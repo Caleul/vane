@@ -46,3 +46,42 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:integration
+
+  conformance:
+    # This is a real candidate gate: required FAIL and GAP both fail the job.
+    # A green regression suite does not imply full normative conformance.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.15-alpine
+        env:
+          POSTGRES_DB: vane_conformance
+          POSTGRES_PASSWORD: vane
+          POSTGRES_USER: vane
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vane -d vane_conformance"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      VANE_CONFORMANCE_DATABASE_URL: postgresql://vane:vane@localhost:5432/vane_conformance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:conformance
+      - run: npm run test:conformance:package
+      - name: Run independent candidate conformance gate
+        run: node conformance/pack-and-run.mjs --out /tmp/conformance-report.json
+      - name: Preserve candidate evidence even when blocked
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: entity-event-conformance-${{ github.sha }}
+          path: /tmp/conformance-report.json
+          if-no-files-found: warn

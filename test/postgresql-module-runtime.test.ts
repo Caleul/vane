@@ -589,6 +589,219 @@ describe("PostgreSQL Module runtime", () => {
     await runtime.stop();
   });
 
+  it("accepts exact datetime literal deparse across timezone and precision forms", async () => {
+    for (const [expected, installed] of [
+      ["2026-09-01T08:00:00.000Z", "2026-09-01 08:00:00+00"],
+      ["2026-09-01T08:00:00.123456Z", "2026-09-01 13:45:00.123456+05:45"],
+      ["2026-09-01T08:00:00.123400Z", "2026-09-01 04:30:00.1234-03:30"],
+      ["2026-01-01T00:15:00Z", "2025-12-31 18:45:00-05:30"],
+      ["2024-03-01T00:00:00Z", "2024-02-29 23:00:00-01"],
+      ["2000-03-01T00:00:00Z", "2000-02-29 23:30:00-00:30"],
+      ["1900-03-01T00:00:00Z", "1900-02-28 23:30:00-00:30"],
+      ["2026-09-01T08:00:00+05:45", "2026-09-01 02:15:00+00"],
+      ["2026-09-01T08:00:00Z", "2026-09-01 08:00:30+00:00:30"],
+    ]) {
+      const module = semanticModule([
+        {
+          ...order,
+          columns: [
+            ...order.columns,
+            {
+              ...quantityColumn,
+              name: "recorded",
+              type: "datetime",
+              hasDefault: true,
+              default: expected as string,
+            },
+          ],
+        },
+      ]);
+      const storage = storageFor(module);
+      const database = new MemoryPostgreSqlPool(storage);
+      const row = database.catalogRows.find(
+        (r) => r.column_name === "recorded",
+      );
+      assert.ok(row);
+      Object.assign(row, {
+        column_default: `'${installed}'::timestamp with time zone`,
+      });
+      const runtime = new PostgreSqlModuleRuntime({
+        module,
+        pool: database,
+        storage,
+      });
+      await runtime.start();
+      await runtime.stop();
+      assert.ok(database.queries.includes("BEGIN READ ONLY"));
+      assert.ok(database.queries.includes("SET LOCAL DateStyle = 'ISO, YMD'"));
+      assert.equal(database.queries.at(-1), "ROLLBACK");
+      assert.equal(database.releaseCount, 1);
+    }
+  });
+
+  it("rejects microsecond, timezone and unsupported datetime default drift", async () => {
+    const module = semanticModule([
+      {
+        ...order,
+        columns: [
+          ...order.columns,
+          {
+            ...quantityColumn,
+            name: "recorded",
+            type: "datetime",
+            hasDefault: true,
+            default: "2026-09-01T08:00:00.123456Z",
+          },
+        ],
+      },
+    ]);
+    const storage = storageFor(module);
+    for (const installed of [
+      "'2026-09-01 08:00:00.123457+00'::timestamp with time zone",
+      "'2026-09-01 08:00:00.123455+00'::timestamptz",
+      "'2026-09-01 08:00:00.123456+01'::timestamp with time zone",
+      "'2026-09-02 08:00:00.123456+00'::timestamp with time zone",
+      "'2026-09-01 08:00:00.1234561+00'::timestamp with time zone",
+      "'2026-09-01 08:00:00.123456'::timestamp with time zone",
+      "'2026-02-30 08:00:00.123456+00'::timestamp with time zone",
+      "'2026-09-01 25:00:00.123456+00'::timestamp with time zone",
+      "'2026-09-01 08:00:00.123456+16'::timestamp with time zone",
+      "'2026-09-01 08:00:00.123456+00:60'::timestamp with time zone",
+      "'2026-09-01 08:00:00.123456 UTC'::timestamp with time zone",
+      "('2026-09-01 08:00:00.123456+00'::timestamptz)::date",
+      "('2026-09-01 08:00:00.123456+00'::timestamptz)::timestamp",
+      "date_trunc('day', '2026-09-01 08:00:00.123456+00'::timestamptz)",
+      "'2026-09-01 08:00:00.123456+00'::timestamptz(3)",
+      "now()",
+      "NULL",
+      null,
+    ]) {
+      const database = new MemoryPostgreSqlPool(storage);
+      const row = database.catalogRows.find(
+        (r) => r.column_name === "recorded",
+      );
+      assert.ok(row);
+      Object.assign(row, { column_default: installed });
+      const runtime = new PostgreSqlModuleRuntime({
+        module,
+        pool: database,
+        storage,
+      });
+      await assert.rejects(
+        runtime.start(),
+        PostgreSqlModuleRuntimeConfigurationError,
+      );
+      assert.equal(runtime.state, "stopped");
+      assert.equal(database.releaseCount, 1);
+      assert.equal(database.queries.at(-1), "ROLLBACK");
+    }
+  });
+
+  it("ignores only CHECK Column order while preserving membership, expression and validation", async () => {
+    const module = semanticModule([
+      {
+        ...order,
+        columns: [...order.columns, { ...quantityColumn, name: "limit" }],
+        rules: [
+          {
+            name: "Bounded",
+            columns: ["limit", "quantity"],
+            expression: {
+              kind: "comparison",
+              operator: "lte",
+              left: { kind: "column", column: "quantity" },
+              right: { kind: "column", column: "limit" },
+            },
+          },
+        ],
+      },
+    ]);
+    const storage = storageFor(module);
+    for (const change of [
+      null,
+      { column_names: ["quantity"] },
+      { column_names: ["quantity", "id"] },
+      { column_names: ["quantity", "limit", "limit"] },
+      { check_expression: '"quantity" < "limit"' },
+      { validated: false },
+    ]) {
+      const database = new MemoryPostgreSqlPool(storage);
+      const check = database.constraintRows.find(
+        (row) => row.column_names.length === 2 && row.constraint_type === "c",
+      );
+      assert.ok(check);
+      Object.assign(
+        check,
+        { column_names: [...check.column_names].reverse() },
+        change,
+      );
+      const runtime = new PostgreSqlModuleRuntime({
+        module,
+        pool: database,
+        storage,
+      });
+      if (change)
+        await assert.rejects(
+          runtime.start(),
+          PostgreSqlModuleRuntimeConfigurationError,
+        );
+      else {
+        await runtime.start();
+        await runtime.stop();
+      }
+    }
+  });
+
+  it("keeps ordered PK, UNIQUE and FK Column comparisons", async () => {
+    const module = semanticModule();
+    const initial = storageFor(module);
+    for (const kind of ["primaryKey", "unique", "foreignKey"] as const) {
+      const storage: PostgreSqlStorageIr = {
+        ...initial,
+        tables: initial.tables.map((table) =>
+          table.semanticId === "Sales.Order"
+            ? {
+                ...table,
+                constraints: [
+                  ...table.constraints,
+                  {
+                    semanticId: `order.test.${kind}`,
+                    name: `ordered_${kind}`,
+                    kind,
+                    columns: ["id", "quantity"],
+                    expression: null,
+                    references:
+                      kind === "foreignKey"
+                        ? {
+                            table: table.name,
+                            column: "id",
+                            onDelete: "NO ACTION",
+                            onUpdate: "NO ACTION",
+                          }
+                        : null,
+                  },
+                ],
+              }
+            : table,
+        ),
+      };
+      const database = new MemoryPostgreSqlPool(storage);
+      const constraint = database.constraintRows.find(
+        (row) => row.object_name === `ordered_${kind}`,
+      );
+      assert.ok(constraint);
+      Object.assign(constraint, { column_names: ["quantity", "id"] });
+      await assert.rejects(
+        new PostgreSqlModuleRuntime({
+          module,
+          pool: database,
+          storage,
+        }).start(),
+        PostgreSqlModuleRuntimeConfigurationError,
+      );
+    }
+  });
+
   it("stops admission immediately and waits for every accepted transaction", async () => {
     const module = semanticModule();
     const storage = storageFor(module);
