@@ -81,6 +81,8 @@ try {
         `${commit}${dirty ? "-dirty" : ""}`,
         "--tarball-sha256",
         hash,
+        "--tarball-path",
+        tarball,
         ...args,
       ],
       { cwd: root, stdio: "inherit", timeout: 600000 },

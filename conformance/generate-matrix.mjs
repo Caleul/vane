@@ -10,7 +10,7 @@ for (const requirement of catalog.requirements)
 await writeFile(file, `${JSON.stringify(catalog, null, 2)}\n`);
 const rows = catalog.requirements.map(
   (r) =>
-    `| ${r.id} | ${r.category} | ${r.required ? "required" : "N/A"} | ${r.tests.join(", ") || "GAP: no independent case"} | ${r.evidenceGap ?? r.reason ?? "See executed report; mapping alone is not PASS"} |`,
+    `| ${r.id} | ${r.category} | ${r.required ? "required" : "N/A"} | ${r.tests.join(", ") || "GAP: no independent case"} | ${r.evidenceGap ?? r.reason ?? r.scopeNote ?? "See executed report; mapping alone is not PASS"} |`,
 );
 await writeFile(
   new URL("../docs/conformance-matrix.md", import.meta.url),

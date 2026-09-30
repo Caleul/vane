@@ -177,6 +177,14 @@ export interface HttpSecurityConfiguration {
   } | null;
 }
 export interface ServiceProfile {
+  /** Inspection-only future allocation; never changes the v0.1 monolithic execution topology.
+   * Database identifiers are nonsecret logical labels, not connection strings.
+   */
+  readonly plannedAllocation?: readonly {
+    readonly name: string;
+    readonly modules: readonly string[];
+    readonly database: string;
+  }[];
   readonly telemetry?: TelemetryConfiguration;
   readonly secrets?: VaultConfiguration;
   readonly extends?: string;

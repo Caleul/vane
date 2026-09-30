@@ -1,8 +1,8 @@
 # Candidate conformance findings
 
-This change does not declare Phase 7 complete. See the executed JSON artifact
-for exact commit, package integrity, environment, case statuses and remaining
-required evidence. The [matrix](conformance-matrix.md) is the reviewed mapping,
+Use the latest executed JSON artifact to determine the Phase 7 candidate gate: it
+records the exact commit, package integrity, environment, case statuses and any
+remaining required evidence. The [matrix](conformance-matrix.md) is the reviewed mapping,
 not a substitute for an executed report.
 
 ## Startup regressions and focused corrections
@@ -42,7 +42,7 @@ Focused regressions also reject microsecond/default drift, altered or unvalidate
 CHECK expressions, and ordered key/reference drift. Primary-key, unique-key,
 foreign-key and index ordering checks remain intact. Consult the latest executed
 report for validation results; fixing these two failures does not close the
-remaining evidence gaps.
+source-scoped requirements covered below.
 
 Reproduce on a disposable PostgreSQL 16+ database:
 
@@ -54,57 +54,68 @@ VANE_CONFORMANCE_DATABASE_URL=postgresql://user:password@localhost:5432/test \
   node conformance/pack-and-run.mjs --id EE-RUL-003 --json
 ```
 
-## Remaining evidence and decisions
+## Closure of the initial 24 evidence gaps
 
 GAP means missing or partial independent evidence, not automatically a missing
 product capability. Each row in the catalog retains its concrete precondition,
 action and observable expectation; reports include those reproduction steps.
 Do not turn these into PASS by pointing at internal test counts.
 
-The following four groups account for all **24 remaining GAPs**. They are
-proposed next work, not additional product changes included with these two fixes.
+The following groups account for the **24 gaps recorded when PR #13 was merged**.
+The completion branch supplies executable cases and the narrow additive
+capabilities described below. Missing prerequisites still produce GAP dynamically;
+in particular, image evidence requires a real Docker build/run. Case mapping is
+not a substitute for a successful run.
 
-1. **Nine independent-evidence gaps:** EE-EVT-003, EE-VIEW-001,
+1. **Nine independent-evidence requirements:** EE-EVT-003, EE-VIEW-001,
    EE-VIEW-007, EE-SAGA-006, EE-SVC-008, EE-SVC-032, EE-VOC-002,
-   EE-PIVOT-001 and EE-PIVOT-002. Add installed-package positive/negative cases
-   for terminal outcomes, typed View declarations, public success/read boundaries,
+   EE-PIVOT-001 and EE-PIVOT-002. Installed-package positive/negative cases cover
+   terminal outcomes, typed View declarations, public success/read boundaries,
    forbidden intermediate Saga returns, explicit service boundaries, local-only
    generation, relation/computed Views, opaque factory types and all operation
-   type shapes. Reuse existing public assertions only after reviewing their exact
-   scope; mapping a case alone does not close a requirement. Typed declarations
-   here do not establish the separate payload-inference requirement below.
-2. **Six representation/scope decisions:** EE-ENT-004, EE-SVC-003,
-   EE-SVC-011, EE-COMP-004, EE-SEM-002 and EE-COL-006. Establish how the current
-   monolithic public model preserves future service mapping, unique ownership and
-   explicit shared-database choices without adding distributed execution. Clarify
-   which provider/topology variations v0.1 promises, and whether optional physical
-   Column materialization means provider materialization or a per-Column override
-   API. Record decisions against the normative baseline before inventing APIs or
-   narrowing requirements. Future productive distribution remains out of scope;
-   its required representation is not automatically waived.
-3. **Two likely capability gaps needing a contract decision:** EE-NFR-002 and
-   EE-ART-002. Establish the promised Event-input/View-output TypeScript inference
-   surface: current nongeneric factories and generic runtime result records do not
-   demonstrate payload inference. Separately decide whether artifact-manifest
-   version/hash metadata satisfies the requirement that every artifact records
-   versions and input hashes, or whether individual outputs need that metadata.
-   These are not safely closed by increasing unrelated test counts.
+   type shapes. Each case asserts the exact contract, including rejection controls;
+   mapping a case alone does not close a requirement.
+2. **Six representation/scope requirements:** EE-ENT-004, EE-SVC-003,
+   EE-SVC-011, EE-COMP-004, EE-SEM-002 and EE-COL-006. Optional inspection-only
+   `plannedAllocation` metadata preserves complete unique future ownership and
+   explicit shared-database labels while runtime ownership stays monolithic.
+   Independently resolved supported provider configuration is tested, without
+   claiming multiple productive runtimes. The existing PostgreSQL provider proves
+   physical Column materialization without an unnecessary override API. The
+   [source-cited decisions](phase-7-representation.md) and catalog/report scope
+   notes explain these v0.1 applicability judgments. Future productive distribution
+   remains out of scope; its required representation is not waived.
+3. **Two additive capability requirements:** EE-NFR-002 and EE-ART-002.
+   `EventInput` extracts Entity/ACL Event input payloads. `ViewInput` and
+   `ViewOutput` extract exact input/row shapes from statically recognized named
+   View declaration tokens, retaining inline-decorator compatibility; external
+   TypeScript fixtures reject wrong shapes and any/unknown collapse. See the
+   [public DSL guide](semantic-compiler.md). Per-artifact provenance sidecars and
+   a versioned manifest record generator/IR versions, input hash and final UTF-8
+   byte hashes while preserving standalone payload formats. Docker image labels
+   retain input/generator provenance. The manifest records its own provenance
+   without attempting an impossible recursive self-hash.
 4. **Seven generated-application and measurement gates:** EE-SVC-031,
-   EE-ART-001, EE-REF-001, EE-DOC-001 and EE-PERF-001/002/003. Reproduce the
-   specified Sales/Billing application using the installed tarball, execute its
-   generated bootstrap/adapters, build and run the generated image, and follow the
-   public quickstart literally. This validates the original reference baseline,
-   not new Phase 8 dogfood projects. Then record reproducible machine, workload,
-   warmup and timing boundaries for validate at most 5 seconds, dispatcher median
-   below 10 milliseconds excluding database/network, and terminal delivery at
-   most 1 second after persistence under declared nominal conditions. Runner
-   safety timeouts are not performance evidence.
+   EE-ART-001, EE-REF-001, EE-DOC-001 and EE-PERF-001/002/003. Independent cases
+   install the specified Sales/Billing application from the exact tarball, execute
+   generated bootstrap/adapters, build and run the generated image, and follow
+   the public quickstart literally. The reference asserts actual monolithic
+   ownership and distinct future service allocation metadata. This validates the
+   original reference baseline, not new Phase 8 dogfood projects. Measurements
+   record machine, workload, warmup and timing boundaries for validate at most
+   5 seconds, dispatcher median below 10 milliseconds excluding database/network,
+   and terminal delivery at most 1 second after persistence under declared nominal
+   conditions. Runner safety timeouts are not performance evidence.
 
-Recommended order: settle the narrow decisions in groups 2 and 3, then close
-unambiguous group 1 cases while documenting any real product failures. Use those
-contracts to reproduce group 4 end to end and measure it. Rerun the full gate
-until every applicable requirement has evidence; retain explicit justified N/A
-only for genuinely excluded scope. Phases 8 and 9 remain separate later work.
+The aggregate report remains fail-closed: required missing prerequisites or
+failed assertions prevent PASS. CI supplies Docker and real PostgreSQL, runs the
+installed-package cases, and retains the JSON evidence even on failure. Local
+runs without Docker cannot substitute for the image gate. Performance evidence
+is explicitly limited to the recorded machine and nominal conditions; it is not
+a guarantee for every deployment.
+
+Phases 8 and 9 are separate later work. This branch does not run the three
+external dogfood projects or produce a release candidate.
 
 No release, package publication, merge, remote deployment, Moto integration or
 new general-purpose harness product is part of this change.

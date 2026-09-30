@@ -13,7 +13,14 @@ const server = createServer((request, response) => {
   response.writeHead(200, { "content-type": "application/json" });
   response.end(JSON.stringify(receipt));
 });
-server.listen(4000, "127.0.0.1");
+server.listen(
+  Number(process.env.PAYMENT_GATEWAY_PORT ?? 4000),
+  "127.0.0.1",
+  () =>
+    console.log(
+      JSON.stringify({ state: "running", address: server.address() }),
+    ),
+);
 const stop = () => {
   server.close();
   server.closeAllConnections();

@@ -14,24 +14,96 @@ export type VaneClass<T = object> = abstract new (...args: never[]) => T;
 type TypedField = ColumnType | OptionalField;
 declare const eventMemberBrand: unique symbol;
 declare const columnMemberBrand: unique symbol;
+declare const valueTypeBrand: unique symbol;
+declare const viewDefinitionBrand: unique symbol;
 
-interface ColumnMember<Type extends ColumnType = ColumnType> {
-  readonly [columnMemberBrand]: "column";
+type SemanticValue<Type extends ColumnType> = Type extends "integer" | "decimal"
+  ? number
+  : Type extends "boolean"
+    ? boolean
+    : Type extends "json"
+      ? JsonValue
+      : string;
+type FieldValue<Field extends TypedField> = Field extends OptionalField<
+  infer Type
+>
+  ? SemanticValue<Type>
+  : Field extends ColumnType
+    ? SemanticValue<Field>
+    : never;
+type InputPayload<Fields extends Readonly<Record<string, TypedField>>> =
+  keyof Fields extends never
+    ? Record<string, never>
+    : {
+        -readonly [Key in keyof Fields as Fields[Key] extends OptionalField
+          ? never
+          : Key]: FieldValue<Fields[Key]>;
+      } & {
+        -readonly [Key in keyof Fields as Fields[Key] extends OptionalField
+          ? Key
+          : never]?: FieldValue<Fields[Key]>;
+      };
+/** The runtime payload declared by an Entity or ACL Event factory. */
+export type EventInput<Member> = Member extends EventMember<infer Payload>
+  ? Payload
+  : never;
+/** Input payload of a named View declaration token. */
+export type ViewInput<Definition> = Definition extends ViewDefinition<
+  infer Input,
+  unknown
+>
+  ? Input
+  : never;
+/** One output row of a named View declaration token, including nullability. */
+export type ViewOutput<Definition> = Definition extends ViewDefinition<
+  unknown,
+  infer Output
+>
+  ? Output
+  : never;
+type ViewDefinition<Input, Output> = ClassDecorator & {
+  readonly [viewDefinitionBrand]: {
+    readonly input: Input;
+    readonly output: Output;
+  };
+};
+type TokenValue<Token> = Token extends {
+  readonly [valueTypeBrand]?: infer Value;
+}
+  ? Value
+  : unknown;
+type ViewRow<
+  Output extends Readonly<Record<string, ColumnToken | AggregateToken>>,
+> = {
+  -readonly [Key in keyof Output]: TokenValue<Output[Key]>;
+};
+
+interface ColumnMember<
+  Type extends ColumnType = ColumnType,
+  Nullable extends boolean = boolean,
+> {
+  readonly [columnMemberBrand]: {
+    readonly type: Type;
+    readonly nullable: Nullable;
+  };
   readonly semanticType: Type;
 }
 
-interface EventMember {
-  readonly [eventMemberBrand]: "event";
+interface EventMember<Payload = unknown> {
+  readonly [eventMemberBrand]: Payload;
 }
 
 export type EventName<_Owner> = string;
 
-export interface OptionalField {
+export interface OptionalField<Type extends ColumnType = ColumnType> {
   readonly kind: "optional";
-  readonly type: ColumnType;
+  readonly type: Type;
 }
 
-export type ColumnToken = Extract<ViewValueDeclaration, { kind: "column" }>;
+export type ColumnToken<Value = unknown> = Extract<
+  ViewValueDeclaration,
+  { kind: "column" }
+> & { readonly [valueTypeBrand]?: Value };
 
 export interface EventToken {
   readonly owner: string;
@@ -43,7 +115,8 @@ export interface RelationToken {
   readonly to: ColumnToken;
 }
 
-export interface AggregateToken {
+export interface AggregateToken<Value = unknown> {
+  readonly [valueTypeBrand]?: Value;
   readonly kind: "aggregate";
   readonly function: "count" | "sum" | "avg" | "min" | "max";
   readonly value: ColumnToken;
@@ -154,22 +227,56 @@ export function Entity(): ClassDecorator {
 export function ACL(): ClassDecorator {
   return classDecorator;
 }
+export function Column<
+  const Type extends ColumnType,
+  const Nullable extends boolean = false,
+>(
+  options: ColumnOptions<Type> & { readonly nullable?: Nullable },
+): ColumnMember<Type, Nullable>;
+// Preserve explicit Column<"type"> callers; a broad options annotation carries
+// broad nullability, while the inferred overload above retains literal precision.
 export function Column<const Type extends ColumnType>(
   options: ColumnOptions<Type>,
-): ColumnMember<Type> {
-  return { semanticType: options.type } as ColumnMember<Type>;
+): ColumnMember<Type, boolean>;
+export function Column(options: ColumnOptions): ColumnMember {
+  return { semanticType: options.type } as ColumnMember;
 }
 export function Rule(_options: RuleOptions): MethodDecorator {
   return methodDecorator;
 }
-export function Event(_options: EntityEventOptions): EventMember {
-  return {} as EventMember;
+export function Event<
+  const Fields extends Readonly<Record<string, TypedField>> = Record<
+    never,
+    never
+  >,
+>(
+  _options: Omit<EntityEventOptions, "input"> & { readonly input?: Fields },
+): EventMember<InputPayload<Fields>> {
+  return {} as EventMember<InputPayload<Fields>>;
 }
-export function ACLEvent(_options: ACLEventOptions): EventMember {
-  return {} as EventMember;
+export function ACLEvent<
+  const Fields extends Readonly<Record<string, TypedField>> = Record<
+    never,
+    never
+  >,
+>(
+  _options: Omit<ACLEventOptions, "input"> & { readonly input?: Fields },
+): EventMember<InputPayload<Fields>> {
+  return {} as EventMember<InputPayload<Fields>>;
 }
-export function View(_options: ViewOptions): ClassDecorator {
-  return classDecorator;
+export function View<
+  const Inputs extends Readonly<Record<string, TypedField>>,
+  const Outputs extends Readonly<Record<string, ColumnToken | AggregateToken>>,
+>(
+  _options: Omit<ViewOptions, "input" | "output"> & {
+    readonly input: Inputs;
+    readonly output: Outputs;
+  },
+): ViewDefinition<InputPayload<Inputs>, ViewRow<Outputs>> {
+  return classDecorator as ViewDefinition<
+    InputPayload<Inputs>,
+    ViewRow<Outputs>
+  >;
 }
 export function Saga(_options: SagaOptions): ClassDecorator {
   return classDecorator;
@@ -179,7 +286,16 @@ function className<T>(value: VaneClass<T>): string {
   return value.name;
 }
 
-export function field<T>(entity: VaneClass<T>, name: string): ColumnToken {
+type MemberValue<Member> = Member extends ColumnMember<
+  infer Type,
+  infer Nullable
+>
+  ? SemanticValue<Type> | (true extends Nullable ? null : never)
+  : unknown;
+export function field<T, const Name extends string>(
+  entity: VaneClass<T>,
+  name: Name,
+): ColumnToken<Name extends keyof T ? MemberValue<T[Name]> : unknown> {
   return { kind: "column", entity: className(entity), column: name };
 }
 
@@ -207,7 +323,9 @@ export function event<T>(
   };
 }
 
-export function optional(type: ColumnType): OptionalField {
+export function optional<const Type extends ColumnType>(
+  type: Type,
+): OptionalField<Type> {
   return { kind: "optional", type };
 }
 export function column(
@@ -412,17 +530,24 @@ export function not(
     | ViewExpressionDeclaration;
 }
 
-function aggregate(
+function aggregate<Value>(
   functionName: AggregateToken["function"],
   value: ColumnToken,
-): AggregateToken {
+): AggregateToken<Value> {
   return { kind: "aggregate", function: functionName, value };
 }
-export const count = (value: ColumnToken) => aggregate("count", value);
-export const sum = (value: ColumnToken) => aggregate("sum", value);
-export const avg = (value: ColumnToken) => aggregate("avg", value);
-export const min = (value: ColumnToken) => aggregate("min", value);
-export const max = (value: ColumnToken) => aggregate("max", value);
+export const count = (value: ColumnToken): AggregateToken<number> =>
+  aggregate("count", value);
+export const sum = (value: ColumnToken): AggregateToken<number | null> =>
+  aggregate("sum", value);
+export const avg = (value: ColumnToken): AggregateToken<number | null> =>
+  aggregate("avg", value);
+export const min = <Value>(
+  value: ColumnToken<Value>,
+): AggregateToken<Value | null> => aggregate("min", value);
+export const max = <Value>(
+  value: ColumnToken<Value>,
+): AggregateToken<Value | null> => aggregate("max", value);
 export const asc = (value: ColumnToken): ViewOrderDeclaration => ({
   value,
   direction: "asc",

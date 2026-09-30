@@ -62,8 +62,9 @@ class Sales {}
 The parser reads the TypeScript AST directly. It never imports, transpiles, or
 executes the user's source. Declaration configuration must therefore consist of
 inline objects and arrays, literal values, class identifiers, and recognized
-helper calls. Variables, spreads, shorthand properties, computed properties,
-and arbitrary function calls are rejected with source locations.
+helper calls. Spreads, shorthand properties, computed properties and arbitrary function calls
+are rejected with source locations. Configuration variables are rejected, except
+for the explicitly supported local named View declaration described below.
 
 An Entity Event declares its owner mutation in the same static grammar. The
 closed operations are `create`, `update`, `remove` (serialized as `delete`) and
@@ -140,6 +141,80 @@ logical composition. Ordering and pagination remain ordered query properties.
 own semantic vocabulary, a View cannot mix scalar and aggregate outputs or
 order an aggregate-only result by an ungrouped Column. Rejection is preferable
 to accidental SQL semantics.
+
+## Inferred Event payloads and named View contracts
+
+The public `EventInput`, `ViewInput` and `ViewOutput` type helpers infer consumer
+payloads without duplicating interfaces. `EventInput` takes an **instance member**
+type. `ViewInput` and `ViewOutput` take the named View declaration token; a class
+decorator cannot change the TypeScript type of the class it decorates.
+
+```ts
+import {
+  Column, Entity, Event, Module, View, create, eq, field, input,
+  type EventInput, type ViewInput, type ViewOutput,
+} from "@lilka/vane";
+
+@Entity()
+class Book {
+  id = Column({ type: "uuid", identity: true });
+  copies = Column({ type: "integer" });
+  note = Column({ type: "string", nullable: true });
+
+  Add = Event({
+    input: { id: "uuid", copies: "integer" },
+    operation: create({
+      id: input("id"), copies: input("copies"),
+    }),
+  });
+}
+
+const BookCardContract = View({
+  input: { id: "uuid" },
+  output: {
+    id: field(Book, "id"),
+    copies: field(Book, "copies"),
+    note: field(Book, "note"),
+  },
+  query: { root: Book, where: eq(field(Book, "id"), input("id")) },
+});
+
+@BookCardContract
+class BookCard {}
+
+@Module({ entities: [Book], views: [BookCard] })
+class Books {}
+
+type AddBook = EventInput<Book["Add"]>;
+// { id: string; copies: number }
+type CardInput = ViewInput<typeof BookCardContract>;
+// { id: string }
+type CardRow = ViewOutput<typeof BookCardContract>;
+// { id: string; copies: number; note: string | null }
+```
+
+`ViewOutput` denotes **one row**, not the array returned by a View query.
+Integer and decimal values infer `number`; string, UUID, date and datetime infer
+`string`; booleans infer `boolean`; JSON infers the public `JsonValue` type.
+Date/datetime are serialized values, not JavaScript `Date` objects. Optional
+inputs are optional object properties. Nullable Columns include `null` in output.
+`count` infers a nonnullable number; `sum`/`avg` infer `number | null`;
+`min`/`max` retain the source value type and include `null` for an empty result.
+These match the public View result representation; they do not promise arbitrary
+precision beyond JavaScript numbers.
+
+Named View declarations must be a preceding **top-level local `const`**, directly
+initialized by the imported `View` helper with the same static inline options as
+`@View(...)`. Explicit variable annotations, `let`/`var`, imported tokens,
+chained aliases, callbacks and dynamically computed declarations are rejected.
+The compiler resolves the initializer AST and never evaluates the token. Inline
+`@View({...})` remains supported with identical semantics; use a named token only
+when a consumer needs to extract its TypeScript input/output types.
+
+Type inference does not establish semantic member provenance. Unknown or
+ordinary properties may produce `unknown` at the TypeScript helper boundary;
+the static compiler still rejects missing, copied-brand or wrong-kind members.
+No structural type assertion can turn a regular property into a Column/Event.
 
 ## Anti-Corruption Layers and terminal outcomes
 

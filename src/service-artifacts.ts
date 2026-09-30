@@ -1,3 +1,7 @@
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { generateOpenApi } from "./openapi.js";
 import { createPostgreSqlMigrationPlan } from "./postgresql/migrations.js";
 import { renderPostgreSqlSchema } from "./postgresql/renderer.js";
@@ -43,7 +47,7 @@ export function generateServiceArtifacts(
       })),
     }),
     Dockerfile:
-      'FROM node:24-alpine\nWORKDIR /app\nCOPY package.json vane.tgz ./\nRUN npm install --omit=dev --ignore-scripts\nCOPY bootstrap.mjs configuration.mjs deploy-plan.json ./\nUSER node\nEXPOSE 3000\nCMD ["node", "bootstrap.mjs"]\n',
+      'FROM node:24-alpine\nWORKDIR /app\nCOPY package.json vane.tgz ./\nRUN npm install --omit=dev --ignore-scripts\nCOPY bootstrap.mjs configuration.mjs deploy-plan.json artifacts.json *.provenance.json ./\nUSER node\nEXPOSE 3000\nCMD ["node", "bootstrap.mjs"]\n',
     "package.json": JSON.stringify(
       {
         name: `${plan.application}-deployment`,
@@ -86,14 +90,14 @@ const stop = () => closing ??= (async () => {
 process.once('SIGTERM', () => void stop());
 process.once('SIGINT', () => void stop());
 void runtime.runWorkers().catch(() => { console.error('Service worker stopped.'); process.exitCode = 1; void stop(); });
-server.listen(Number(process.env.PORT ?? 3000), '0.0.0.0');
+server.listen(Number(process.env.PORT ?? 3000), '0.0.0.0', () => console.log(JSON.stringify({state:'running',address:server.address(),inputHash:deployment.inputHash})));
 `,
     "README.md": `# ${plan.application} deployment artifacts\n\nInput hash: ${plan.inputHash}\n\nNo infrastructure has been applied. Build the Vane library and pack it with npm pack; copy the tarball here as vane.tgz. Then build the Dockerfile with the image tag in deploy-plan.json. Supply each VANE_BINDING_n from the binding inventory at deployment time (never bake values into the image). Review and apply migrations explicitly before starting. For an existing database use the previous storage snapshot instead of the initial migration.\n\nDurable retry/backoff, Entity database timeouts, failure operations and internal telemetry are implemented. See the operations guide for recovery, retention and explicit secret resolution.\n`,
   };
   for (const contract of plan.contracts)
     files[`openapi-${encodeURIComponent(contract.module)}.json`] =
       technicalJson(generateOpenApi(contract));
-  return files;
+  return attachArtifactProvenance(plan, files);
 }
 
 /** Attaches the provider-free semantic input to the generated executable configuration. */
@@ -163,17 +167,93 @@ export function generateServiceDeployment(
     ...generateServiceArtifacts(plan),
     "configuration.mjs": `export default ${technicalJson(configuration)};\n`,
   };
-  return {
-    ...files,
-    "artifacts.json": technicalJson({
-      schema: "vane.artifact-manifest",
-      version: 1,
-      inputHash: plan.inputHash,
-      files: Object.fromEntries(
-        Object.entries(files)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([name, content]) => [name, technicalHash(content)]),
-      ),
-    }),
+  return attachArtifactProvenance(plan, files);
+}
+
+/** Metadata accompanies standalone formats without changing their public schemas. */
+function attachArtifactProvenance(
+  plan: ServicePlan,
+  input: Readonly<Record<string, string>>,
+): Readonly<Record<string, string>> {
+  let directory = dirname(fileURLToPath(import.meta.url));
+  while (!existsSync(join(directory, "package.json"))) {
+    const parent = dirname(directory);
+    if (parent === directory)
+      throw new Error("Generator package metadata is unavailable.");
+    directory = parent;
+  }
+  const packageMetadata = JSON.parse(
+    readFileSync(join(directory, "package.json"), "utf8"),
+  ) as { name: string; version: string };
+  if (packageMetadata.name !== "@lilka/vane")
+    throw new Error("Generator package metadata is invalid.");
+  const provenance = {
+    schema: "vane.artifact-provenance",
+    version: 1,
+    inputHash: plan.inputHash,
+    generator: {
+      package: packageMetadata.name,
+      version: packageMetadata.version,
+    },
+    versions: {
+      servicePlan: plan.version,
+      runtimeIr: plan.runtime.version,
+      storageIr: plan.storage.version,
+      contractIr: [
+        ...new Set(plan.contracts.map((contract) => contract.version)),
+      ],
+      infrastructureIr: plan.infrastructure.version,
+    },
   };
+  const files: Record<string, string> = {};
+  const companions: Record<string, string> = {};
+  for (const [name, original] of Object.entries(input).sort(([a], [b]) =>
+    a.localeCompare(b),
+  )) {
+    if (name === "artifacts.json" || name.endsWith(".provenance.json"))
+      continue;
+    const sidecar = `${name}.provenance.json`;
+    // Executable source/SQL comments remain harmless; JSON payloads stay untouched.
+    const prefix =
+      name === "bootstrap.mjs"
+        ? "//"
+        : name.endsWith(".sql")
+          ? "--"
+          : name === "Dockerfile"
+            ? "#"
+            : null;
+    const header = prefix
+      ? `${prefix} vane-provenance: ${JSON.stringify({ version: 1, inputHash: plan.inputHash, sidecar })}\n`
+      : "";
+    let content =
+      header && !original.startsWith(`${prefix} vane-provenance:`)
+        ? header + original
+        : original;
+    if (name === "Dockerfile" && !content.includes("org.vane.input-hash="))
+      content += `LABEL org.vane.input-hash=${JSON.stringify(plan.inputHash)} org.vane.generator-version=${JSON.stringify(packageMetadata.version)}\n`;
+    files[name] = content;
+    companions[name] = sidecar;
+    files[sidecar] = technicalJson({
+      ...provenance,
+      artifact: name,
+      contentHash: createHash("sha256").update(content, "utf8").digest("hex"),
+      hashAlgorithm: "sha256-utf8",
+    });
+  }
+  files["artifacts.json"] = technicalJson({
+    ...provenance,
+    schema: "vane.artifact-manifest",
+    version: 2,
+    hashAlgorithm: "sha256-utf8",
+    companions,
+    files: Object.fromEntries(
+      Object.entries(files).map(([name, content]) => [
+        name,
+        createHash("sha256").update(content, "utf8").digest("hex"),
+      ]),
+    ),
+    selfHash:
+      "excluded: manifest records its own provenance but cannot hash itself",
+  });
+  return files;
 }
