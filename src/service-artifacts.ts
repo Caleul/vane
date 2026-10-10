@@ -47,7 +47,7 @@ export function generateServiceArtifacts(
       })),
     }),
     Dockerfile:
-      '# syntax=docker/dockerfile:1\nFROM node:24-alpine\nWORKDIR /app\nCOPY package.json vane.tgz ./\nRUN --mount=type=secret,id=proxy_ca if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; npm install --omit=dev --ignore-scripts --strict-ssl=true\nCOPY bootstrap.mjs configuration.mjs deploy-plan.json artifacts.json *.provenance.json ./\nUSER node\nEXPOSE 3000\nCMD ["node", "bootstrap.mjs"]\n',
+      '# syntax=docker/dockerfile:1\nFROM node:24-alpine\nWORKDIR /app\nCOPY package.json vane.tgz ./\nRUN --mount=type=secret,id=proxy_ca if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; npm install --omit=dev --ignore-scripts --strict-ssl=true && chown -R node:node /app\nCOPY --chown=node:node bootstrap.mjs configuration.mjs deploy-plan.json artifacts.json *.provenance.json ./\nUSER node\nEXPOSE 3000\nCMD ["node", "bootstrap.mjs"]\n',
     "package.json": JSON.stringify(
       {
         name: `${plan.application}-deployment`,
