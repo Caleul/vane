@@ -180,6 +180,15 @@ No remote infrastructure is applied. Initial migrations are for empty databases;
 for existing databases, use the actual previous storage snapshot and phase 2's
 review/approval workflow. No schema changes occur at bootstrap.
 
+Generated Dockerfiles use BuildKit. For a network proxy that requires an
+additional CA, pass its public certificate using
+`docker build --secret id=proxy_ca,src=/path/to/proxy-ca.pem -t your-image ./generated`.
+The optional mount is available only during dependency installation, keeps TLS
+verification enabled and is not copied into image layers. With no mount, npm
+uses the image's normal trust store. Container processes that need the same
+proxy must receive their own read-only certificate mount and trust setting at
+runtime; build trust does not configure runtime trust.
+
 ## CLI and runtime
 
 The package exposes:
@@ -207,3 +216,23 @@ workers and returns their lifetime promise, whose rejection must be observed.
 `stop()` stops workers and drains active Entity executions. Creating a runtime
 does not start workers or perform migrations. The generated bootstrap installs
 these lifecycle operations and signal handlers.
+
+The public module entry returned in `runtime.modules` has `name`, `events`,
+`views`, `acls`, `sagas`, `store`, `contract` and `handler`. Select it by name
+instead of assuming a particular array position:
+
+```ts
+const module = runtime.modules.find(entry => entry.name === "Sales");
+if (!module) throw new Error("Configured Sales Module is missing");
+// Privileged application/harness inspection, never a public HTTP route:
+const persisted = await module.store.read(sagaId);
+// Views execute their declared query; they do not write application state.
+const result = await module.views.execute({ view: "OrderDetails", input: { id } });
+```
+
+Recovery reuses the envelope in the persisted Saga step. For a deliberate
+deduplication test, dispatch that unchanged envelope through the module's public
+`events.dispatch(envelope)` API. Posting the same payload again over HTTP admits
+a new request and does not demonstrate Event replay idempotency. Keep inspection
+and direct dispatch in trusted application or harness code; only the configured
+`runtime.handler` belongs on the normal public HTTP surface.

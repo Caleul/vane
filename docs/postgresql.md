@@ -23,7 +23,7 @@ const result = materializePostgreSql(semanticProjectIr, {
 if (!result.success) throw new Error(JSON.stringify(result.diagnostics));
 
 const plan = createPostgreSqlMigrationPlan({
-  previous: previousStorageIr,
+  previous: previousStorageIr, // use null for the first migration into an empty schema
   next: result.ir,
   renames: {
     tables: [],
@@ -46,6 +46,10 @@ Storage IR is the physical snapshot. Migration IDs and plans are derived from
 canonical content, not timestamps. A rename is accepted only through an exact
 rename map. Unsafe or destructive plans require an approval artifact containing
 the same plan hash and classification; editing the plan invalidates approval.
+`previous` is required: pass `null` for an empty schema, or the saved actual
+previous Storage IR for an upgrade. Do not omit it or substitute `null` when
+upgrading an existing installation. The CLI uses the initial-migration path when
+`migrate diff` has no `--previous` argument.
 Migration DDL and its immutable history entry share one reserved PostgreSQL
 connection and transaction. A namespace-scoped advisory lock serializes the
 initial bootstrap and later plans, and history records a monotonic apply order.

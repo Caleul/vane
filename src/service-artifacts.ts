@@ -47,7 +47,7 @@ export function generateServiceArtifacts(
       })),
     }),
     Dockerfile:
-      'FROM node:24-alpine\nWORKDIR /app\nCOPY package.json vane.tgz ./\nRUN npm install --omit=dev --ignore-scripts\nCOPY bootstrap.mjs configuration.mjs deploy-plan.json artifacts.json *.provenance.json ./\nUSER node\nEXPOSE 3000\nCMD ["node", "bootstrap.mjs"]\n',
+      '# syntax=docker/dockerfile:1\nFROM node:24-alpine\nWORKDIR /app\nCOPY package.json vane.tgz ./\nRUN --mount=type=secret,id=proxy_ca if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; npm install --omit=dev --ignore-scripts --strict-ssl=true\nCOPY bootstrap.mjs configuration.mjs deploy-plan.json artifacts.json *.provenance.json ./\nUSER node\nEXPOSE 3000\nCMD ["node", "bootstrap.mjs"]\n',
     "package.json": JSON.stringify(
       {
         name: `${plan.application}-deployment`,
@@ -225,9 +225,15 @@ function attachArtifactProvenance(
     const header = prefix
       ? `${prefix} vane-provenance: ${JSON.stringify({ version: 1, inputHash: plan.inputHash, sidecar })}\n`
       : "";
+    const dockerDirective =
+      name === "Dockerfile"
+        ? original.match(/^# syntax=[^\n]+\n/)?.[0]
+        : undefined;
     let content =
       header && !original.startsWith(`${prefix} vane-provenance:`)
-        ? header + original
+        ? dockerDirective
+          ? dockerDirective + header + original.slice(dockerDirective.length)
+          : header + original
         : original;
     if (name === "Dockerfile" && !content.includes("org.vane.input-hash="))
       content += `LABEL org.vane.input-hash=${JSON.stringify(plan.inputHash)} org.vane.generator-version=${JSON.stringify(packageMetadata.version)}\n`;

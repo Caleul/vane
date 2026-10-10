@@ -85,12 +85,20 @@ Saga and the same terminal View. Multi-root DAGs can be admitted explicitly with
 `sagas.admit(plan, input)`. The public contract is now Contract IR v2; Semantic IR
 and PostgreSQL Storage IR versions are unchanged.
 
-Named public Sagas and ACL-owned public Events use durable admission. Ordinary
-Entity Events without a `saga` association retain the phase-three direct execution
-path, including in mixed contracts. Adding an admission binding for the same
-Event identity does not opt a plain route into an undeclared Saga. For durable
-orchestration of one Entity Event, explicitly expose a single-step Saga.
-Durable terminal retention alone does not make legacy direct execution recoverable.
+Configured service runtimes use durable admission for every exposed Event.
+An Entity Event without a named `saga` receives the generated one-step technical
+plan `vane.event.Owner.Event`; inspect Runtime IR and OpenAPI for its terminal
+View and stream path. A named single-step Saga is useful when the application
+wants to declare its own terminal View explicitly, but is not required merely
+to make a configured Entity Event recoverable.
+
+The low-level `PublicHttpRuntime` API retains the phase-three direct execution
+path for ordinary Entity Events unless its admission adapter explicitly handles
+standalone Events. `PostgreSqlPublicSagaAdmission` defaults `handlesStandalone`
+to false; configured `createServiceRuntime` wires it with true and the matching
+technical plans. Adding a binding alone or using a durable terminal store does
+not make a legacy direct route recoverable. Use configured service bootstrap
+for the normal adoption path.
 
 The PostgreSQL admission adapter validates root and terminal binding **sources**
 against the public contract at HTTP construction, before serving requests. An

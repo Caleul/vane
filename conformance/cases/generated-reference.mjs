@@ -430,10 +430,21 @@ export const cases = [
         const tag = `vane-conformance:${randomUUID()}`;
         const name = `vane-conformance-${randomUUID()}`;
         try {
-          await exec("docker", ["build", "-t", tag, generated.dir], {
-            timeout: 180000,
-            maxBuffer: 10 * 1024 * 1024,
-          });
+          const proxyCa = process.env.VANE_CONFORMANCE_PROXY_CA;
+          await exec(
+            "docker",
+            [
+              "build",
+              ...(proxyCa ? ["--secret", `id=proxy_ca,src=${proxyCa}`] : []),
+              "-t",
+              tag,
+              generated.dir,
+            ],
+            {
+              timeout: 180000,
+              maxBuffer: 10 * 1024 * 1024,
+            },
+          );
           const args = [
             "run",
             "--rm",
