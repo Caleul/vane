@@ -1,0 +1,22 @@
+{
+  "schema": "vane.rc-publication-block",
+  "version": 1,
+  "status": "BLOCKED_EXTERNAL",
+  "sourceCommit": "7d4342f40d927b23503ce6202bbc2ecb447091d3",
+  "packageVersion": "0.1.0-rc.1",
+  "sha256": "b467027e13687831b0f073b4bd07cf140063ae446cec7d9fc7a29bb4964fea29",
+  "gates": {
+    "ci": 38101819997,
+    "externalConsumers": 38101819999,
+    "releaseReadiness": 38101819959
+  },
+  "publicationRun": 38102153910,
+  "failedOperation": "npm publish",
+  "ciTokenPresent": false,
+  "authenticationAttempted": "github-oidc-trusted-publisher",
+  "npmErrorCode": "not exposed by sanitized workflow error",
+  "registryVersionQuery": "E404",
+  "releaseTagCreated": false,
+  "rcPublishedAndVerified": false,
+  "gaEligible": false
+}
