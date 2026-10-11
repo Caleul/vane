@@ -69,3 +69,33 @@ API/docs/security review before preparing and gating GA.
 This report is an evidence-only revision; its directory is excluded from the
 npm package. Later push workflows still need to pass at its exact source HEAD
 before publication, even though package bytes remain identical.
+
+## Reservation deadline fixture follow-up
+
+The evidence-only head `12ee991` passed CI and release readiness, but external
+run [38102238889](https://github.com/Caleul/vane/actions/runs/38102238889)
+failed RB-05 (`units 1 != 0`). Its independent fresh adoption still passed. The
+failure log did not identify which of two capacity assertions failed and did
+not include persisted Saga state, so its exact branch cannot be reconstructed.
+
+Two independent reviews found no premature fail-terminal publication in the
+runtime: terminal follows all eligible compensations of that Saga. The old
+one-second overdue fixture permitted expiry before Claim/Hold. A failed Claim
+has no Hold to compensate; expiry belongs to a separate Saga. Merely polling
+capacity to zero would mask this missing precondition.
+
+The updated Phase9 consumer archive changes only the Reservation test. It
+uses the documented public runOnce control, disables automatic workers and
+scheduler for this one scenario, proves durable Claim/Hold before deadline,
+then delays the external attempt across the persisted deadline. It still
+asserts immediate zero capacity after the same Saga's fail terminal and adds
+successful Hold compensation, cancelled Booking and no external ledger effect.
+Exhaustion assertions are labelled; external fail and multiple attempts are
+explicit. Runtime package bytes remain unchanged. The initial corrected full
+Reservation execution passed8/8; strengthened final assertions and fresh
+archived-consumer CI require current evidence before the RC gate can pass.
+
+The original Phase8 archive is immutable. Existing proofs above identify the
+older tested consumer source; new CI artifacts identify the updated source
+hashes. This follow-up supersedes their Reservation fixture readiness claim,
+while preserving the successful historical results for review.
