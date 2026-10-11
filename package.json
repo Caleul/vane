@@ -1,11 +1,11 @@
 {
   "name": "@lilka/vane",
-  "version": "0.0.0",
+  "version": "0.1.0-rc.1",
   "description": "Reference implementation of the Entity Event model and framework.",
-  "private": true,
+  "private": false,
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=24.19.0 <25"
   },
   "exports": {
     ".": {
@@ -13,7 +13,16 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "docs/*.md",
+    "api-manifest.json",
+    "examples/sales-billing/*.mjs",
+    "examples/sales-billing/*.vane.ts",
+    "examples/sales-billing/README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "clean": "node -e \"for (const path of ['dist', 'dist-test', 'dist-integration']) require('node:fs').rmSync(path, { recursive: true, force: true })\"",
     "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.build.json",
@@ -25,7 +34,13 @@
     "verify": "npm run check && npm run build && npm test && npm run test:conformance",
     "test:conformance": "node --test conformance/self-test.mjs",
     "conformance": "npm run build && node conformance/pack-and-run.mjs",
-    "test:conformance:package": "npm run build && node conformance/pack-and-run.mjs --sanity"
+    "test:conformance:package": "npm run build && node conformance/pack-and-run.mjs --sanity",
+    "test:release": "node --test scripts/release/*.test.mjs",
+    "release:api": "npm run build && node scripts/release/api-snapshot.mjs",
+    "release:pack": "node scripts/release/pack.mjs",
+    "release:reproducibility": "node scripts/release/reproducibility.mjs",
+    "release:upgrade": "node scripts/release/upgrade.mjs",
+    "release:audit": "node scripts/release/audit.mjs"
   },
   "repository": {
     "type": "git",
@@ -43,5 +58,9 @@
   },
   "bin": {
     "entity-event": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

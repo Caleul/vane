@@ -157,7 +157,9 @@ export class PostgreSqlOutboxDispatcher {
     assertNonEmpty("workerId", request.workerId);
     assertUuid("leaseToken", request.leaseToken);
     const availableAt = normalizeInstant("availableAt", request.availableAt);
-    const safeError = sanitizeError(request.error);
+    // Transport errors may contain resolved credentials, endpoint tokens or
+    // provider response bodies. Persist a stable diagnostic, never caller text.
+    const safeError = "Outbox publication failed.";
     const result = await this.#withClient((client) =>
       client.query(
         `UPDATE ${this.#relation} SET status = 'pending', available_at = $4::timestamptz, last_error = $5, lease_owner = NULL, lease_token = NULL, lease_until = NULL WHERE message_id = $1 AND lease_owner = $2 AND lease_token = $3 AND status = 'publishing' AND published_at IS NULL`,
@@ -381,9 +383,4 @@ function normalizeInstant(field: string, value: string): string {
     );
   }
   return new Date(timestamp).toISOString();
-}
-
-function sanitizeError(value: string): string {
-  const normalized = value.replace(/[\r\n\t]+/g, " ").trim();
-  return normalized.slice(0, 1_000) || "Outbox publication failed.";
 }

@@ -1,0 +1,17 @@
+# Public API and compatibility policy
+
+The supported package import is `@lilka/vane`. The package exports only `.` with ESM implementation and TypeScript declarations. A file existing under `dist` does not authorize a deep import. `api-manifest.json` inventories every actual root export without removing the existing infrastructure APIs.
+
+Each export has an explicit classification in the manifest:
+
+- **supported**: declarative model, compiler, configuration and public HTTP application contracts documented in the public guides.
+- **experimental**: advanced ACL/Saga adapter, execution policy, telemetry or generated-artifact contracts. Minor 0.x releases may change these with migration notes.
+- **privileged**: raw envelopes/admission, direct PostgreSQL Event/View execution, Saga stores, outbox leases, migration execution, maintenance, stored-result inspection, service bootstrap bindings and credential resolution APIs. They require trusted application authority and must never be exposed as tenant-controlled commands. Pure storage/migration planning IR and rendering stay supported because they do not execute SQL. Their export status is intentional; classification is not an authorization mechanism. Every export origin has an explicit reviewed module classification, with named overrides for privileged HTTP storage/admission hooks; an unknown origin fails generation instead of defaulting to supported.
+
+Names alone are insufficient to protect compatibility. The manifest captures exported TypeScript declarations, call signatures, public runtime kinds/arity/prototype methods, scalar constants and normalized declaration-file hashes. Hashes cover referenced type declarations as well, so changing an indirect type also triggers review. Full declaration hashes deliberately favor false-positive review over undetected drift. The snapshot does not prove behavioral compatibility; scenario, type and integration suites remain required.
+
+Run `npm run build` then `node scripts/release/api-snapshot.mjs` to verify the checked-in manifest. After reviewing an intended change, documenting its migration and rerunning consumer tests, update explicitly with `node scripts/release/api-snapshot.mjs --update`. Updating a snapshot is a review action, never an automatic response to a failed gate. The snapshot records its TypeScript version; compiler changes require the same review.
+
+During 0.x, patch releases preserve supported signatures and stored-data behavior; fixes to an erroneous documented behavior must include a migration note if an adopter can observe the change. Supported breaking changes require a minor version, changelog entry and migration guidance. Experimental changes still require documentation and affected reruns. Release candidates may change before their final minor release; each candidate has its own package identity and complete gate evidence. Privileged APIs have no exemption from drift review or database compatibility checks.
+
+The `entity-event` executable is part of the package contract. Its installed ESM target must be present and executable. Supported CLI commands and exit behavior are documented by installed help and the [ServiceConfiguration guide](service-configuration.md); CLI smoke tests verify installation, help, diagnostics and expected outputs. Internal class/function bodies and function names emitted by JavaScript are not compatibility signatures. Generated files and raw PostgreSQL schemas require their own versioned migration contracts.

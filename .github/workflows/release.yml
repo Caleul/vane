@@ -1,0 +1,63 @@
+name: Publish reviewed RC
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: vane-npm-publication
+  cancel-in-progress: false
+
+jobs:
+  publish-rc:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          registry-url: https://registry.npmjs.org
+      - name: Require all three trusted push workflows at this exact head
+        id: gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release/publish.mjs --verify-gates
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-${{ github.sha }}
+          path: ${{ runner.temp }}/release-candidate
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.gates.outputs.readiness_run }}
+      - name: Publish canonical RC then verify registry installation
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: node scripts/release/publish.mjs --artifact-dir "$RUNNER_TEMP/release-candidate" --output "$RUNNER_TEMP/rc-publication-receipt.json"
+      - name: Create prerelease only after registry verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_VERSION: ${{ steps.publish.outputs.version }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/v$PACKAGE_VERSION" -f "sha=$GITHUB_SHA"
+          gh release create "v$PACKAGE_VERSION" "$RUNNER_TEMP/rc-publication-receipt.json" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --verify-tag --prerelease --title "v$PACKAGE_VERSION" --notes "Exact canonical RC published to npm next. Registry integrity and installation verified; see attached receipt."
+      - name: Preserve verified publication receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rc-publication-receipt-${{ github.sha }}
+          path: ${{ runner.temp }}/rc-publication-receipt.json
+          if-no-files-found: warn

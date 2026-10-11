@@ -14,6 +14,16 @@ import type { ServiceConfiguration } from "./service-configuration.js";
 
 async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
+  const usage =
+    "Usage: entity-event validate|plan|generate|migrate|dev|inspect|failures --config <configuration.mjs> [--profile <name>] [--out <new-directory>] [--json]";
+  if (
+    [command, ...args].some(
+      (argument) => argument === "--help" || argument === "-h",
+    )
+  ) {
+    console.log(usage);
+    return;
+  }
   const options = new Map<string, string>();
   let json = false;
   const positional: string[] = [];
@@ -58,9 +68,7 @@ async function main(): Promise<void> {
     ].includes(command ?? "") ||
     !options.has("--config")
   ) {
-    console.error(
-      "Usage: entity-event validate|plan|generate|migrate|dev|inspect|failures --config <configuration.mjs> [--profile <name>] [--out <new-directory>] [--json]",
-    );
+    console.error(usage);
     process.exitCode = 1;
     return;
   }

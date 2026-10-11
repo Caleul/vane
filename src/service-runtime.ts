@@ -1,7 +1,11 @@
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { AclEventRuntime, httpAclAdapter } from "./acl-runtime.js";
-import { PublicHttpRuntime, createNodeHttpHandler } from "./http-runtime.js";
+import {
+  PublicHttpRuntime,
+  TerminalResultNotFoundError,
+  createNodeHttpHandler,
+} from "./http-runtime.js";
 import { hashSemanticModule } from "./module-fingerprint.js";
 import { importedModuleHashes, moduleScope } from "./module-scope.js";
 import { PostgreSqlModuleRuntime } from "./postgresql/module-runtime.js";
@@ -281,11 +285,48 @@ export async function createServiceRuntime<P extends string>(
               : [],
           ),
         );
+        // The technical Saga table is shared by the service. A public Module
+        // stream must not become an inspector for another Module or a private
+        // terminal View. Application-admitted plans remain streamable when their
+        // terminal View is explicitly exposed (e.g. a Booking confirmation).
+        const exposedViews = new Set(
+          contract.operations.map((operation) =>
+            operation.kind === "view"
+              ? operation.identity
+              : operation.terminal.view,
+          ),
+        );
+        const streamablePlans = new Set(
+          plans
+            .filter((plan) => exposedViews.has(plan.terminal.view))
+            .map((plan) => plan.hash),
+        );
+        const visible = async (sagaId: string) => {
+          const state = await store.read(sagaId);
+          return (
+            state?.planHash !== null &&
+            state?.planHash !== undefined &&
+            streamablePlans.has(state.planHash)
+          );
+        };
         const http = new PublicHttpRuntime({
           contract,
           events,
           views,
-          terminals: store,
+          terminals: {
+            durable: true,
+            register: (sagaId) => store.register(sagaId),
+            has: visible,
+            publish: (sagaId, result) => store.publish(sagaId, result),
+            wait: async (sagaId, signal) => {
+              if (!(await visible(sagaId)))
+                throw new TerminalResultNotFoundError(sagaId);
+              const terminal = await store.wait(sagaId, signal);
+              if (terminal.kind === "view" && !exposedViews.has(terminal.view))
+                throw new TerminalResultNotFoundError(sagaId);
+              return terminal;
+            },
+          },
           admission: new PostgreSqlPublicSagaAdmission(
             sagas,
             publicPlans,

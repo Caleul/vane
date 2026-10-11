@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.19.0
           cache: npm
       - run: npm ci
       - run: npm run verify
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.19.0
           cache: npm
       - run: npm ci
       - run: npm run test:integration
@@ -73,13 +73,25 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.19.0
           cache: npm
       - run: npm ci
       - run: npm run test:conformance
-      - run: npm run test:conformance:package
+      - id: candidate
+        run: |
+          node scripts/release/pack.mjs --out /tmp/release-candidate --manifest /tmp/release-candidate/manifest.json
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          const manifest = JSON.parse(readFileSync('/tmp/release-candidate/manifest.json', 'utf8'));
+          if (typeof manifest.path !== 'string' || /[\r\n]/.test(manifest.path)) throw new Error('Invalid candidate path');
+          const hash = createHash('sha256').update(readFileSync(manifest.path)).digest('hex');
+          if (hash !== manifest.sha256) throw new Error('Candidate manifest integrity mismatch');
+          appendFileSync(process.env.GITHUB_OUTPUT, `tarball=${manifest.path}\n`);
+          NODE
+      - run: node conformance/pack-and-run.mjs --tarball "${{ steps.candidate.outputs.tarball }}" --sanity
       - name: Run independent candidate conformance gate
-        run: node conformance/pack-and-run.mjs --out /tmp/conformance-report.json
+        run: node conformance/pack-and-run.mjs --tarball "${{ steps.candidate.outputs.tarball }}" --out /tmp/conformance-report.json
       - name: Preserve candidate evidence even when blocked
         if: always()
         uses: actions/upload-artifact@v4

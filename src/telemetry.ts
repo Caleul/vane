@@ -25,17 +25,46 @@ export class RuntimeTelemetry {
       process.stderr.write(`${JSON.stringify(r)}\n`),
   ) {}
   redact(value: unknown): unknown {
+    const normalizeKey = (key: string) =>
+      key.toLowerCase().replace(/[^a-z0-9]/g, "");
     const keys = new Set([
       "password",
+      "passwd",
       "token",
+      "accesstoken",
+      "refreshtoken",
+      "idtoken",
+      "apikey",
+      "xapikey",
+      "clientsecret",
+      "accesskeyid",
+      "secretaccesskey",
+      "awsaccesskeyid",
+      "awssecretaccesskey",
+      "awssessiontoken",
+      "privatekey",
       "authorization",
+      "proxyauthorization",
       "secret",
       "credential",
+      "credentials",
+      "cookie",
+      "setcookie",
+      "headers",
+      "connectionstring",
+      "databaseurl",
+      "dsn",
+      "url",
+      "endpoint",
+      "error",
+      "message",
+      "stack",
+      "cause",
       "payload",
       "input",
       "data",
       "result",
-      ...(this.configuration.redact ?? []).map((s) => s.toLowerCase()),
+      ...(this.configuration.redact ?? []).map(normalizeKey),
     ]);
     const visit = (v: unknown): unknown => {
       if (Array.isArray(v)) return v.map(visit);
@@ -43,7 +72,7 @@ export class RuntimeTelemetry {
         return Object.fromEntries(
           Object.entries(v).map(([k, val]) => [
             k,
-            keys.has(k.toLowerCase()) ? "[REDACTED]" : visit(val),
+            keys.has(normalizeKey(k)) ? "[REDACTED]" : visit(val),
           ]),
         );
       return v;

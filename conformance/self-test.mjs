@@ -1,5 +1,16 @@
 import assert from "node:assert/strict";
-import { readFile, readdir } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import { allCases, humanReport, runSuite, validateCatalog } from "./runner.mjs";
 
@@ -259,4 +270,88 @@ test("source-scoped applicability remains visible in JSON and human evidence", a
   assert.equal(report.requirements[0].scopeNote, scopeNote);
   assert.ok(humanReport(report).includes(`Scope: ${scopeNote}`));
   assert.equal(report.requirements[0].status, "PASS");
+});
+
+test("supplied package is snapshotted before install and its exact hash reaches the runner", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "vane-artifact-test-"));
+  try {
+    await mkdir(join(directory, "conformance"));
+    await mkdir(join(directory, "bin"));
+    await writeFile(
+      join(directory, "conformance/pack-and-run.mjs"),
+      await readFile(new URL("./pack-and-run.mjs", import.meta.url)),
+    );
+    await writeFile(
+      join(directory, "conformance/package-sanity.mjs"),
+      "export async function checkPackage() {}\n",
+    );
+    const original = join(directory, "original.tgz");
+    await writeFile(original, "original-artifact-bytes");
+    await writeFile(
+      join(directory, "bin/npm"),
+      `#!/usr/bin/env node
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (args[0] === 'pack') {
+  if (!process.env.ALLOW_PACK) process.exit(90);
+  const path = require('node:path').join(args[args.indexOf('--pack-destination') + 1], 'normal.tgz');
+  fs.writeFileSync(path, 'original-artifact-bytes');
+  console.log(JSON.stringify([{filename: 'normal.tgz'}]));
+  process.exit(0);
+}
+if (args[0] !== 'install') process.exit(90);
+if (fs.readFileSync(args.at(-1), 'utf8') !== 'original-artifact-bytes') process.exit(91);
+fs.writeFileSync(process.env.ORIGINAL_ARTIFACT, 'changed-during-install');
+`,
+    );
+    await chmod(join(directory, "bin/npm"), 0o755);
+    await writeFile(join(directory, "bin/git"), "#!/bin/sh\nprintf fixture\n");
+    await chmod(join(directory, "bin/git"), 0o755);
+    await writeFile(
+      join(directory, "conformance/runner.mjs"),
+      `import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+const args=process.argv.slice(2);
+const value=(name)=>args[args.indexOf(name)+1];
+const bytes=readFileSync(value('--tarball-path'));
+assert.equal(bytes.toString(), 'original-artifact-bytes');
+assert.equal(value('--tarball-sha256'), createHash('sha256').update(bytes).digest('hex'));
+`,
+    );
+    const run = (args, extraEnv = {}) =>
+      spawnSync(
+        process.execPath,
+        [join(directory, "conformance/pack-and-run.mjs"), ...args],
+        {
+          encoding: "utf8",
+          timeout: 10000,
+          env: {
+            ...process.env,
+            PATH: `${join(directory, "bin")}:${process.env.PATH}`,
+            ORIGINAL_ARTIFACT: original,
+            ...extraEnv,
+          },
+        },
+      );
+    const result = run(["--tarball", original]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(await readFile(original, "utf8"), "changed-during-install");
+    const normal = run([], { ALLOW_PACK: "1" });
+    assert.equal(normal.status, 0, normal.stderr);
+    for (const args of [
+      ["--tarball"],
+      ["--tarball", "--sanity"],
+      ["--tarball", original, "--tarball", original],
+    ]) {
+      const invalid = run(args);
+      assert.notEqual(invalid.status, 0);
+      assert.match(
+        invalid.stderr,
+        /--tarball (requires a path|may be supplied only once)/,
+      );
+    }
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

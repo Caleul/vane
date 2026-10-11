@@ -25,18 +25,41 @@ const temporary = await mkdtemp(join(tmpdir(), "vane-conformance-"));
 try {
   const cache =
     process.env.VANE_CONFORMANCE_NPM_CACHE ?? join(tmpdir(), "vane-npm-cache");
-  const packed = JSON.parse(
-    execute("npm", [
-      "pack",
-      "--json",
-      "--ignore-scripts",
-      "--pack-destination",
-      temporary,
-      "--cache",
-      cache,
-    ]),
-  );
-  const tarball = join(temporary, packed[0].filename);
+  const args = process.argv.slice(2);
+  const artifactIndex = args.indexOf("--tarball");
+  let suppliedTarball;
+  if (artifactIndex !== -1) {
+    if (!args[artifactIndex + 1] || args[artifactIndex + 1].startsWith("--"))
+      throw new Error("--tarball requires a path");
+    suppliedTarball = resolve(args[artifactIndex + 1]);
+    args.splice(artifactIndex, 2);
+    if (args.includes("--tarball"))
+      throw new Error("--tarball may be supplied only once");
+  }
+  if (args.includes("--sanity") && args.length !== 1)
+    throw new Error("--sanity cannot be combined with report filters");
+  const packed = suppliedTarball
+    ? null
+    : JSON.parse(
+        execute("npm", [
+          "pack",
+          "--json",
+          "--ignore-scripts",
+          "--pack-destination",
+          temporary,
+          "--cache",
+          cache,
+        ]),
+      );
+  // Snapshot supplied bytes once: installation and Docker evidence use the same artifact.
+  const tarball = suppliedTarball
+    ? join(temporary, "candidate.tgz")
+    : join(temporary, packed[0].filename);
+  if (suppliedTarball)
+    await writeFile(tarball, await readFile(suppliedTarball));
+  const hash = createHash("sha256")
+    .update(await readFile(tarball))
+    .digest("hex");
   await writeFile(
     join(temporary, "package.json"),
     JSON.stringify({
@@ -61,13 +84,7 @@ try {
   const packageRoot = join(temporary, "node_modules/@lilka/vane");
   const commit = execute("git", ["rev-parse", "HEAD"]).trim();
   const dirty = execute("git", ["status", "--porcelain"]).trim();
-  const hash = createHash("sha256")
-    .update(await readFile(tarball))
-    .digest("hex");
-  const args = process.argv.slice(2);
   if (args.includes("--sanity")) {
-    if (args.length !== 1)
-      throw new Error("--sanity cannot be combined with report filters");
     await checkPackage(packageRoot);
   } else {
     const runner = join(root, "conformance/runner.mjs");

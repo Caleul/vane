@@ -4,9 +4,11 @@ Autoridade: [Fase 9 — Release v0.1](https://www.notion.so/3d251cfc265c81aca312
 e [PRD Validation & Release](https://www.notion.so/3d251cfc265c814d86e1df25ff45e238),
 seção Fase 9, VR-REL-001–008 e Definition of Done.
 
-Estado: **preparação iniciada**. A integração da fase 8 preserva o candidato
-validado e seus consumidores externos. O pacote permanece `@lilka/vane@0.0.0`,
-`private: true`; nenhum RC, tag de release ou publicação é produzido por este plano.
+Estado: **implementação do RC em validação**. Metadata preparada para
+`@lilka/vane@0.1.0-rc.1`, público, com API snapshot, revisão de segurança,
+pack canônico e gates de upgrade/reprodução. Publicação depende de autenticação
+npm e ownership do scope, ainda não comprovados. RC publicado e GA permanecem
+pendentes; a versão no source não implica publicação.
 
 ## Gate de entrada e baseline
 
@@ -51,17 +53,21 @@ para RC/GA por similaridade do código.
 - [x] Plano sequenciado e evidências obrigatórias definidos.
 - [x] Candidato validado e consumidores/evidências preservados na main.
 - [x] Workflow externo preparado para executar o tarball da revisão atual.
-- [ ] R9-A1: confirmar CI remoto desta integração.
+- [x] R9-A1: CI remoto da baseline `e4a7937` verde: runs 38100192428 e 38100192499.
 - [ ] R9-A2: obter readiness de publicação npm; autenticação GitHub não prova ownership npm.
-- [ ] B–F: executar os trabalhos e gates acima.
+- [ ] B–D: implementação preparada; concluir validação do mesmo artefato.
+- [ ] E–F: RC publicado, revisão pós-publicação e GA pendentes.
 
-`private: true`, versão `0.0.0` e ausência de manifest de API congelado são tarefas
-de release ainda abertas. Os P2 da fase 8 (help exit 1, normalização de CHECK,
-volatilidade Moto e padrão específico de CAS/clock) precisam de disposição
-explícita no RC e release notes. Não há credenciais npm/AWS declaradas no ambiente
-gerenciado atual; publicação deve usar o mecanismo autorizado do registry.
-AWS smoke permanece opt-in e só será necessário para garantia crítica que Moto
-não consiga validar. O fluxo básico não adquire nova dependência de AWS real.
+O RC resolve help exit 1 e normalização associativa de CHECK com regressões.
+Volatilidade Moto e CAS/clock específico permanecem limites explícitos em
+[release notes](phase-9-release.md). Dependências Commerce do consumidor ativo
+foram atualizadas; o archive da fase 8 permanece imutável. O replay atualizado
+está em `docs/evidence/phase9/consumers.tar.gz` e seus resultados novos devem
+identificar o tarball RC efetivamente usado.
+
+Não há autenticação npm disponível (`npm whoami`: ENEEDAUTH). Nenhum segredo
+precisa ser colado em chat. Configure o mecanismo de publicação no ambiente/CI.
+AWS smoke permanece opt-in para garantia crítica não validável em Moto.
 
 ## Gate de saída
 
@@ -72,4 +78,4 @@ nenhum finding crítico/alto sem decisão explícita, conformance obrigatória 1
 três dogfoods verdes, revisão explícita do RC e nenhuma decisão conceitual pendente.
 
 Runtime distribuído, novos bancos/transports e harness genérico permanecem fora
-deste ciclo conforme o PRD. A próxima execução começa por **R9-A1/A2 e B1/C1**.
+deste ciclo conforme o PRD. A publicação deve seguir os gates E2/E3 antes da promoção GA.

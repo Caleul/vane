@@ -20,13 +20,12 @@ jobs:
           node-version: 24.19.0
           cache: npm
       - name: Extract independent consumers outside the framework
-        run: tar -xzf docs/evidence/phase-8/consumers.tar.gz -C "$RUNNER_TEMP"
+        run: tar -xzf docs/evidence/phase9/consumers.tar.gz -C "$RUNNER_TEMP"
       - name: Build and pack this exact checkout
         run: |
           npm ci
-          npm run build
-          npm pack --pack-destination "$RUNNER_TEMP/vane-dogfood/artifacts"
-          mv "$RUNNER_TEMP/vane-dogfood/artifacts/lilka-vane-"*.tgz "$RUNNER_TEMP/vane-dogfood/artifacts/vane.tgz"
+          node scripts/release/pack.mjs --out "$RUNNER_TEMP/rc" --manifest "$RUNNER_TEMP/rc/package.json"
+          cp "$RUNNER_TEMP/rc/"*.tgz "$RUNNER_TEMP/vane-dogfood/artifacts/vane.tgz"
       - name: Record current package and documentation identity
         run: |
           rm -rf "$RUNNER_TEMP/vane-dogfood/public-docs"

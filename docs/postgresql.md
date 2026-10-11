@@ -85,7 +85,10 @@ await runtime.stop();
 `start()` validates the compiled plan, PostgreSQL version, installed Storage IR
 hash, Column shape and named constraints/indexes before accepting work.
 It compares their definitions too, canonicalizing known equivalent PostgreSQL
-deparse forms before deciding whether drift exists.
+deparse forms before deciding whether drift exists. CHECK comparison flattens associative AND/OR
+groups without changing operand order, mixed-operator precedence, negation or
+quoted literals. Left- and right-nested forms are accepted as equivalent; changes
+to operators, precedence or literal values remain schema drift.
 Dispatch resolves `Entity.Event` inside the configured Module; the lower-level
 executor is intentionally not part of the package API. `stop()` rejects new
 work and waits for in-flight transactions, while mailbox/outbox state remains

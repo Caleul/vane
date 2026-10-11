@@ -188,7 +188,7 @@ describe("PostgreSQL outbox delivery", () => {
     client.assertComplete();
   });
 
-  it("reschedules failures without exposing multiline error details", async () => {
+  it("reschedules failures without persisting provider credentials or response text", async () => {
     const client = new QueueClient([response([], 1)]);
     const dispatcher = new PostgreSqlOutboxDispatcher(
       { connect: async () => client },
@@ -200,11 +200,19 @@ describe("PostgreSQL outbox delivery", () => {
       workerId: "worker-1",
       leaseToken: LEASE_TOKEN,
       availableAt: "2026-08-31T15:01:00.000Z",
-      error: "connection\nfailed\ttemporarily",
+      error:
+        "connection failed https://provider.invalid/?token=private-provider-token\nAuthorization: Bearer private-header-token\tprivate-response-body",
     });
 
     assert.match(client.queries[0]?.sql ?? "", /status = 'pending'/);
-    assert.equal(client.queries[0]?.values[4], "connection failed temporarily");
+    assert.equal(client.queries[0]?.values[4], "Outbox publication failed.");
+    assert.ok(!JSON.stringify(client.queries).includes("private-"));
+    assert.deepEqual(client.queries[0]?.values.slice(0, 4), [
+      MESSAGE_ID,
+      "worker-1",
+      LEASE_TOKEN,
+      "2026-08-31T15:01:00.000Z",
+    ]);
     client.assertComplete();
   });
 });

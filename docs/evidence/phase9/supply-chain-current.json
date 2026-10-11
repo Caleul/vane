@@ -1,0 +1,1753 @@
+{
+  "schema": "vane.release.supply-chain",
+  "version": 2,
+  "startedAt": "2026-10-11T01:13:29.654Z",
+  "finishedAt": "2026-10-11T01:13:31.859Z",
+  "sourceCommit": "e4a79376d9227d044b51a83ffec560dfeea22ef8",
+  "sourceDirty": true,
+  "verificationMode": "preliminary-dry-run",
+  "node": "v24.19.0",
+  "npm": "11.9.0",
+  "status": "PASS",
+  "exitCode": 0,
+  "findings": [],
+  "audits": [
+    {
+      "scope": "framework",
+      "directory": "/workspace/vane",
+      "lockSha256": "f163e21b412100046513f28d16e5683beb26c26353be755bd9fbf825b7b3bd80",
+      "inventory": [
+        {
+          "path": ".",
+          "version": "0.1.0-rc.1",
+          "license": "MIT",
+          "dev": false,
+          "optional": false
+        },
+        {
+          "path": "node_modules/@biomejs/biome",
+          "version": "1.9.4",
+          "license": "MIT OR Apache-2.0",
+          "dev": true,
+          "optional": false,
+          "integrity": "sha512-1rkd7G70+o9KkTn5KLmDYXihGoTaIGO9PIIN2ZB7UJxFrWw04CZHPYiMRjYsaDvVV7hP1dYNRLxSANLaBFGpog==",
+          "resolved": "https://registry.npmjs.org/@biomejs/biome/-/biome-1.9.4.tgz"
+        },
+        {
+          "path": "node_modules/@biomejs/cli-darwin-arm64",
+          "version": "1.9.4",
+          "license": "MIT OR Apache-2.0",
+          "dev": true,
+          "optional": true,
+          "integrity": "sha512-bFBsPWrNvkdKrNCYeAp+xo2HecOGPAy9WyNyB/jKnnedgzl4W4Hb9ZMzYNbf8dMCGmUdSavlYHiR01QaYR58cw==",
+          "resolved": "https://registry.npmjs.org/@biomejs/cli-darwin-arm64/-/cli-darwin-arm64-1.9.4.tgz"
+        },
+        {
+          "path": "node_modules/@biomejs/cli-darwin-x64",
+          "version": "1.9.4",
+          "license": "MIT OR Apache-2.0",
+          "dev": true,
+          "optional": true,
+          "integrity": "sha512-ngYBh/+bEedqkSevPVhLP4QfVPCpb+4BBe2p7Xs32dBgs7rh9nY2AIYUL6BgLw1JVXV8GlpKmb/hNiuIxfPfZg==",
+          "resolved": "https://registry.npmjs.org/@biomejs/cli-darwin-x64/-/cli-darwin-x64-1.9.4.tgz"
+        },
+        {
+          "path": "node_modules/@biomejs/cli-linux-arm64",
+          "version": "1.9.4",
+          "license": "MIT OR Apache-2.0",
+          "dev": true,
+          "optional": true,
+          "integrity": "sha512-fJIW0+LYujdjUgJJuwesP4EjIBl/N/TcOX3IvIHJQNsAqvV2CHIogsmA94BPG6jZATS4Hi+xv4SkBBQSt1N4/g==",
+          "resolved": "https://registry.npmjs.org/@biomejs/cli-linux-arm64/-/cli-linux-arm64-1.9.4.tgz"
+        },
+        {
+          "path": "node_modules/@biomejs/cli-linux-arm64-musl",
+          "version": "1.9.4",
+          "license": "MIT OR Apache-2.0",
+          "dev": true,
+          "optional": true,
+          "integrity": "sha512-v665Ct9WCRjGa8+kTr0CzApU0+XXtRgwmzIf1SeKSGAv+2scAlW6JR5PMFo6FzqqZ64Po79cKODKf3/AAmECqA==",
+          "resolved": "https://registry.npmjs.org/@biomejs/cli-linux-arm64-musl/-/cli-linux-arm64-musl-1.9.4.tgz"
+        },
+        {
+          "path": "node_modules/@biomejs/cli-linux-x64",
+          "version": "1.9.4",
+          "license": "MIT OR Apache-2.0",
+          "dev": true,
+          "optional": true,
+          "integrity": "sha512-lRCJv/Vi3Vlwmbd6K+oQ0KhLHMAysN8lXoCI7XeHlxaajk06u7G+UsFSO01NAs5iYuWKmVZjmiOzJ0OJmGsMwg==",
+          "resolved": "https://registry.npmjs.org/@biomejs/cli-linux-x64/-/cli-linux-x64-1.9.4.tgz"
+        },
+        {
+          "path": "node_modules/@biomejs/cli-linux-x64-musl",
+          "version": "1.9.4",
+          "license": "MIT OR Apache-2.0",
+          "dev": true,
+          "optional": true,
+          "integrity": "sha512-gEhi/jSBhZ2m6wjV530Yy8+fNqG8PAinM3oV7CyO+6c3CEh16Eizm21uHVsyVBEB6RIM8JHIl6AGYCv6Q6Q9Tg==",
+          "resolved": "https://registry.npmjs.org/@biomejs/cli-linux-x64-musl/-/cli-linux-x64-musl-1.9.4.tgz"
+        },
+        {
+          "path": "node_modules/@biomejs/cli-win32-arm64",
+          "version": "1.9.4",
+          "license": "MIT OR Apache-2.0",
+          "dev": true,
+          "optional": true,
+          "integrity": "sha512-tlbhLk+WXZmgwoIKwHIHEBZUwxml7bRJgk0X2sPyNR3S93cdRq6XulAZRQJ17FYGGzWne0fgrXBKpl7l4M87Hg==",
+          "resolved": "https://registry.npmjs.org/@biomejs/cli-win32-arm64/-/cli-win32-arm64-1.9.4.tgz"
+        },
+        {
+          "path": "node_modules/@biomejs/cli-win32-x64",
+          "version": "1.9.4",
+          "license": "MIT OR Apache-2.0",
+          "dev": true,
+          "optional": true,
+          "integrity": "sha512-8Y5wMhVIPaWe6jw2H+KlEm4wP/f7EW3810ZLmDlrEEy5KvBsb9ECEfu/kMWD484ijfQ8+nIi0giMgu9g1UAuuA==",
+          "resolved": "https://registry.npmjs.org/@biomejs/cli-win32-x64/-/cli-win32-x64-1.9.4.tgz"
+        },
+        {
+          "path": "node_modules/@types/node",
+          "version": "22.10.5",
+          "license": "MIT",
+          "dev": true,
+          "optional": false,
+          "integrity": "sha512-F8Q+SeGimwOo86fiovQh8qiXfFEh2/ocYv7tU5pJ3EXMSSxk1Joj5wefpFK2fHTf/N6HKGSxIDBT9f3gCxXPkQ==",
+          "resolved": "https://registry.npmjs.org/@types/node/-/node-22.10.5.tgz"
+        },
+        {
+          "path": "node_modules/@types/pg",
+          "version": "8.23.1",
+          "license": "MIT",
+          "dev": true,
+          "optional": false,
+          "integrity": "sha512-fKVHpikPdg4GKks3JuLEhvwSyvwzF23hnabPy6DD8ljVbC7+6J5dQzdv4arV6jqq57djnMgs1HKBxX4P8aBI3A==",
+          "resolved": "https://registry.npmjs.org/@types/pg/-/pg-8.23.1.tgz"
+        },
+        {
+          "path": "node_modules/pg",
+          "version": "8.23.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-Ip2EQCngowJLGOfCwkFhPXU7/ljlhn6Rxlmy4XYfL2Y+vyRM59+8uR2xqRWKdYmbXmxCFOAmKxBuSUCdF34qLg==",
+          "resolved": "https://registry.npmjs.org/pg/-/pg-8.23.0.tgz"
+        },
+        {
+          "path": "node_modules/pg-cloudflare",
+          "version": "1.4.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": true,
+          "integrity": "sha512-Vo7z/6rrQYxpNRylp4Tlob2elzbh+N/MOQbxFVWCxS7oEx6jF53GTJFxK2WWpKuBRkmiin4Mt+xofFDjx09R0A==",
+          "resolved": "https://registry.npmjs.org/pg-cloudflare/-/pg-cloudflare-1.4.0.tgz"
+        },
+        {
+          "path": "node_modules/pg-connection-string",
+          "version": "2.14.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-XwWDGcLRGCXAR8F/AM5bG7Q+A3Wm2s6QeEjlOKZLlH3UYcguiqCWKyWXVag5TLTIjR7oOJUY8kcADaZgWPyLeg==",
+          "resolved": "https://registry.npmjs.org/pg-connection-string/-/pg-connection-string-2.14.0.tgz"
+        },
+        {
+          "path": "node_modules/pg-int8",
+          "version": "1.0.1",
+          "license": "ISC",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==",
+          "resolved": "https://registry.npmjs.org/pg-int8/-/pg-int8-1.0.1.tgz"
+        },
+        {
+          "path": "node_modules/pg-pool",
+          "version": "3.14.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-gKtPkFdQPU3DksooVLi9LsjZxrsBUZIpa+7aVx+LV5pNh0KzP4Zleud2po+ConrxbuXGBJ6Hfer6hdgpIBpBaw==",
+          "resolved": "https://registry.npmjs.org/pg-pool/-/pg-pool-3.14.0.tgz"
+        },
+        {
+          "path": "node_modules/pg-protocol",
+          "version": "1.16.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-sILXutLVjCLjcDuOmvhX5e2Z4cS5qG/6Bu3VkpFwdf/633ElGLpEh9bgmuI5I4sqKqkifQiGyiCcx1HdtrK7tg==",
+          "resolved": "https://registry.npmjs.org/pg-protocol/-/pg-protocol-1.16.0.tgz"
+        },
+        {
+          "path": "node_modules/pg-types",
+          "version": "2.2.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==",
+          "resolved": "https://registry.npmjs.org/pg-types/-/pg-types-2.2.0.tgz"
+        },
+        {
+          "path": "node_modules/pgpass",
+          "version": "1.0.5",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==",
+          "resolved": "https://registry.npmjs.org/pgpass/-/pgpass-1.0.5.tgz"
+        },
+        {
+          "path": "node_modules/postgres-array",
+          "version": "2.0.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-VpZrUqU5A69eQyW2c5CA1jtLecCsN2U/bD6VilrFDWq5+5UIEVO7nazS3TEcHf1zuPYO/sqGvUvW62g86RXZuA==",
+          "resolved": "https://registry.npmjs.org/postgres-array/-/postgres-array-2.0.0.tgz"
+        },
+        {
+          "path": "node_modules/postgres-bytea",
+          "version": "1.0.1",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-5+5HqXnsZPE65IJZSMkZtURARZelel2oXUEO8rH83VS/hxH5vv1uHquPg5wZs8yMAfdv971IU+kcPUczi7NVBQ==",
+          "resolved": "https://registry.npmjs.org/postgres-bytea/-/postgres-bytea-1.0.1.tgz"
+        },
+        {
+          "path": "node_modules/postgres-date",
+          "version": "1.0.7",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-suDmjLVQg78nMK2UZ454hAG+OAW+HQPZ6n++TNDUX+L0+uUlLywnoxJKDou51Zm+zTCjrCl0Nq6J9C5hP9vK/Q==",
+          "resolved": "https://registry.npmjs.org/postgres-date/-/postgres-date-1.0.7.tgz"
+        },
+        {
+          "path": "node_modules/postgres-interval",
+          "version": "1.2.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==",
+          "resolved": "https://registry.npmjs.org/postgres-interval/-/postgres-interval-1.2.0.tgz"
+        },
+        {
+          "path": "node_modules/split2",
+          "version": "4.2.0",
+          "license": "ISC",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==",
+          "resolved": "https://registry.npmjs.org/split2/-/split2-4.2.0.tgz"
+        },
+        {
+          "path": "node_modules/typescript",
+          "version": "5.7.3",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw==",
+          "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz"
+        },
+        {
+          "path": "node_modules/undici-types",
+          "version": "6.20.0",
+          "license": "MIT",
+          "dev": true,
+          "optional": false,
+          "integrity": "sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==",
+          "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz"
+        },
+        {
+          "path": "node_modules/xtend",
+          "version": "4.0.2",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==",
+          "resolved": "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz"
+        }
+      ],
+      "audits": [
+        {
+          "mode": "runtime",
+          "command": ["npm", "audit", "--omit=dev", "--json"],
+          "exitCode": 0,
+          "report": {
+            "auditReportVersion": 2,
+            "vulnerabilities": {},
+            "metadata": {
+              "vulnerabilities": {
+                "info": 0,
+                "low": 0,
+                "moderate": 0,
+                "high": 0,
+                "critical": 0,
+                "total": 0
+              },
+              "dependencies": {
+                "prod": 15,
+                "dev": 12,
+                "optional": 9,
+                "peer": 0,
+                "peerOptional": 0,
+                "total": 27
+              }
+            }
+          }
+        },
+        {
+          "mode": "full",
+          "command": ["npm", "audit", "--json"],
+          "exitCode": 0,
+          "report": {
+            "auditReportVersion": 2,
+            "vulnerabilities": {},
+            "metadata": {
+              "vulnerabilities": {
+                "info": 0,
+                "low": 0,
+                "moderate": 0,
+                "high": 0,
+                "critical": 0,
+                "total": 0
+              },
+              "dependencies": {
+                "prod": 15,
+                "dev": 12,
+                "optional": 9,
+                "peer": 0,
+                "peerOptional": 0,
+                "total": 27
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "scope": "consumer-1",
+      "directory": "/workspace/vane-release-consumers/apps/commerce",
+      "lockSha256": "b27afd62d18e0b9526f591db919f18211c0c60d88d060c53a336976e65fa1c44",
+      "inventory": [
+        {
+          "path": ".",
+          "version": "1.0.0",
+          "dev": false,
+          "optional": false
+        },
+        {
+          "path": "node_modules/@aws-sdk/checksums",
+          "version": "3.1001.2",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-gKRj5IXZ/O0ehk2rwfb55YygdNKNhK5N1l/Ztg/w06tk21AJtCPuyErETk2RS/6XOmpBkcZY6CN3GlQ2fWTh1g==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/checksums/-/checksums-3.1001.2.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/client-s3",
+          "version": "3.1149.0",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-wEccG+3/ap7iIBO4DbWwqNHh2u5Qm5OCQJzJaAvtVFIoZbp0qia8HIXv4rpnNmJJEX8205mlq67F9QJ0nKlcxg==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/client-s3/-/client-s3-3.1149.0.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/core",
+          "version": "3.978.2",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-ViOBLuGSSyPAmkKGJ6KJXtVN7MOEp3rnI7uH+kWxnHccvo8C9cvunEAnN5/oaZH1laQfsTBw7IOnmNkWlFZl2A==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/core/-/core-3.978.2.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-env",
+          "version": "3.972.73",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-PxlFZiF5IPUsPnuVSqjM9jlmRwZhL0xx40ccWfZiLQS8TRnHQpegpK1uAidatWuEqbJtbbY97A2Sezikz2AMUw==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/credential-provider-env/-/credential-provider-env-3.972.73.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-http",
+          "version": "3.972.75",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-Q/uIDy8eAVN7JgSKDg16F/f+hmNJj/ZyLJN8AkW2ofVdDgJVh8fO/A26iZ7YsvM2/k76hsf/u2lLAtyXsK8Ziw==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/credential-provider-http/-/credential-provider-http-3.972.75.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-ini",
+          "version": "3.973.18",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-KoyjZ9vdjuxEQ8obAH06xKP8H0WKqGhwUZLMqAOiS7G0xgUAht4X8f0ASLC/vhNLCWGblZOD3VQHWyTROGJHLg==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/credential-provider-ini/-/credential-provider-ini-3.973.18.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-login",
+          "version": "3.972.80",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-xF9A0gaO7k+1dYPFoo69OQatA9Ov0QuDZfqE8H0FLyIoOph+mlEC+I1Qo9UULupGuDfSYh+kVpfcDSxSYf/2fg==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/credential-provider-login/-/credential-provider-login-3.972.80.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-node",
+          "version": "3.972.85",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-CrFcML/xImiSlquH4W3V6Npz3aSkPXHDVciAU1JOBN0vqjmkcz9H9up2sCHQqN76J/WrT+TJ580L8h2joksQrg==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/credential-provider-node/-/credential-provider-node-3.972.85.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-process",
+          "version": "3.972.73",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-tyNnT4aVuOEXmKKKZPExBi828vRd9heshobBsKF0bov5EORHSJc1AGsHOMRP57sDt+dIuVASUOywaixiX26t4g==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/credential-provider-process/-/credential-provider-process-3.972.73.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-sso",
+          "version": "3.973.17",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-gxKTWaUk2gSbBOH4m3NPRfEKcGXeDAOgHr7nNG5JktR1xZLo0R+DpMjbcleoHbB0uJREOG7hjIRE635IuBWsRQ==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/credential-provider-sso/-/credential-provider-sso-3.973.17.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-web-identity",
+          "version": "3.972.79",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-/jn0Gs/qm6fs6nTIA5yncHayybz42SATZ3rNxCEBYPJ9v69PLrDRgk07E9xTT2gpRcNmDXXbi27ZbuU06N0Z6Q==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/credential-provider-web-identity/-/credential-provider-web-identity-3.972.79.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/middleware-sdk-s3",
+          "version": "3.972.78",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-W1kXIqMBkfrpVTbOOUSt63D2mEM4882TLqGWXjkZ1OcJ2ggSEWzgyjlyVDIHu/goGJSREd5s/KQ9wAgVZ0djeQ==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/middleware-sdk-s3/-/middleware-sdk-s3-3.972.78.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/nested-clients",
+          "version": "3.997.47",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-bovCKvDsLocNTzaj6VrrMVJ2BGROqO0JlwcGseO67a+I9Bo+08nUJhSQfZUIx4+A4a7I4101GEJd/AYm7dQ68w==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/nested-clients/-/nested-clients-3.997.47.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/signature-v4-multi-region",
+          "version": "3.996.48",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-cFDXfEbXaGwbnpvR/DyqfxfjxpjXVRVthQLgkwvcfDS5u3+8G9WSj1X1Ag/pTRg/QOeOno1Tq3ycEdrKsCUcOA==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/signature-v4-multi-region/-/signature-v4-multi-region-3.996.48.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/token-providers",
+          "version": "3.1149.0",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-CAwYyA8eVk1w6h8YgLvkjIOakWPwURaUFrP7BRVgkxTFUM+O87thyKsGKJ6rVPbP8eoEV10cBWQ5YfaYl3qSVQ==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/token-providers/-/token-providers-3.1149.0.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/types",
+          "version": "3.974.6",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-v/clNZzZnDxGyvpHMOGpJKVXFAExJzUNAAjaWGdcx8QAcXLGwTaOkw33p5SHAi0YAioK32xB3hWwOekRVfmfKg==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/types/-/types-3.974.6.tgz"
+        },
+        {
+          "path": "node_modules/@aws-sdk/xml-builder",
+          "version": "3.972.41",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-ctjVSyCMegrWfXlx6VqzSBFI6UqmQ5ZlnfMhdLIiWmhoH8UAQxSCP5N3OpG7X3k4LnS7ou74C4mt20+bfTW2aQ==",
+          "resolved": "https://registry.npmjs.org/@aws-sdk/xml-builder/-/xml-builder-3.972.41.tgz"
+        },
+        {
+          "path": "node_modules/@aws/lambda-invoke-store",
+          "version": "0.3.0",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-sl4Bm6yiMNYrZKkqqDFWN0UfnWhlS8ivKxrYl+6t0gCLrqr8y3B2IqZZbFRkfaVVp7C/baApyh71P+LeE1A2sQ==",
+          "resolved": "https://registry.npmjs.org/@aws/lambda-invoke-store/-/lambda-invoke-store-0.3.0.tgz"
+        },
+        {
+          "path": "node_modules/@lilka/vane",
+          "version": "0.0.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-yf90re4ow3sGSAJIo3Ng+CpwA0eVKuZYWD0WGcKGmzwE+jl4yBQfZVuwzQiJnPRwsGa12K58TLYEtJCYTYYyJw==",
+          "resolved": "file:../../artifacts/vane.tgz"
+        },
+        {
+          "path": "node_modules/@smithy/core",
+          "version": "3.35.2",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-ejTukBuP/Pg3t9N8Ux+0zKsXeHWm7p6W3HbXFOyltKasSxZwCFmvTut7kBdZSCF3m9y1bXXyVu6p2xuMFcsTyQ==",
+          "resolved": "https://registry.npmjs.org/@smithy/core/-/core-3.35.2.tgz"
+        },
+        {
+          "path": "node_modules/@smithy/credential-provider-imds",
+          "version": "4.5.2",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-A9uSdn72ozbRUSit0eib0TW7nXuNPlaeM0zcGkJ+nE6tFcSDbnmtwoxbTCFBukVQcszDAyvsd7+rTduPTXpygg==",
+          "resolved": "https://registry.npmjs.org/@smithy/credential-provider-imds/-/credential-provider-imds-4.5.2.tgz"
+        },
+        {
+          "path": "node_modules/@smithy/fetch-http-handler",
+          "version": "5.8.0",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-ycSJu3tFAQ4v04CBB0agqFMVsSQ1iG3yw+SpgxRqKfaURpQD4CZ8Wn0zPMmSnOuTpTh65Vz+EA0rMrw089wvkA==",
+          "resolved": "https://registry.npmjs.org/@smithy/fetch-http-handler/-/fetch-http-handler-5.8.0.tgz"
+        },
+        {
+          "path": "node_modules/@smithy/node-http-handler",
+          "version": "4.12.1",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-ThMkboGeONWXAelq9FvGsuJC4rOi+qyC4/zhUF58xYpxUg5sQKx2VXZYJmtNjr4dSuBJ1HeJXETQILCz3wOHvw==",
+          "resolved": "https://registry.npmjs.org/@smithy/node-http-handler/-/node-http-handler-4.12.1.tgz"
+        },
+        {
+          "path": "node_modules/@smithy/signature-v4",
+          "version": "5.7.4",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-tHy0K0VtqNd5Y7Y41h0a0Lhh0L1GzC08dTWg0F7vRJWFtTENg7IZikf3wQkanYIRdb7ngoIPMTmqgUi401fEeQ==",
+          "resolved": "https://registry.npmjs.org/@smithy/signature-v4/-/signature-v4-5.7.4.tgz"
+        },
+        {
+          "path": "node_modules/@smithy/types",
+          "version": "4.19.0",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-r7jh49VJxGerfAcTQA6gXcKc+98zOp/tqRwzYjgOE+iSQsP6cEU1hq2QzbuipmP68QtYdY9wKEhiCQZIzHgZ4Q==",
+          "resolved": "https://registry.npmjs.org/@smithy/types/-/types-4.19.0.tgz"
+        },
+        {
+          "path": "node_modules/@types/node",
+          "version": "22.10.5",
+          "license": "MIT",
+          "dev": true,
+          "optional": false,
+          "integrity": "sha512-F8Q+SeGimwOo86fiovQh8qiXfFEh2/ocYv7tU5pJ3EXMSSxk1Joj5wefpFK2fHTf/N6HKGSxIDBT9f3gCxXPkQ==",
+          "resolved": "https://registry.npmjs.org/@types/node/-/node-22.10.5.tgz"
+        },
+        {
+          "path": "node_modules/@types/pg",
+          "version": "8.23.1",
+          "license": "MIT",
+          "dev": true,
+          "optional": false,
+          "integrity": "sha512-fKVHpikPdg4GKks3JuLEhvwSyvwzF23hnabPy6DD8ljVbC7+6J5dQzdv4arV6jqq57djnMgs1HKBxX4P8aBI3A==",
+          "resolved": "https://registry.npmjs.org/@types/pg/-/pg-8.23.1.tgz"
+        },
+        {
+          "path": "node_modules/bowser",
+          "version": "2.14.1",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-tzPjzCxygAKWFOJP011oxFHs57HzIhOEracIgAePE4pqB3LikALKnSzUyU4MGs9/iCEUuHlAJTjTc5M+u7YEGg==",
+          "resolved": "https://registry.npmjs.org/bowser/-/bowser-2.14.1.tgz"
+        },
+        {
+          "path": "node_modules/pg",
+          "version": "8.23.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-Ip2EQCngowJLGOfCwkFhPXU7/ljlhn6Rxlmy4XYfL2Y+vyRM59+8uR2xqRWKdYmbXmxCFOAmKxBuSUCdF34qLg==",
+          "resolved": "https://registry.npmjs.org/pg/-/pg-8.23.0.tgz"
+        },
+        {
+          "path": "node_modules/pg-cloudflare",
+          "version": "1.4.1",
+          "license": "MIT",
+          "dev": false,
+          "optional": true,
+          "integrity": "sha512-6PQbsFWZcp9EmJEwy5cGQ2La+AMWpP46lgbb8X+U/XsHIUweYDNCpeuKck5RxL2MdVFi7krbbEi5nX4Zh7JhrQ==",
+          "resolved": "https://registry.npmjs.org/pg-cloudflare/-/pg-cloudflare-1.4.1.tgz"
+        },
+        {
+          "path": "node_modules/pg-connection-string",
+          "version": "2.14.1",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-qR3kGNPBLpCNtz0evbKA0Y/MRFXwSSdT+pTJvYp/bXTcReZbvX1kzF0IyTc1QnxqF7AZbOeBhNL8R5mYQZV/MA==",
+          "resolved": "https://registry.npmjs.org/pg-connection-string/-/pg-connection-string-2.14.1.tgz"
+        },
+        {
+          "path": "node_modules/pg-int8",
+          "version": "1.0.1",
+          "license": "ISC",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==",
+          "resolved": "https://registry.npmjs.org/pg-int8/-/pg-int8-1.0.1.tgz"
+        },
+        {
+          "path": "node_modules/pg-pool",
+          "version": "3.14.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-gKtPkFdQPU3DksooVLi9LsjZxrsBUZIpa+7aVx+LV5pNh0KzP4Zleud2po+ConrxbuXGBJ6Hfer6hdgpIBpBaw==",
+          "resolved": "https://registry.npmjs.org/pg-pool/-/pg-pool-3.14.0.tgz"
+        },
+        {
+          "path": "node_modules/pg-protocol",
+          "version": "1.16.1",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-p9VOFMiHB/ZbJATetbg+99PxssTVSQRnyuPSQ67mN1+1KBOjZaZ83ZQzltnxPhJwSsC3nwVjJ10DVJlerbFzLg==",
+          "resolved": "https://registry.npmjs.org/pg-protocol/-/pg-protocol-1.16.1.tgz"
+        },
+        {
+          "path": "node_modules/pg-types",
+          "version": "2.2.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==",
+          "resolved": "https://registry.npmjs.org/pg-types/-/pg-types-2.2.0.tgz"
+        },
+        {
+          "path": "node_modules/pgpass",
+          "version": "1.0.5",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==",
+          "resolved": "https://registry.npmjs.org/pgpass/-/pgpass-1.0.5.tgz"
+        },
+        {
+          "path": "node_modules/postgres-array",
+          "version": "2.0.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-VpZrUqU5A69eQyW2c5CA1jtLecCsN2U/bD6VilrFDWq5+5UIEVO7nazS3TEcHf1zuPYO/sqGvUvW62g86RXZuA==",
+          "resolved": "https://registry.npmjs.org/postgres-array/-/postgres-array-2.0.0.tgz"
+        },
+        {
+          "path": "node_modules/postgres-bytea",
+          "version": "1.0.1",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-5+5HqXnsZPE65IJZSMkZtURARZelel2oXUEO8rH83VS/hxH5vv1uHquPg5wZs8yMAfdv971IU+kcPUczi7NVBQ==",
+          "resolved": "https://registry.npmjs.org/postgres-bytea/-/postgres-bytea-1.0.1.tgz"
+        },
+        {
+          "path": "node_modules/postgres-date",
+          "version": "1.0.7",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-suDmjLVQg78nMK2UZ454hAG+OAW+HQPZ6n++TNDUX+L0+uUlLywnoxJKDou51Zm+zTCjrCl0Nq6J9C5hP9vK/Q==",
+          "resolved": "https://registry.npmjs.org/postgres-date/-/postgres-date-1.0.7.tgz"
+        },
+        {
+          "path": "node_modules/postgres-interval",
+          "version": "1.2.0",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==",
+          "resolved": "https://registry.npmjs.org/postgres-interval/-/postgres-interval-1.2.0.tgz"
+        },
+        {
+          "path": "node_modules/split2",
+          "version": "4.2.0",
+          "license": "ISC",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==",
+          "resolved": "https://registry.npmjs.org/split2/-/split2-4.2.0.tgz"
+        },
+        {
+          "path": "node_modules/tslib",
+          "version": "2.8.1",
+          "license": "0BSD",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==",
+          "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz"
+        },
+        {
+          "path": "node_modules/typescript",
+          "version": "5.7.3",
+          "license": "Apache-2.0",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw==",
+          "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz"
+        },
+        {
+          "path": "node_modules/undici-types",
+          "version": "6.20.0",
+          "license": "MIT",
+          "dev": true,
+          "optional": false,
+          "integrity": "sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==",
+          "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz"
+        },
+        {
+          "path": "node_modules/xtend",
+          "version": "4.0.2",
+          "license": "MIT",
+          "dev": false,
+          "optional": false,
+          "integrity": "sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==",
+          "resolved": "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz"
+        }
+      ],
+      "audits": [
+        {
+          "mode": "runtime",
+          "command": ["npm", "audit", "--omit=dev", "--json"],
+          "exitCode": 0,
+          "report": {
+            "auditReportVersion": 2,
+            "vulnerabilities": {},
+            "metadata": {
+              "vulnerabilities": {
+                "info": 0,
+                "low": 0,
+                "moderate": 0,
+                "high": 0,
+                "critical": 0,
+                "total": 0
+              },
+              "dependencies": {
+                "prod": 42,
+                "dev": 3,
+                "optional": 1,
+                "peer": 0,
+                "peerOptional": 0,
+                "total": 45
+              }
+            }
+          }
+        },
+        {
+          "mode": "full",
+          "command": ["npm", "audit", "--json"],
+          "exitCode": 0,
+          "report": {
+            "auditReportVersion": 2,
+            "vulnerabilities": {},
+            "metadata": {
+              "vulnerabilities": {
+                "info": 0,
+                "low": 0,
+                "moderate": 0,
+                "high": 0,
+                "critical": 0,
+                "total": 0
+              },
+              "dependencies": {
+                "prod": 42,
+                "dev": 3,
+                "optional": 1,
+                "peer": 0,
+                "peerOptional": 0,
+                "total": 45
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "package": {
+    "tarball": null,
+    "sha256": null,
+    "name": "@lilka/vane",
+    "version": "0.1.0-rc.1",
+    "integrity": "sha512-6KYpfv4iszwUDv6qknfgrLzzZm2QK0u/+lKYWboXTuYNh4fY2IIqd6MPS35urOOY6cLfc/mgcSGtPRS3pjYj1g==",
+    "entryCount": 188,
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 1063,
+        "sha256": "ed7d1b4715038f46d7d839c92cbdc079c361061dbd7efda5942f87a24b91820c"
+      },
+      {
+        "path": "README.md",
+        "size": 5627,
+        "sha256": "c9ced6e83be43671d42e7850835e4ee50b72c89a0cc2e38e73015f6d975a2281"
+      },
+      {
+        "path": "dist/acl-runtime.d.ts",
+        "size": 2663,
+        "sha256": "c810669f7a9b160931bac84d8b4bd99ccbe5665d25b76f5671d2a48fd6aa8e10"
+      },
+      {
+        "path": "dist/acl-runtime.d.ts.map",
+        "size": 2403,
+        "sha256": "4d2cf813e55bd9bb1f96266c1e95dcd7d29d5eaf104c92f14e0774d45388aba3"
+      },
+      {
+        "path": "dist/acl-runtime.js",
+        "size": 8608,
+        "sha256": "893ea9919661405b4e14b1b4f9a6268c2bb75013ebcedc63b6221db1cbd19310"
+      },
+      {
+        "path": "dist/acl-runtime.js.map",
+        "size": 8427,
+        "sha256": "4b81422c477e46f8b00f5da6591f7b7e668bba6ef66966d0f2e8a0b72f2fddbf"
+      },
+      {
+        "path": "dist/cli.d.ts",
+        "size": 64,
+        "sha256": "6f77e82bfb5dd3b1015dd92c63e427d505f9bbbdaa041cad6c704f41c553a536"
+      },
+      {
+        "path": "dist/cli.d.ts.map",
+        "size": 100,
+        "sha256": "07e1bab322fbea936a00ec149ad924a0d46aa4c8de79147e59c11d25bd0ca9e6"
+      },
+      {
+        "path": "dist/cli.js",
+        "size": 4610,
+        "sha256": "0b00671fd5911d05c7af77ce0dd7f45e1470aedd6aa9e0655fde692c294c835d"
+      },
+      {
+        "path": "dist/cli.js.map",
+        "size": 4882,
+        "sha256": "9b577fbfbf9b980e46c920afaaa2d9a5b911717115082c6086d18ec9a4de3266"
+      },
+      {
+        "path": "dist/compiler.d.ts",
+        "size": 916,
+        "sha256": "b4989790882052d79708d342fb44ba0af4df0a9bcb74c17b37a4d020e6ac9c04"
+      },
+      {
+        "path": "dist/compiler.d.ts.map",
+        "size": 895,
+        "sha256": "5185337d831535aed717b5a1f8a7f3a20a9b0ed4d14239360a3c1451c04a2f89"
+      },
+      {
+        "path": "dist/compiler.js",
+        "size": 74849,
+        "sha256": "556c754768d2c07718e8f414818a6a50ba5168146d81e513fb4b947f43701b60"
+      },
+      {
+        "path": "dist/compiler.js.map",
+        "size": 67496,
+        "sha256": "b7c4b5b25d5404baa4725b708071ddcd6166cd4ab37cf09802a7dd290b5a296a"
+      },
+      {
+        "path": "dist/contract-ir.d.ts",
+        "size": 2765,
+        "sha256": "0e084b738ba36fe7fbd7d49026cd851cc24f46112d96b2b79d933111dd41c9d6"
+      },
+      {
+        "path": "dist/contract-ir.d.ts.map",
+        "size": 2793,
+        "sha256": "da232ac02246e6f0dacb6fa0e5d06725df81b06b481e7424f9e1165a5a81b61f"
+      },
+      {
+        "path": "dist/contract-ir.js",
+        "size": 13262,
+        "sha256": "de76d27e4e6e259c993dd4da8459c8f3b5cf47321788e61d6a8f61545fa203f4"
+      },
+      {
+        "path": "dist/contract-ir.js.map",
+        "size": 13518,
+        "sha256": "12ce368a7da09bbd60d76637b43a8a13c97ebe430dc208494fa3ed09bf6ff7ee"
+      },
+      {
+        "path": "dist/declaration.d.ts",
+        "size": 7216,
+        "sha256": "2b35bd6aabaecb4e5e0ab9c0f9e0c384de96d1d7748a8c89b539694bd563e4ff"
+      },
+      {
+        "path": "dist/declaration.d.ts.map",
+        "size": 6760,
+        "sha256": "173925fbcca14af30025cc471d6ebcc487bf87e595740a3f4fde36121e1c41c0"
+      },
+      {
+        "path": "dist/declaration.js",
+        "size": 183,
+        "sha256": "a2f0bf02bd6e8a1eb5e762da043c62c2f68667afbcd3f1ca48e69af9936cac1e"
+      },
+      {
+        "path": "dist/declaration.js.map",
+        "size": 234,
+        "sha256": "0ee2b8a4905d777b09333062457e84c6dd82cddf7451812d34d35f89233d4fac"
+      },
+      {
+        "path": "dist/diagnostic.d.ts",
+        "size": 469,
+        "sha256": "fdbfcd8e0901e42337eadef7e3ea3403af96f3c19a9f5b41146e2d6e9d2fbd69"
+      },
+      {
+        "path": "dist/diagnostic.d.ts.map",
+        "size": 566,
+        "sha256": "eb5f50fee7f3e2486501d99d064cc9c9719c674466e216ba263d604b34235191"
+      },
+      {
+        "path": "dist/diagnostic.js",
+        "size": 49,
+        "sha256": "9b0b1a1a0b895a88e4267379dfbbc0fd948977976e312ff9a45cae50bd89d971"
+      },
+      {
+        "path": "dist/diagnostic.js.map",
+        "size": 112,
+        "sha256": "a4e1112631b03b388dc73509e855665dec61959f3828bd758c8b95cd62dc2e6f"
+      },
+      {
+        "path": "dist/dsl.d.ts",
+        "size": 12655,
+        "sha256": "60ad60e2610c1d802f8468d8b4d1690a0cc5e553556719801a20a00924857bad"
+      },
+      {
+        "path": "dist/dsl.d.ts.map",
+        "size": 11878,
+        "sha256": "7c354ee11f0714289f1aa4ac47a015c5fd5505937075d9844cf2cdab586b62fc"
+      },
+      {
+        "path": "dist/dsl.js",
+        "size": 3651,
+        "sha256": "74084632d6d34fc3d1f6a08b9683b47fb96954760b02a88bba5ad6cc7b0dccef"
+      },
+      {
+        "path": "dist/dsl.js.map",
+        "size": 4664,
+        "sha256": "a269779ae2c0c6c6c90e25a3953b31709d5adfe6dcc9f3004cb6525777b76653"
+      },
+      {
+        "path": "dist/execution-policy.d.ts",
+        "size": 575,
+        "sha256": "4c08372e4083d585cc861ea638f2095739f4765919c3e99e7b9e7bc7d6aa89f2"
+      },
+      {
+        "path": "dist/execution-policy.d.ts.map",
+        "size": 484,
+        "sha256": "4487631b1f15fd16416f8be1000dbe196489e37ecd79e9186cba15f05345b273"
+      },
+      {
+        "path": "dist/execution-policy.js",
+        "size": 2317,
+        "sha256": "a1a344fbdd835e26a82dbe6071b9dd9cacdb1f942cd37ac64cb88eb3852542cd"
+      },
+      {
+        "path": "dist/execution-policy.js.map",
+        "size": 2368,
+        "sha256": "5d1ac44d777f90a3cc69ca445230aec86a7d089d242596e1615c175c7df45c42"
+      },
+      {
+        "path": "dist/http-runtime.d.ts",
+        "size": 3406,
+        "sha256": "e60de3175524ac6af9589b1d87f4d987436033ab9b816585c4a81b464e7b1084"
+      },
+      {
+        "path": "dist/http-runtime.d.ts.map",
+        "size": 3256,
+        "sha256": "2cfa4576a4ac8ca050dec33920d628db6ccf9f05dbebb199fe6cad36ea4f7d5b"
+      },
+      {
+        "path": "dist/http-runtime.js",
+        "size": 17704,
+        "sha256": "796ba4289ecbe4e0412b0e44c3686476b7055ab7ea8ce9ee38821633260075a5"
+      },
+      {
+        "path": "dist/http-runtime.js.map",
+        "size": 18274,
+        "sha256": "7246db23c4e991d85470a2246ba33ef26a051804ceeb4d65eafbfa116ebc0acc"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "size": 4113,
+        "sha256": "59033500bdb9552921451f5f7684bf38a087eaaacf5b219665efea7e1c5e3946"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "size": 2944,
+        "sha256": "aa860134d3e79a49dd2ae2b198c588bd60ac9df774c594d1d24f5b63af6e0a57"
+      },
+      {
+        "path": "dist/index.js",
+        "size": 1521,
+        "sha256": "fc4f6ee10549cefea8d64a9423506022ae492e4b7cefd1bccc840bc12bfa6432"
+      },
+      {
+        "path": "dist/index.js.map",
+        "size": 1319,
+        "sha256": "f0350e604b46f1aaaf744d47fdf3ead0817755eb306e01ca38a7d66de30d8036"
+      },
+      {
+        "path": "dist/module-fingerprint.d.ts",
+        "size": 262,
+        "sha256": "2af7aedeb00efd172539f202e323e0734605d29068e2d31f235760424e1abe94"
+      },
+      {
+        "path": "dist/module-fingerprint.d.ts.map",
+        "size": 245,
+        "sha256": "92b64dca21d2a05bedd8ad62e7da33d1b9d5581ad558c89be9f37d8ca2c73c0f"
+      },
+      {
+        "path": "dist/module-fingerprint.js",
+        "size": 370,
+        "sha256": "f3c63dc6e120131cfe2124871841e4b32b0967bd2404d88c6795fd0bc1e5c614"
+      },
+      {
+        "path": "dist/module-fingerprint.js.map",
+        "size": 372,
+        "sha256": "4d7a014e358b19e54a2868d173aab7e36ac09245ff547284d8e0d8cd00351c29"
+      },
+      {
+        "path": "dist/module-scope.d.ts",
+        "size": 442,
+        "sha256": "d0d1e72960e4695d03044e1958e09bb06a39428d770e513cf388ec6ab2ef7d83"
+      },
+      {
+        "path": "dist/module-scope.d.ts.map",
+        "size": 403,
+        "sha256": "c3cc0debab8f28dcf59d5c01d57b0b7328f30f2938bfc52deb9db7e22b2782db"
+      },
+      {
+        "path": "dist/module-scope.js",
+        "size": 1295,
+        "sha256": "0484ecc01bc59c59fb814d197c6035a30959aec8d377e6f5d6c6b4a3b3866fb2"
+      },
+      {
+        "path": "dist/module-scope.js.map",
+        "size": 1574,
+        "sha256": "ecec5904f8d760221a07e31cfbcf53c9d2f7c956f6073d4b912d9dc4233e32d1"
+      },
+      {
+        "path": "dist/openapi.d.ts",
+        "size": 725,
+        "sha256": "48deab561a79bbe44aecc398e13cb301528e9d37e871a514c79a98b15900e6f9"
+      },
+      {
+        "path": "dist/openapi.d.ts.map",
+        "size": 795,
+        "sha256": "9c24e44d87aa24172e91198b5c002b24b7a42fb6baa75356ad7dc5f03f821f46"
+      },
+      {
+        "path": "dist/openapi.js",
+        "size": 5012,
+        "sha256": "5c2f3b071fb91156d144bc30d385ccd9d2b7690cbfb419d86e8a9f257f1a9549"
+      },
+      {
+        "path": "dist/openapi.js.map",
+        "size": 4894,
+        "sha256": "5cd7f9f5d7d63296bb7408f1c3c81dfc43ffe31e36dde11f7a6e0ad18d8008b1"
+      },
+      {
+        "path": "dist/operational-cli.d.ts",
+        "size": 335,
+        "sha256": "3fdafffb65841426b3aae44241e8307ddfd2a857f5177932015e332c17262184"
+      },
+      {
+        "path": "dist/operational-cli.d.ts.map",
+        "size": 386,
+        "sha256": "de66a4206842db1c3047c7f84e600638d44cf53135d063172db0425b1d4773ec"
+      },
+      {
+        "path": "dist/operational-cli.js",
+        "size": 6880,
+        "sha256": "6ffbe91555c6103476857acff289d1af74af04621d236676133552ea242f29cf"
+      },
+      {
+        "path": "dist/operational-cli.js.map",
+        "size": 6603,
+        "sha256": "ca63c58c315574f0d8f7b7bc061e882978c312fdf42f102b5602b68051a10b10"
+      },
+      {
+        "path": "dist/postgresql/delivery.d.ts",
+        "size": 2393,
+        "sha256": "794cd86e76a721ea8878a88d8c3136ebb39b39e043a728505b96eedcee89146b"
+      },
+      {
+        "path": "dist/postgresql/delivery.d.ts.map",
+        "size": 2204,
+        "sha256": "b8eedf4a49f2e263a525bfb7806835b74ec945d43623522a0d6de8fcd438a97d"
+      },
+      {
+        "path": "dist/postgresql/delivery.js",
+        "size": 11938,
+        "sha256": "f437fc6fd83f654c9cb347e8b1409df5c40a82e98d9a0f9352abbd755837fc39"
+      },
+      {
+        "path": "dist/postgresql/delivery.js.map",
+        "size": 9163,
+        "sha256": "43f0049da38b66d8e96ccb1be47b29e46cb385d6561a2cd02f8ed771c650bf0e"
+      },
+      {
+        "path": "dist/postgresql/envelope.d.ts",
+        "size": 1556,
+        "sha256": "01f635d73eb822682e4f99247ff9f2ff997ee30ac013a30eedae80159f48d5bc"
+      },
+      {
+        "path": "dist/postgresql/envelope.d.ts.map",
+        "size": 1441,
+        "sha256": "707ffd245ce90e01158beeb27ceb972a268ef279db4617aae2e53575e5d3f893"
+      },
+      {
+        "path": "dist/postgresql/envelope.js",
+        "size": 5525,
+        "sha256": "ecb49815417d536979460cd7b717eaf66ded45a870acb44f7b269f1010e99a39"
+      },
+      {
+        "path": "dist/postgresql/envelope.js.map",
+        "size": 5258,
+        "sha256": "860ec98ab53416a1552f1c75c27cd693dc393f6d8856083bacaec56785190c65"
+      },
+      {
+        "path": "dist/postgresql/identifiers.d.ts",
+        "size": 484,
+        "sha256": "359e64005a9d394aa48b2c4f37a310f1f8d34e7165f3593761c858d36121d75a"
+      },
+      {
+        "path": "dist/postgresql/identifiers.d.ts.map",
+        "size": 471,
+        "sha256": "e8a3a8e6332ba1a686dca739867797bba417e847d36715f13ef24d14cf4b7a74"
+      },
+      {
+        "path": "dist/postgresql/identifiers.js",
+        "size": 1540,
+        "sha256": "cf46eb978045ff6722b61a04ba3ae6654fe77a5fdcfaae428bf0abc2257e059d"
+      },
+      {
+        "path": "dist/postgresql/identifiers.js.map",
+        "size": 1666,
+        "sha256": "d3d7f34e0fd692154c4cb1b8b83f037beba8368b47303c6057355469cd19668a"
+      },
+      {
+        "path": "dist/postgresql/index.d.ts",
+        "size": 2817,
+        "sha256": "1ef930cdc3f24749d9f8702df508c1808eb5b34b891e111f8332486fba056a65"
+      },
+      {
+        "path": "dist/postgresql/index.d.ts.map",
+        "size": 1738,
+        "sha256": "41a72f77a5a0e20678d96ca025a37a3eef5c600da43c8034a8c7005caab28693"
+      },
+      {
+        "path": "dist/postgresql/index.js",
+        "size": 1475,
+        "sha256": "0eb3e6b2ce832cc6209f652aefda9193297756125ff51e39990a3fb7a2d5a03a"
+      },
+      {
+        "path": "dist/postgresql/index.js.map",
+        "size": 910,
+        "sha256": "de20254b32372bc0899c074fab34e728754ca390719a2e0f6cd66a015918d40c"
+      },
+      {
+        "path": "dist/postgresql/materializer.d.ts",
+        "size": 739,
+        "sha256": "e9d99d370d202a911e738e1507b03dd7ffd2be82c0f640d405c77f55a60a2d40"
+      },
+      {
+        "path": "dist/postgresql/materializer.d.ts.map",
+        "size": 711,
+        "sha256": "be9f680e70b0edf5c84971619355057f181b10f85862a575842d93f4859d4e0a"
+      },
+      {
+        "path": "dist/postgresql/materializer.js",
+        "size": 35013,
+        "sha256": "efea88adfb522aedc2e0dcb5b14615e5689f65fdc1892a4456e2d59afb33a954"
+      },
+      {
+        "path": "dist/postgresql/materializer.js.map",
+        "size": 31761,
+        "sha256": "0c65ef4ffbabedefc2d3a7cc53ccc2106d93d0bd9f11f4043a764827d7b71865"
+      },
+      {
+        "path": "dist/postgresql/migration-executor.d.ts",
+        "size": 1984,
+        "sha256": "fcc6c0cc3eb580d4c883a79b861b59d2993041e36a5a1ab2c2c99a28f045fdbb"
+      },
+      {
+        "path": "dist/postgresql/migration-executor.d.ts.map",
+        "size": 1605,
+        "sha256": "d03d67a0d3b532b39f4c88d1677c84d6beaa1865b36490d28e6fa1f92eb1a6dd"
+      },
+      {
+        "path": "dist/postgresql/migration-executor.js",
+        "size": 6580,
+        "sha256": "8ea5c679d1df996cccceb7354f15ec9ec9c5edf21ca7916cff55507460069cda"
+      },
+      {
+        "path": "dist/postgresql/migration-executor.js.map",
+        "size": 5158,
+        "sha256": "149ec3caee2d8579b1da8a4184a306a921677261a67b2e9b15bbc93543322c6b"
+      },
+      {
+        "path": "dist/postgresql/migrations.d.ts",
+        "size": 2812,
+        "sha256": "7860368ceb56d96613cab8e6706ab6a03aacaeb2f0e688b3a1af1ff3b426969f"
+      },
+      {
+        "path": "dist/postgresql/migrations.d.ts.map",
+        "size": 2214,
+        "sha256": "6ea25bcd8ed1d0caa2912dbdb29803904e9bdb4c47c2397052aca8e8ca99c129"
+      },
+      {
+        "path": "dist/postgresql/migrations.js",
+        "size": 24821,
+        "sha256": "79999fe79fe2deb10ad03a28fa66f1c1e8f7510c3f811d6dc985c36522252ac2"
+      },
+      {
+        "path": "dist/postgresql/migrations.js.map",
+        "size": 25328,
+        "sha256": "bd9679645d2e55ca02008f9dce67675bb9d3c2106259224855080bfbd58cf0d0"
+      },
+      {
+        "path": "dist/postgresql/module-runtime.d.ts",
+        "size": 1630,
+        "sha256": "3db21008de42c1637cb8189ffc5975c9f0a6244424b2cbac5ea7e430441b82df"
+      },
+      {
+        "path": "dist/postgresql/module-runtime.d.ts.map",
+        "size": 1344,
+        "sha256": "a67b2335b732c1f64876f5411510d4ba4da1bb3aa5fbacb32966b0ca007d3b45"
+      },
+      {
+        "path": "dist/postgresql/module-runtime.js",
+        "size": 28512,
+        "sha256": "0a5b4f7e68f4e2543dc5fc3c94301f38537048e02169acfe9cdb8706ab4808ca"
+      },
+      {
+        "path": "dist/postgresql/module-runtime.js.map",
+        "size": 24848,
+        "sha256": "d7a797889f71db698459395de419ca5414d38d8961fa5c2bcbedacaf7be8c76c"
+      },
+      {
+        "path": "dist/postgresql/operations.d.ts",
+        "size": 2117,
+        "sha256": "f8eb29602820bf642c4a95407d54ce20018e115cabb5281eb959cda44fde3085"
+      },
+      {
+        "path": "dist/postgresql/operations.d.ts.map",
+        "size": 714,
+        "sha256": "7f0a1ec39b9d485c5c1c4262f7bf6a93e95b2a59af02c03a600fcef8ff34c4e6"
+      },
+      {
+        "path": "dist/postgresql/operations.js",
+        "size": 6121,
+        "sha256": "fbf7116d64d583e989369c8e307329578861ad0960473a1426fb1e929254ae7b"
+      },
+      {
+        "path": "dist/postgresql/operations.js.map",
+        "size": 4959,
+        "sha256": "8ae286606f79ec406fb45ccb3371261e9212188c0d55e45f297494b493824014"
+      },
+      {
+        "path": "dist/postgresql/public-saga-admission.d.ts",
+        "size": 911,
+        "sha256": "becd79a203f0447804e2c3d24075965afaab9aef5696eb0671366d39404a6563"
+      },
+      {
+        "path": "dist/postgresql/public-saga-admission.d.ts.map",
+        "size": 729,
+        "sha256": "9a3a18c6216079d290b29ab190cf131febad4fbd78442ec6bf63f18f7d9d2aed"
+      },
+      {
+        "path": "dist/postgresql/public-saga-admission.js",
+        "size": 3039,
+        "sha256": "ca404271aa65a1c11a1d394a0de0eded5aec044582c9d7270b8d8b0178003ba9"
+      },
+      {
+        "path": "dist/postgresql/public-saga-admission.js.map",
+        "size": 2897,
+        "sha256": "4656e648b9dbee45b26e182e900055b28e1b74998d91c5b8be648fb236a4c795"
+      },
+      {
+        "path": "dist/postgresql/renderer.d.ts",
+        "size": 179,
+        "sha256": "e9b6149afbed93a366c63e8014fa1ab9b91c093f3c9038dc17f0dc50756c9fe7"
+      },
+      {
+        "path": "dist/postgresql/renderer.d.ts.map",
+        "size": 232,
+        "sha256": "4c54c7e4623be1b98a37354be5f8e7c547c545ca6f33d4c3ba946c30df0e6c61"
+      },
+      {
+        "path": "dist/postgresql/renderer.js",
+        "size": 3206,
+        "sha256": "7121bbd0fc35857736e817dd2c09fdbf102f3fc7a6074654e3d3d6d00c6e821d"
+      },
+      {
+        "path": "dist/postgresql/renderer.js.map",
+        "size": 3306,
+        "sha256": "2451705c53a58b6560e44dbe447baf5722821d6a4b7feac2fde3e529319b0305"
+      },
+      {
+        "path": "dist/postgresql/runtime.d.ts",
+        "size": 2213,
+        "sha256": "206fa5787f2a74f39794fd03f4a1ce7a3c39cde63b2a09806b390ff91721c74e"
+      },
+      {
+        "path": "dist/postgresql/runtime.d.ts.map",
+        "size": 1997,
+        "sha256": "f22278faf35891528c7b04d247b464ac536d64c2d19ee3f964f130dcf3ff96d9"
+      },
+      {
+        "path": "dist/postgresql/runtime.js",
+        "size": 20498,
+        "sha256": "49f8d32857ecd0be69339ecf5cda033c2c12366749cbfb2209336a4ba20cb0c1"
+      },
+      {
+        "path": "dist/postgresql/runtime.js.map",
+        "size": 18812,
+        "sha256": "1d4c8e6db165ab3fdde995e348f9dec189d59614c681397bee92ae3a259cec60"
+      },
+      {
+        "path": "dist/postgresql/saga-runtime.d.ts",
+        "size": 4028,
+        "sha256": "2f7b7a8bcc0e8a50e8fd8ecdd4fca25cafba56dbe1f5ad818e2c51777cf123ef"
+      },
+      {
+        "path": "dist/postgresql/saga-runtime.d.ts.map",
+        "size": 3800,
+        "sha256": "9d7532092c3cf24038e13958a3cab2fa755c7759164b10b692ed930f28c0c3eb"
+      },
+      {
+        "path": "dist/postgresql/saga-runtime.js",
+        "size": 22494,
+        "sha256": "746b923c8c05dc403ad58769a1d819c5082422a8c81dd3bb71cb7ef5d788c7eb"
+      },
+      {
+        "path": "dist/postgresql/saga-runtime.js.map",
+        "size": 20019,
+        "sha256": "c36772b7ab64f401ad1dd02ab4b7837139a1446781916f66105cd7077f28b0ba"
+      },
+      {
+        "path": "dist/postgresql/storage-ir.d.ts",
+        "size": 1926,
+        "sha256": "7a2b86cf602689a1b3c54c61742ad0668b0c3d6a661fdfd3d909bed2c91b443b"
+      },
+      {
+        "path": "dist/postgresql/storage-ir.d.ts.map",
+        "size": 1953,
+        "sha256": "503e3413b723149f91db6d277ef9e1e33371d512b40c0be2b4bc48e7894b00a2"
+      },
+      {
+        "path": "dist/postgresql/storage-ir.js",
+        "size": 186,
+        "sha256": "7d5c1e180d5bcba8c1c6519738f9d8096b95ffc92a3ce5f6c3b5bc515d31eac2"
+      },
+      {
+        "path": "dist/postgresql/storage-ir.js.map",
+        "size": 289,
+        "sha256": "8afd50afa7576012ccbd27f36fb0d88132f2e1dcec3f4f21621cd35a28971d91"
+      },
+      {
+        "path": "dist/postgresql/view-runtime.d.ts",
+        "size": 1582,
+        "sha256": "4b4642f2e64fdf481db18ae4b62cc79ca5f8ddba1835a249192a3cdf14558d46"
+      },
+      {
+        "path": "dist/postgresql/view-runtime.d.ts.map",
+        "size": 1423,
+        "sha256": "5dd19c4d516138fd5d1eb5eebce3ac003fcce05478875be6e282e389ff525eb2"
+      },
+      {
+        "path": "dist/postgresql/view-runtime.js",
+        "size": 17589,
+        "sha256": "53632c1e7cb303054be5b8f27edef0284f4505ad55bad79a78cddc1e403b51f6"
+      },
+      {
+        "path": "dist/postgresql/view-runtime.js.map",
+        "size": 18506,
+        "sha256": "918e694dd68baeac2d3a7ef9d169141a5a599ad95adf52f4e3c84a758f13c17d"
+      },
+      {
+        "path": "dist/saga-plan.d.ts",
+        "size": 2478,
+        "sha256": "86b8d50f847a63bdcf2f6d67932b8b4e085d6443b1fc3ab0f0cc0851ce21a45a"
+      },
+      {
+        "path": "dist/saga-plan.d.ts.map",
+        "size": 2411,
+        "sha256": "c09a1464553b3939fd3c40aa63ebcfbff73b50da4d50de336b73073e73f4e9b5"
+      },
+      {
+        "path": "dist/saga-plan.js",
+        "size": 8223,
+        "sha256": "fd7a00be43fb3c5df73870217105ad4063e27bfbb4f7542e0ebe90259ed35973"
+      },
+      {
+        "path": "dist/saga-plan.js.map",
+        "size": 8763,
+        "sha256": "87b782e5675cdd8a15ae00780e638ccd9f8aee962099386a077eb35545be36ba"
+      },
+      {
+        "path": "dist/secrets.d.ts",
+        "size": 858,
+        "sha256": "ea5b0bb6346e5793c2891cc73203edcdaebf532041cec88e9ea9b813224d8d83"
+      },
+      {
+        "path": "dist/secrets.d.ts.map",
+        "size": 663,
+        "sha256": "73eb84ce72b1c29ef672b7cf82040c882878a0498f19e3a8d73def4ec730d39a"
+      },
+      {
+        "path": "dist/secrets.js",
+        "size": 2773,
+        "sha256": "e21d28fcb93847924904e9ac9b40ab4d0ddc7bb46dca6891938da8339104a055"
+      },
+      {
+        "path": "dist/secrets.js.map",
+        "size": 2321,
+        "sha256": "05d35f56d3382143f8b593a85f6a348fa18015e7592e3a6ea37b6dfe81a4bbb9"
+      },
+      {
+        "path": "dist/semantic-ir.d.ts",
+        "size": 5645,
+        "sha256": "dea189f77e710372087da2dede001acd327b9a4079db297f1f49f30f0ffa58c1"
+      },
+      {
+        "path": "dist/semantic-ir.d.ts.map",
+        "size": 5130,
+        "sha256": "fd2a5ffea2fc79c4b661679a74a167f1bb36a133460883c8531ab3071f5da18f"
+      },
+      {
+        "path": "dist/semantic-ir.js",
+        "size": 312,
+        "sha256": "2f522c9b2b6aec413f1db3f3e0bc61a8fbdf0f2590981cd224c26addde359e9f"
+      },
+      {
+        "path": "dist/semantic-ir.js.map",
+        "size": 439,
+        "sha256": "f0dd70409d8d506f4cf7d7105e372e2e7e7ec5c96bc72b781d317c9d01d86114"
+      },
+      {
+        "path": "dist/service-artifacts.d.ts",
+        "size": 547,
+        "sha256": "f0ef35be3211e3c9d206fb6b99da1498ff06d21f4ea7a080932f705993339d70"
+      },
+      {
+        "path": "dist/service-artifacts.d.ts.map",
+        "size": 438,
+        "sha256": "18ce0c8836db5d2f067d38fb0a3f86f1818ba4f24fe93b1622c4c8a429265ceb"
+      },
+      {
+        "path": "dist/service-artifacts.js",
+        "size": 11311,
+        "sha256": "b62cda7cadb143ca69229d910492b46962572bf1f05cf62b68ce094b2b2b1e2a"
+      },
+      {
+        "path": "dist/service-artifacts.js.map",
+        "size": 7283,
+        "sha256": "daa4eaaa00e53883a30005b30687cfd93663477f66f9e97f58a841d0f33b1c03"
+      },
+      {
+        "path": "dist/service-compiler.d.ts",
+        "size": 4331,
+        "sha256": "bd2f98f40bbe84207219a3094533da95b0e77a1b9814dad260021b4010eb0d34"
+      },
+      {
+        "path": "dist/service-compiler.d.ts.map",
+        "size": 3845,
+        "sha256": "475a08f8613fa945246d41b4d28e6dc077e8557c02f525019c0dee86e38174c0"
+      },
+      {
+        "path": "dist/service-compiler.js",
+        "size": 38616,
+        "sha256": "df80214a6371b56c50dd00868dcdeba77c1bfa36adf0c21ecb993614aff42338"
+      },
+      {
+        "path": "dist/service-compiler.js.map",
+        "size": 35011,
+        "sha256": "6c1da06e7db3610787938adfae21e804ae2d0af5c0f6ca6add2f964ea47a6a11"
+      },
+      {
+        "path": "dist/service-configuration.d.ts",
+        "size": 6226,
+        "sha256": "a24abb60ec479175d37d82223a20a40f1762a753a478273e47836ca4ae33602d"
+      },
+      {
+        "path": "dist/service-configuration.d.ts.map",
+        "size": 5656,
+        "sha256": "fb19d18bd8697f2c578b31ddc10bccbf17274d2829ee276b675f3c8195654921"
+      },
+      {
+        "path": "dist/service-configuration.js",
+        "size": 2813,
+        "sha256": "9fb452922798f7a4c512b1f2933a4d0bf9c68c67fcbfb4de2717eb60e46fa825"
+      },
+      {
+        "path": "dist/service-configuration.js.map",
+        "size": 2883,
+        "sha256": "f3f76ba5a895df9db6ea43def81ef68fe82c4cabceeacc2d7fc1f9ad2e9436ec"
+      },
+      {
+        "path": "dist/service-runtime.d.ts",
+        "size": 2735,
+        "sha256": "f78fbb6bbe9433f81677e909c259c27e2975b2d79b35f38f980f5bff31c20d4a"
+      },
+      {
+        "path": "dist/service-runtime.d.ts.map",
+        "size": 1476,
+        "sha256": "eac186169b30e14fa32f81b64ff7b07be299a5cddaf891d7da3a188f3a442598"
+      },
+      {
+        "path": "dist/service-runtime.js",
+        "size": 13829,
+        "sha256": "85c6ae10e3239e902fe67bc562f2194c95d069b11d29dacd622f41a86214638b"
+      },
+      {
+        "path": "dist/service-runtime.js.map",
+        "size": 13471,
+        "sha256": "2e05660cd16aecda07159039b682ea31020c009829b3f2cfab493ea31d2daa8a"
+      },
+      {
+        "path": "dist/source-parser.d.ts",
+        "size": 1409,
+        "sha256": "4d211d1943024f985c0bd5889ec4b99fb9b06e9a1c4fc850e82887373b278f06"
+      },
+      {
+        "path": "dist/source-parser.d.ts.map",
+        "size": 1346,
+        "sha256": "1c9a2cc99a04a6a0e756f74e86ba52a38a86d3a55096c281215620acaaa2e92f"
+      },
+      {
+        "path": "dist/source-parser.js",
+        "size": 96783,
+        "sha256": "58860141a239f9d8a0e47cddf16cc0ab72a96bbba1d1403cf8c0d3c2bbebadcb"
+      },
+      {
+        "path": "dist/source-parser.js.map",
+        "size": 93645,
+        "sha256": "9a71e5761c8e74c032e788814be7eff36e8c73fb26c59c809843487ae2cbec1b"
+      },
+      {
+        "path": "dist/telemetry.d.ts",
+        "size": 1306,
+        "sha256": "30d1493faf206b5189b9f58faa45315af83924ebab1de4013d30a5017afcb02b"
+      },
+      {
+        "path": "dist/telemetry.d.ts.map",
+        "size": 1239,
+        "sha256": "8e7fc1419d33b3594a17a16710387662ffdc0fc3f8fbd519f847fc85a00dd317"
+      },
+      {
+        "path": "dist/telemetry.js",
+        "size": 2650,
+        "sha256": "8b03b85e0c67fa3d8a931c35402e06972f1cb2b3aa39add499a820560c9b70e7"
+      },
+      {
+        "path": "dist/telemetry.js.map",
+        "size": 2945,
+        "sha256": "ca3479e61268642493966b5e274d5bbbbcf2ca0acc412fe482425126efe76d45"
+      },
+      {
+        "path": "docs/compatibility.md",
+        "size": 2954,
+        "sha256": "6c1a86e349c9b594b42bf9ef2069e29a2a7d221972dd267d338267e83f7b7505"
+      },
+      {
+        "path": "docs/conformance-findings.md",
+        "size": 7570,
+        "sha256": "6ae52f977c89b7d5673c84f78a5abff68b5f2e4ac14543e13147db4c168f2f03"
+      },
+      {
+        "path": "docs/conformance-matrix.md",
+        "size": 23572,
+        "sha256": "a3a2a0d33823c6d1d899905d539bdfd57007474fe405900e2bb8ef2261883f5f"
+      },
+      {
+        "path": "docs/conformance-performance.md",
+        "size": 3969,
+        "sha256": "77f2d04a54cc8f3c3ca36c8fc25057dec7502b88cf7b407d3efcd33d8db6646a"
+      },
+      {
+        "path": "docs/conformance.md",
+        "size": 8530,
+        "sha256": "1df5054491d1b2e3f6209760a5f153db57d96d372e02c59dfe4a5e35e201e039"
+      },
+      {
+        "path": "docs/operations.md",
+        "size": 8319,
+        "sha256": "c8c075d350e906c2a09b349135ab95c0d11bacbeae29fbe345794c4c451e2536"
+      },
+      {
+        "path": "docs/phase-1-completion.md",
+        "size": 4642,
+        "sha256": "19c2e84c0282b4620117bcc5b145876638523b2e9fda3f017c48c7442eedcada"
+      },
+      {
+        "path": "docs/phase-2-completion.md",
+        "size": 7709,
+        "sha256": "da176a9e7b14342df81b0318d71810ca6202c081da3a96f60c082361e6c86e61"
+      },
+      {
+        "path": "docs/phase-2-design.md",
+        "size": 4044,
+        "sha256": "6b64f520c27b3e2a0dc43ce028d8d215253eec58fc72df6db53b72365991adae"
+      },
+      {
+        "path": "docs/phase-3-completion.md",
+        "size": 2467,
+        "sha256": "5975c6503d4fd887b6a9ff9a7622a0225a5c31aa11dc3fe2b84582f2e2464ac7"
+      },
+      {
+        "path": "docs/phase-3-design.md",
+        "size": 1846,
+        "sha256": "146d00162a9b4d9e956d5cb0922f65dd8d2bb1d0444145695e51a36a3b115677"
+      },
+      {
+        "path": "docs/phase-4-completion.md",
+        "size": 4135,
+        "sha256": "33759f6bf1a60b07bdfdf7cc5dd926d4f299ee55078a5092392c1375bda678b9"
+      },
+      {
+        "path": "docs/phase-4-design.md",
+        "size": 2526,
+        "sha256": "a02ff9aa75a3f184f4ebea258446f49b7512aecfb914b58595695c13e0ec1fb9"
+      },
+      {
+        "path": "docs/phase-5-completion.md",
+        "size": 5702,
+        "sha256": "8377cbd78ab1fefaef5eb78f3c107d841abc0582d8ab4e686d3cd82efc134c8d"
+      },
+      {
+        "path": "docs/phase-5-design.md",
+        "size": 1978,
+        "sha256": "f65bdd7d677890b34b8e9299b47085d3cad9013f7902137579fb5a8ce31fa8bb"
+      },
+      {
+        "path": "docs/phase-6-completion.md",
+        "size": 7126,
+        "sha256": "8cdc38a277e02c43662ab2a81a95c77571031c3b341016e0f0d8f80f11b4281c"
+      },
+      {
+        "path": "docs/phase-6-design.md",
+        "size": 1988,
+        "sha256": "5807e00cbfe07a28befc2db120add8d981adf0ab19573e8b36190f8bb8badf25"
+      },
+      {
+        "path": "docs/phase-7-representation.md",
+        "size": 4229,
+        "sha256": "d9d7a7c62caa1e5024493eea7fa3e2348d1e86264206f16c0269ee611f63d1b0"
+      },
+      {
+        "path": "docs/phase-8-completion.md",
+        "size": 4183,
+        "sha256": "a4c2b20102ad6af4fc2b1686697170406808ccb87bfc54d82110979a6fbd00fe"
+      },
+      {
+        "path": "docs/phase-8-plan.md",
+        "size": 4381,
+        "sha256": "293d44e818e8b2384d3eaa9eecc6cfbaa8a89c9faecd55226d9282704d655505"
+      },
+      {
+        "path": "docs/phase-9-plan.md",
+        "size": 6411,
+        "sha256": "d599fd2d8db97c7cd6e759876ada63c3848f55fcf9f0cba474f23bd2dfad8628"
+      },
+      {
+        "path": "docs/phase-9-supply-chain.md",
+        "size": 5724,
+        "sha256": "12c0dd331b448e0352f47a1f23e7db01214cfac7e2115011425243a4cd7dbcdb"
+      },
+      {
+        "path": "docs/postgresql.md",
+        "size": 4860,
+        "sha256": "e4a272777ea702c8ef24b97cef0b6633d63158647a7f62c6bfc986eb8dd5c770"
+      },
+      {
+        "path": "docs/public-api.md",
+        "size": 3046,
+        "sha256": "fddb5020af271886142cc9cbbe1328fd2a35f9cad242796aea9d37ab623de497"
+      },
+      {
+        "path": "docs/sagas.md",
+        "size": 7721,
+        "sha256": "54d2ceb7ce6f3250bcac315cb9c8cf2937ae5edf1ef9f42fe20e212f5f6c43f9"
+      },
+      {
+        "path": "docs/semantic-compiler.md",
+        "size": 11043,
+        "sha256": "8192cced39feb712b7585212a8f31492fcf4d17a3464e6bebd4defdfbf6e47c9"
+      },
+      {
+        "path": "docs/service-configuration.md",
+        "size": 11960,
+        "sha256": "55e9c5a5641a9343c6db0585b803a4a0441c5392c6d9acc1da541557852c2b58"
+      },
+      {
+        "path": "examples/sales-billing/billing.vane.ts",
+        "size": 1250,
+        "sha256": "d003d63ef9102a9baab377eb87f63653f50dd3f4981e4555e6e752d6afcb2468"
+      },
+      {
+        "path": "examples/sales-billing/configuration.mjs",
+        "size": 3627,
+        "sha256": "7ef818d4738b4df740a05001a7fbaaa54a339a22afe8ea01c4c2e28267747a22"
+      },
+      {
+        "path": "examples/sales-billing/gateway.mjs",
+        "size": 875,
+        "sha256": "c418a5ae662f89d94bcfcad457fdc0264a792dc0d362e10b8004aa115e08fa75"
+      },
+      {
+        "path": "examples/sales-billing/quickstart.mjs",
+        "size": 4476,
+        "sha256": "63643c52d933e12ff260c77c05d11e5e420dbe66c3b664632002b1038c4e535d"
+      },
+      {
+        "path": "examples/sales-billing/README.md",
+        "size": 3674,
+        "sha256": "f57c1f9c49f0abb5c84bff83865367f5929e77d4f86126a037e35f7884a71f12"
+      },
+      {
+        "path": "examples/sales-billing/sales.vane.ts",
+        "size": 1954,
+        "sha256": "6a7ae6b78841283f68807da4693f7c8daf9373a7ab526e87192de8d2e5d8755f"
+      },
+      {
+        "path": "package.json",
+        "size": 2384,
+        "sha256": "95e96c45d760a8b60dd1a2ece6d9d28317290357162793e3582b1202bae6899e"
+      }
+    ]
+  }
+}

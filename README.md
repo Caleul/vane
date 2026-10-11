@@ -100,7 +100,10 @@ recovery, operational tooling and reference application evidence.
 The [Phase 8 completion report](docs/phase-8-completion.md) preserves three
 independent external consumers and their verified evidence. The
 [Phase 9 release plan](docs/phase-9-plan.md) maps package, API, security, RC and GA
-tasks to the release requirements.
+tasks to the release requirements. The source candidate is `0.1.0-rc.1`; see
+[API policy](docs/public-api.md), [compatibility](docs/compatibility.md),
+[release notes](docs/phase-9-release.md) and [changelog](CHANGELOG.md). Registry
+publication and GA require the separate release gates.
 
 The [Entity Event conformance suite](docs/conformance.md) installs the packed
 public API in an external consumer and reports source-mapped EE requirements.

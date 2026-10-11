@@ -539,7 +539,9 @@ function normalizeDefault(
       expression = expression.slice(1, -1).trim();
     return normalizeTimestampLiteral(expression) ?? expression;
   }
-  const normalized = normalizeCatalogExpression(value);
+  // Defaults remain scalar expressions; JSON literal canonicalization expects
+  // the atom representation, rather than the CHECK Boolean tree format.
+  const normalized = normalizeCatalogAtom(value);
   if (type !== "jsonb" || normalized === null) return normalized;
   const literal = /^'(.*)'$/su.exec(normalized);
   if (!literal) return normalized;
@@ -738,7 +740,97 @@ function normalizeCatalogIdentifier(value: string): string {
   return value.replaceAll('"', "").trim();
 }
 
+type CatalogBooleanExpression =
+  | { readonly operator: "atom"; readonly expression: string }
+  | { readonly operator: "not"; readonly operand: CatalogBooleanExpression }
+  | {
+      readonly operator: "and" | "or";
+      readonly operands: readonly CatalogBooleanExpression[];
+    };
+
 function normalizeCatalogExpression(value: string | null): string | null {
+  return value === null
+    ? null
+    : JSON.stringify(catalogBooleanExpression(value));
+}
+
+/** Canonicalize associativity, without reordering or crossing AND/OR/NOT boundaries. */
+function catalogBooleanExpression(value: string): CatalogBooleanExpression {
+  let expression = value.trim();
+  while (hasSingleOuterParentheses(expression))
+    expression = expression.slice(1, -1).trim();
+  const tokens = catalogBooleanOperators(expression);
+  // OR has lower precedence than AND. Only split outside parentheses/quotes.
+  for (const operator of ["or", "and"] as const) {
+    const separators = tokens.filter((token) => token.operator === operator);
+    if (separators.length === 0) continue;
+    const operands: CatalogBooleanExpression[] = [];
+    let start = 0;
+    for (const separator of [
+      ...separators,
+      { start: expression.length, end: expression.length },
+    ]) {
+      const operand = catalogBooleanExpression(
+        expression.slice(start, separator.start),
+      );
+      if (operand.operator === operator) operands.push(...operand.operands);
+      else operands.push(operand);
+      start = separator.end;
+    }
+    return { operator, operands };
+  }
+  const negation = /^not\b/iu.exec(expression);
+  if (negation)
+    return {
+      operator: "not",
+      operand: catalogBooleanExpression(expression.slice(negation[0].length)),
+    };
+  return {
+    operator: "atom",
+    expression: normalizeCatalogAtom(expression) ?? "",
+  };
+}
+
+function catalogBooleanOperators(value: string): readonly {
+  readonly operator: "and" | "or";
+  readonly start: number;
+  readonly end: number;
+}[] {
+  const tokens: { operator: "and" | "or"; start: number; end: number }[] = [];
+  let depth = 0;
+  let quote: "'" | '"' | null = null;
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+    if (quote !== null) {
+      if (character === quote) {
+        if (value[index + 1] === quote) index += 1;
+        else quote = null;
+      }
+      continue;
+    }
+    if (character === "'" || character === '"') {
+      quote = character;
+      continue;
+    }
+    if (character === "(" || character === "[") {
+      depth += 1;
+      continue;
+    }
+    if (character === ")" || character === "]") {
+      depth -= 1;
+      continue;
+    }
+    if (depth !== 0 || !/[a-z_]/iu.test(character ?? "")) continue;
+    const start = index;
+    while (/[a-z0-9_$]/iu.test(value[index + 1] ?? "")) index += 1;
+    const word = value.slice(start, index + 1).toLowerCase();
+    if (word === "and" || word === "or")
+      tokens.push({ operator: word, start, end: index + 1 });
+  }
+  return tokens;
+}
+
+function normalizeCatalogAtom(value: string | null): string | null {
   if (value === null) return null;
   let normalized = "";
   let quoted = false;
@@ -821,16 +913,25 @@ function transformUnquotedCatalogSegments(
 function hasSingleOuterParentheses(value: string): boolean {
   if (!value.startsWith("(") || !value.endsWith(")")) return false;
   let depth = 0;
-  let quoted = false;
+  let quote: "'" | '"' | null = null;
   for (let index = 0; index < value.length; index += 1) {
     const character = value[index];
-    if (character === "'" && value[index - 1] !== "\\") quoted = !quoted;
-    if (quoted) continue;
+    if (quote !== null) {
+      if (character === quote) {
+        if (value[index + 1] === quote) index += 1;
+        else quote = null;
+      }
+      continue;
+    }
+    if (character === "'" || character === '"') {
+      quote = character;
+      continue;
+    }
     if (character === "(") depth += 1;
     if (character === ")") depth -= 1;
     if (depth === 0 && index < value.length - 1) return false;
   }
-  return depth === 0;
+  return depth === 0 && quote === null;
 }
 
 function configuration(message: string): never {
