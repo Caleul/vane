@@ -1,0 +1,1 @@
+Usage: entity-event validate|plan|generate|migrate|dev|inspect|failures --config <configuration.mjs> [--profile <name>] [--out <new-directory>] [--json]

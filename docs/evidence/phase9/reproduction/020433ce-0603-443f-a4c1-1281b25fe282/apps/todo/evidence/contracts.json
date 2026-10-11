@@ -1,0 +1,400 @@
+[
+  {
+    "schema": "vane.contract-ir",
+    "version": 2,
+    "module": "Tasks",
+    "inputHash": "dde59d4f01928e33d4f723721896937eb5b26577ee72b8cffb0d8ab6005283f4",
+    "operations": [
+      {
+        "kind": "event",
+        "ownerKind": "entity",
+        "saga": "ProjectCreate",
+        "identity": "Project.Create",
+        "method": "POST",
+        "path": "/tasks/events/Project.Create",
+        "input": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "accepted": {
+          "status": 202,
+          "sagaId": true
+        },
+        "terminal": {
+          "view": "ProjectCard",
+          "input": {
+            "id": {
+              "input": "id",
+              "kind": "eventInput"
+            }
+          },
+          "streamPath": "/tasks/sagas/{sagaId}"
+        }
+      },
+      {
+        "kind": "event",
+        "ownerKind": "entity",
+        "saga": "ProjectDelete",
+        "identity": "Project.Delete",
+        "method": "POST",
+        "path": "/tasks/events/Project.Delete",
+        "input": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "accepted": {
+          "status": 202,
+          "sagaId": true
+        },
+        "terminal": {
+          "view": "ProjectCard",
+          "input": {
+            "id": {
+              "input": "id",
+              "kind": "eventInput"
+            }
+          },
+          "streamPath": "/tasks/sagas/{sagaId}"
+        }
+      },
+      {
+        "kind": "event",
+        "ownerKind": "entity",
+        "saga": "ProjectUpdate",
+        "identity": "Project.Update",
+        "method": "POST",
+        "path": "/tasks/events/Project.Update",
+        "input": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "accepted": {
+          "status": 202,
+          "sagaId": true
+        },
+        "terminal": {
+          "view": "ProjectCard",
+          "input": {
+            "id": {
+              "input": "id",
+              "kind": "eventInput"
+            }
+          },
+          "streamPath": "/tasks/sagas/{sagaId}"
+        }
+      },
+      {
+        "kind": "event",
+        "ownerKind": "entity",
+        "saga": "TodoComplete",
+        "identity": "Todo.Complete",
+        "method": "POST",
+        "path": "/tasks/events/Todo.Complete",
+        "input": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "units",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "accepted": {
+          "status": 202,
+          "sagaId": true
+        },
+        "terminal": {
+          "view": "TodoCard",
+          "input": {
+            "id": {
+              "input": "id",
+              "kind": "eventInput"
+            }
+          },
+          "streamPath": "/tasks/sagas/{sagaId}"
+        }
+      },
+      {
+        "kind": "event",
+        "ownerKind": "entity",
+        "saga": "TodoCreate",
+        "identity": "Todo.Create",
+        "method": "POST",
+        "path": "/tasks/events/Todo.Create",
+        "input": [
+          {
+            "name": "completedUnits",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "projectId",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "totalUnits",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "accepted": {
+          "status": 202,
+          "sagaId": true
+        },
+        "terminal": {
+          "view": "TodoCard",
+          "input": {
+            "id": {
+              "input": "id",
+              "kind": "eventInput"
+            }
+          },
+          "streamPath": "/tasks/sagas/{sagaId}"
+        }
+      },
+      {
+        "kind": "event",
+        "ownerKind": "entity",
+        "saga": "TodoDelete",
+        "identity": "Todo.Delete",
+        "method": "POST",
+        "path": "/tasks/events/Todo.Delete",
+        "input": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "accepted": {
+          "status": 202,
+          "sagaId": true
+        },
+        "terminal": {
+          "view": "TodoCard",
+          "input": {
+            "id": {
+              "input": "id",
+              "kind": "eventInput"
+            }
+          },
+          "streamPath": "/tasks/sagas/{sagaId}"
+        }
+      },
+      {
+        "kind": "event",
+        "ownerKind": "entity",
+        "saga": "TodoUpdate",
+        "identity": "Todo.Update",
+        "method": "POST",
+        "path": "/tasks/events/Todo.Update",
+        "input": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "totalUnits",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "accepted": {
+          "status": 202,
+          "sagaId": true
+        },
+        "terminal": {
+          "view": "TodoCard",
+          "input": {
+            "id": {
+              "input": "id",
+              "kind": "eventInput"
+            }
+          },
+          "streamPath": "/tasks/sagas/{sagaId}"
+        }
+      },
+      {
+        "kind": "view",
+        "identity": "ProjectCard",
+        "method": "POST",
+        "path": "/tasks/views/ProjectCard",
+        "input": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "output": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "optional": false,
+            "nullable": false
+          }
+        ]
+      },
+      {
+        "kind": "view",
+        "identity": "TodoCard",
+        "method": "POST",
+        "path": "/tasks/views/TodoCard",
+        "input": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "output": [
+          {
+            "name": "completedUnits",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "projectId",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "totalUnits",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          }
+        ]
+      },
+      {
+        "kind": "view",
+        "identity": "TodoList",
+        "method": "POST",
+        "path": "/tasks/views/TodoList",
+        "input": [
+          {
+            "name": "completedUnits",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "limit",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "offset",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "projectId",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          }
+        ],
+        "output": [
+          {
+            "name": "completedUnits",
+            "type": "integer",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "id",
+            "type": "uuid",
+            "optional": false,
+            "nullable": false
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "optional": false,
+            "nullable": false
+          }
+        ]
+      }
+    ]
+  }
+]

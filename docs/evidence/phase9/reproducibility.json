@@ -1,0 +1,1985 @@
+{
+  "schema": "vane.release-reproducibility",
+  "status": "PASS",
+  "commit": "216b1557af89dbb77a0af3e51a727fcf28469561",
+  "tree": "a5c41e948601dbce94e6c49f3187f48a54151ba0",
+  "sha256": "b467027e13687831b0f073b4bd07cf140063ae446cec7d9fc7a29bb4964fea29",
+  "packages": [
+    {
+      "umask": "022",
+      "schema": "vane.release-package",
+      "version": 1,
+      "name": "@lilka/vane",
+      "packageVersion": "0.1.0-rc.1",
+      "filename": "lilka-vane-0.1.0-rc.1.tgz",
+      "path": "/workspace/scratch/phase9/repro/022/lilka-vane-0.1.0-rc.1.tgz",
+      "sha256": "b467027e13687831b0f073b4bd07cf140063ae446cec7d9fc7a29bb4964fea29",
+      "integrity": "sha512-A3YkCMrxs8klzbAvjVyVr2hhI16FzNY+RCY33AuobU5RjQlr+NSLN4ver5QTiGpWRZDKl9v04JbmbfM5lNWmhw==",
+      "commit": "216b1557af89dbb77a0af3e51a727fcf28469561",
+      "tree": "a5c41e948601dbce94e6c49f3187f48a54151ba0",
+      "node": "v24.19.0",
+      "npm": "11.9.0",
+      "apiManifestSha256": "c9a8d1c5997a52e8883e17c99c8d9175d17f2dcaed2b690b452873ab086ca581",
+      "canonicalModes": {
+        "directory": "0755",
+        "file": "0644",
+        "bin": "0755"
+      },
+      "files": [
+        {
+          "path": "api-manifest.json",
+          "size": 256522,
+          "mode": 420
+        },
+        {
+          "path": "CHANGELOG.md",
+          "size": 1412,
+          "mode": 420
+        },
+        {
+          "path": "dist/acl-runtime.d.ts",
+          "size": 2663,
+          "mode": 420
+        },
+        {
+          "path": "dist/acl-runtime.d.ts.map",
+          "size": 2403,
+          "mode": 420
+        },
+        {
+          "path": "dist/acl-runtime.js",
+          "size": 8608,
+          "mode": 420
+        },
+        {
+          "path": "dist/acl-runtime.js.map",
+          "size": 8427,
+          "mode": 420
+        },
+        {
+          "path": "dist/cli.d.ts",
+          "size": 64,
+          "mode": 420
+        },
+        {
+          "path": "dist/cli.d.ts.map",
+          "size": 100,
+          "mode": 420
+        },
+        {
+          "path": "dist/cli.js",
+          "size": 4778,
+          "mode": 493
+        },
+        {
+          "path": "dist/cli.js.map",
+          "size": 5106,
+          "mode": 420
+        },
+        {
+          "path": "dist/compiler.d.ts",
+          "size": 916,
+          "mode": 420
+        },
+        {
+          "path": "dist/compiler.d.ts.map",
+          "size": 895,
+          "mode": 420
+        },
+        {
+          "path": "dist/compiler.js",
+          "size": 74849,
+          "mode": 420
+        },
+        {
+          "path": "dist/compiler.js.map",
+          "size": 67496,
+          "mode": 420
+        },
+        {
+          "path": "dist/contract-ir.d.ts",
+          "size": 2765,
+          "mode": 420
+        },
+        {
+          "path": "dist/contract-ir.d.ts.map",
+          "size": 2793,
+          "mode": 420
+        },
+        {
+          "path": "dist/contract-ir.js",
+          "size": 13262,
+          "mode": 420
+        },
+        {
+          "path": "dist/contract-ir.js.map",
+          "size": 13518,
+          "mode": 420
+        },
+        {
+          "path": "dist/declaration.d.ts",
+          "size": 7216,
+          "mode": 420
+        },
+        {
+          "path": "dist/declaration.d.ts.map",
+          "size": 6760,
+          "mode": 420
+        },
+        {
+          "path": "dist/declaration.js",
+          "size": 183,
+          "mode": 420
+        },
+        {
+          "path": "dist/declaration.js.map",
+          "size": 234,
+          "mode": 420
+        },
+        {
+          "path": "dist/diagnostic.d.ts",
+          "size": 469,
+          "mode": 420
+        },
+        {
+          "path": "dist/diagnostic.d.ts.map",
+          "size": 566,
+          "mode": 420
+        },
+        {
+          "path": "dist/diagnostic.js",
+          "size": 49,
+          "mode": 420
+        },
+        {
+          "path": "dist/diagnostic.js.map",
+          "size": 112,
+          "mode": 420
+        },
+        {
+          "path": "dist/dsl.d.ts",
+          "size": 12655,
+          "mode": 420
+        },
+        {
+          "path": "dist/dsl.d.ts.map",
+          "size": 11878,
+          "mode": 420
+        },
+        {
+          "path": "dist/dsl.js",
+          "size": 3651,
+          "mode": 420
+        },
+        {
+          "path": "dist/dsl.js.map",
+          "size": 4664,
+          "mode": 420
+        },
+        {
+          "path": "dist/execution-policy.d.ts",
+          "size": 575,
+          "mode": 420
+        },
+        {
+          "path": "dist/execution-policy.d.ts.map",
+          "size": 484,
+          "mode": 420
+        },
+        {
+          "path": "dist/execution-policy.js",
+          "size": 2317,
+          "mode": 420
+        },
+        {
+          "path": "dist/execution-policy.js.map",
+          "size": 2368,
+          "mode": 420
+        },
+        {
+          "path": "dist/http-runtime.d.ts",
+          "size": 3406,
+          "mode": 420
+        },
+        {
+          "path": "dist/http-runtime.d.ts.map",
+          "size": 3256,
+          "mode": 420
+        },
+        {
+          "path": "dist/http-runtime.js",
+          "size": 17704,
+          "mode": 420
+        },
+        {
+          "path": "dist/http-runtime.js.map",
+          "size": 18274,
+          "mode": 420
+        },
+        {
+          "path": "dist/index.d.ts",
+          "size": 4113,
+          "mode": 420
+        },
+        {
+          "path": "dist/index.d.ts.map",
+          "size": 2944,
+          "mode": 420
+        },
+        {
+          "path": "dist/index.js",
+          "size": 1521,
+          "mode": 420
+        },
+        {
+          "path": "dist/index.js.map",
+          "size": 1319,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-fingerprint.d.ts",
+          "size": 262,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-fingerprint.d.ts.map",
+          "size": 245,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-fingerprint.js",
+          "size": 370,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-fingerprint.js.map",
+          "size": 372,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-scope.d.ts",
+          "size": 442,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-scope.d.ts.map",
+          "size": 403,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-scope.js",
+          "size": 1295,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-scope.js.map",
+          "size": 1574,
+          "mode": 420
+        },
+        {
+          "path": "dist/openapi.d.ts",
+          "size": 725,
+          "mode": 420
+        },
+        {
+          "path": "dist/openapi.d.ts.map",
+          "size": 795,
+          "mode": 420
+        },
+        {
+          "path": "dist/openapi.js",
+          "size": 5012,
+          "mode": 420
+        },
+        {
+          "path": "dist/openapi.js.map",
+          "size": 4894,
+          "mode": 420
+        },
+        {
+          "path": "dist/operational-cli.d.ts",
+          "size": 335,
+          "mode": 420
+        },
+        {
+          "path": "dist/operational-cli.d.ts.map",
+          "size": 386,
+          "mode": 420
+        },
+        {
+          "path": "dist/operational-cli.js",
+          "size": 6880,
+          "mode": 420
+        },
+        {
+          "path": "dist/operational-cli.js.map",
+          "size": 6603,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/delivery.d.ts",
+          "size": 2393,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/delivery.d.ts.map",
+          "size": 2204,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/delivery.js",
+          "size": 11935,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/delivery.js.map",
+          "size": 8981,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/envelope.d.ts",
+          "size": 1556,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/envelope.d.ts.map",
+          "size": 1441,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/envelope.js",
+          "size": 5525,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/envelope.js.map",
+          "size": 5258,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/identifiers.d.ts",
+          "size": 484,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/identifiers.d.ts.map",
+          "size": 471,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/identifiers.js",
+          "size": 1540,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/identifiers.js.map",
+          "size": 1666,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/index.d.ts",
+          "size": 2817,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/index.d.ts.map",
+          "size": 1738,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/index.js",
+          "size": 1475,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/index.js.map",
+          "size": 910,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/materializer.d.ts",
+          "size": 739,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/materializer.d.ts.map",
+          "size": 711,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/materializer.js",
+          "size": 35013,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/materializer.js.map",
+          "size": 31761,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migration-executor.d.ts",
+          "size": 1984,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migration-executor.d.ts.map",
+          "size": 1605,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migration-executor.js",
+          "size": 6580,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migration-executor.js.map",
+          "size": 5158,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migrations.d.ts",
+          "size": 2812,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migrations.d.ts.map",
+          "size": 2214,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migrations.js",
+          "size": 24821,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migrations.js.map",
+          "size": 25328,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/module-runtime.d.ts",
+          "size": 1630,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/module-runtime.d.ts.map",
+          "size": 1344,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/module-runtime.js",
+          "size": 31693,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/module-runtime.js.map",
+          "size": 27782,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/operations.d.ts",
+          "size": 2117,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/operations.d.ts.map",
+          "size": 714,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/operations.js",
+          "size": 6121,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/operations.js.map",
+          "size": 4959,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/public-saga-admission.d.ts",
+          "size": 911,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/public-saga-admission.d.ts.map",
+          "size": 729,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/public-saga-admission.js",
+          "size": 3039,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/public-saga-admission.js.map",
+          "size": 2897,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/renderer.d.ts",
+          "size": 179,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/renderer.d.ts.map",
+          "size": 232,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/renderer.js",
+          "size": 3206,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/renderer.js.map",
+          "size": 3306,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/runtime.d.ts",
+          "size": 2213,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/runtime.d.ts.map",
+          "size": 1997,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/runtime.js",
+          "size": 20498,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/runtime.js.map",
+          "size": 18812,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/saga-runtime.d.ts",
+          "size": 4028,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/saga-runtime.d.ts.map",
+          "size": 3800,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/saga-runtime.js",
+          "size": 22494,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/saga-runtime.js.map",
+          "size": 20019,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/storage-ir.d.ts",
+          "size": 1926,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/storage-ir.d.ts.map",
+          "size": 1953,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/storage-ir.js",
+          "size": 186,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/storage-ir.js.map",
+          "size": 289,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/view-runtime.d.ts",
+          "size": 1582,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/view-runtime.d.ts.map",
+          "size": 1423,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/view-runtime.js",
+          "size": 17589,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/view-runtime.js.map",
+          "size": 18506,
+          "mode": 420
+        },
+        {
+          "path": "dist/saga-plan.d.ts",
+          "size": 2478,
+          "mode": 420
+        },
+        {
+          "path": "dist/saga-plan.d.ts.map",
+          "size": 2411,
+          "mode": 420
+        },
+        {
+          "path": "dist/saga-plan.js",
+          "size": 8223,
+          "mode": 420
+        },
+        {
+          "path": "dist/saga-plan.js.map",
+          "size": 8763,
+          "mode": 420
+        },
+        {
+          "path": "dist/secrets.d.ts",
+          "size": 858,
+          "mode": 420
+        },
+        {
+          "path": "dist/secrets.d.ts.map",
+          "size": 663,
+          "mode": 420
+        },
+        {
+          "path": "dist/secrets.js",
+          "size": 2773,
+          "mode": 420
+        },
+        {
+          "path": "dist/secrets.js.map",
+          "size": 2321,
+          "mode": 420
+        },
+        {
+          "path": "dist/semantic-ir.d.ts",
+          "size": 5645,
+          "mode": 420
+        },
+        {
+          "path": "dist/semantic-ir.d.ts.map",
+          "size": 5130,
+          "mode": 420
+        },
+        {
+          "path": "dist/semantic-ir.js",
+          "size": 312,
+          "mode": 420
+        },
+        {
+          "path": "dist/semantic-ir.js.map",
+          "size": 439,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-artifacts.d.ts",
+          "size": 547,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-artifacts.d.ts.map",
+          "size": 438,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-artifacts.js",
+          "size": 11311,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-artifacts.js.map",
+          "size": 7283,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-compiler.d.ts",
+          "size": 4331,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-compiler.d.ts.map",
+          "size": 3845,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-compiler.js",
+          "size": 38616,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-compiler.js.map",
+          "size": 35011,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-configuration.d.ts",
+          "size": 6226,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-configuration.d.ts.map",
+          "size": 5656,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-configuration.js",
+          "size": 2813,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-configuration.js.map",
+          "size": 2883,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-runtime.d.ts",
+          "size": 2735,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-runtime.d.ts.map",
+          "size": 1476,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-runtime.js",
+          "size": 15428,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-runtime.js.map",
+          "size": 14792,
+          "mode": 420
+        },
+        {
+          "path": "dist/source-parser.d.ts",
+          "size": 1409,
+          "mode": 420
+        },
+        {
+          "path": "dist/source-parser.d.ts.map",
+          "size": 1346,
+          "mode": 420
+        },
+        {
+          "path": "dist/source-parser.js",
+          "size": 96783,
+          "mode": 420
+        },
+        {
+          "path": "dist/source-parser.js.map",
+          "size": 93645,
+          "mode": 420
+        },
+        {
+          "path": "dist/telemetry.d.ts",
+          "size": 1306,
+          "mode": 420
+        },
+        {
+          "path": "dist/telemetry.d.ts.map",
+          "size": 1239,
+          "mode": 420
+        },
+        {
+          "path": "dist/telemetry.js",
+          "size": 3413,
+          "mode": 420
+        },
+        {
+          "path": "dist/telemetry.js.map",
+          "size": 3300,
+          "mode": 420
+        },
+        {
+          "path": "docs/compatibility.md",
+          "size": 3003,
+          "mode": 420
+        },
+        {
+          "path": "docs/conformance-findings.md",
+          "size": 7570,
+          "mode": 420
+        },
+        {
+          "path": "docs/conformance-matrix.md",
+          "size": 23572,
+          "mode": 420
+        },
+        {
+          "path": "docs/conformance-performance.md",
+          "size": 3969,
+          "mode": 420
+        },
+        {
+          "path": "docs/conformance.md",
+          "size": 8530,
+          "mode": 420
+        },
+        {
+          "path": "docs/operations.md",
+          "size": 8319,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-1-completion.md",
+          "size": 4642,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-2-completion.md",
+          "size": 7709,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-2-design.md",
+          "size": 4044,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-3-completion.md",
+          "size": 2467,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-3-design.md",
+          "size": 1846,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-4-completion.md",
+          "size": 4135,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-4-design.md",
+          "size": 2526,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-5-completion.md",
+          "size": 5702,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-5-design.md",
+          "size": 1978,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-6-completion.md",
+          "size": 7126,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-6-design.md",
+          "size": 1988,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-7-representation.md",
+          "size": 4229,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-8-completion.md",
+          "size": 4183,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-8-plan.md",
+          "size": 4381,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-9-plan.md",
+          "size": 6785,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-9-release.md",
+          "size": 2901,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-9-security.md",
+          "size": 5710,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-9-supply-chain.md",
+          "size": 7570,
+          "mode": 420
+        },
+        {
+          "path": "docs/postgresql.md",
+          "size": 4860,
+          "mode": 420
+        },
+        {
+          "path": "docs/public-api.md",
+          "size": 3498,
+          "mode": 420
+        },
+        {
+          "path": "docs/rc-publication.md",
+          "size": 3747,
+          "mode": 420
+        },
+        {
+          "path": "docs/sagas.md",
+          "size": 7721,
+          "mode": 420
+        },
+        {
+          "path": "docs/semantic-compiler.md",
+          "size": 11043,
+          "mode": 420
+        },
+        {
+          "path": "docs/service-configuration.md",
+          "size": 11960,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/billing.vane.ts",
+          "size": 1250,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/configuration.mjs",
+          "size": 3627,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/gateway.mjs",
+          "size": 875,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/quickstart.mjs",
+          "size": 4476,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/README.md",
+          "size": 3674,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/sales.vane.ts",
+          "size": 1954,
+          "mode": 420
+        },
+        {
+          "path": "LICENSE",
+          "size": 1063,
+          "mode": 420
+        },
+        {
+          "path": "package.json",
+          "size": 2765,
+          "mode": 420
+        },
+        {
+          "path": "README.md",
+          "size": 5879,
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "umask": "077",
+      "schema": "vane.release-package",
+      "version": 1,
+      "name": "@lilka/vane",
+      "packageVersion": "0.1.0-rc.1",
+      "filename": "lilka-vane-0.1.0-rc.1.tgz",
+      "path": "/workspace/scratch/phase9/repro/077/lilka-vane-0.1.0-rc.1.tgz",
+      "sha256": "b467027e13687831b0f073b4bd07cf140063ae446cec7d9fc7a29bb4964fea29",
+      "integrity": "sha512-A3YkCMrxs8klzbAvjVyVr2hhI16FzNY+RCY33AuobU5RjQlr+NSLN4ver5QTiGpWRZDKl9v04JbmbfM5lNWmhw==",
+      "commit": "216b1557af89dbb77a0af3e51a727fcf28469561",
+      "tree": "a5c41e948601dbce94e6c49f3187f48a54151ba0",
+      "node": "v24.19.0",
+      "npm": "11.9.0",
+      "apiManifestSha256": "c9a8d1c5997a52e8883e17c99c8d9175d17f2dcaed2b690b452873ab086ca581",
+      "canonicalModes": {
+        "directory": "0755",
+        "file": "0644",
+        "bin": "0755"
+      },
+      "files": [
+        {
+          "path": "api-manifest.json",
+          "size": 256522,
+          "mode": 420
+        },
+        {
+          "path": "CHANGELOG.md",
+          "size": 1412,
+          "mode": 420
+        },
+        {
+          "path": "dist/acl-runtime.d.ts",
+          "size": 2663,
+          "mode": 420
+        },
+        {
+          "path": "dist/acl-runtime.d.ts.map",
+          "size": 2403,
+          "mode": 420
+        },
+        {
+          "path": "dist/acl-runtime.js",
+          "size": 8608,
+          "mode": 420
+        },
+        {
+          "path": "dist/acl-runtime.js.map",
+          "size": 8427,
+          "mode": 420
+        },
+        {
+          "path": "dist/cli.d.ts",
+          "size": 64,
+          "mode": 420
+        },
+        {
+          "path": "dist/cli.d.ts.map",
+          "size": 100,
+          "mode": 420
+        },
+        {
+          "path": "dist/cli.js",
+          "size": 4778,
+          "mode": 493
+        },
+        {
+          "path": "dist/cli.js.map",
+          "size": 5106,
+          "mode": 420
+        },
+        {
+          "path": "dist/compiler.d.ts",
+          "size": 916,
+          "mode": 420
+        },
+        {
+          "path": "dist/compiler.d.ts.map",
+          "size": 895,
+          "mode": 420
+        },
+        {
+          "path": "dist/compiler.js",
+          "size": 74849,
+          "mode": 420
+        },
+        {
+          "path": "dist/compiler.js.map",
+          "size": 67496,
+          "mode": 420
+        },
+        {
+          "path": "dist/contract-ir.d.ts",
+          "size": 2765,
+          "mode": 420
+        },
+        {
+          "path": "dist/contract-ir.d.ts.map",
+          "size": 2793,
+          "mode": 420
+        },
+        {
+          "path": "dist/contract-ir.js",
+          "size": 13262,
+          "mode": 420
+        },
+        {
+          "path": "dist/contract-ir.js.map",
+          "size": 13518,
+          "mode": 420
+        },
+        {
+          "path": "dist/declaration.d.ts",
+          "size": 7216,
+          "mode": 420
+        },
+        {
+          "path": "dist/declaration.d.ts.map",
+          "size": 6760,
+          "mode": 420
+        },
+        {
+          "path": "dist/declaration.js",
+          "size": 183,
+          "mode": 420
+        },
+        {
+          "path": "dist/declaration.js.map",
+          "size": 234,
+          "mode": 420
+        },
+        {
+          "path": "dist/diagnostic.d.ts",
+          "size": 469,
+          "mode": 420
+        },
+        {
+          "path": "dist/diagnostic.d.ts.map",
+          "size": 566,
+          "mode": 420
+        },
+        {
+          "path": "dist/diagnostic.js",
+          "size": 49,
+          "mode": 420
+        },
+        {
+          "path": "dist/diagnostic.js.map",
+          "size": 112,
+          "mode": 420
+        },
+        {
+          "path": "dist/dsl.d.ts",
+          "size": 12655,
+          "mode": 420
+        },
+        {
+          "path": "dist/dsl.d.ts.map",
+          "size": 11878,
+          "mode": 420
+        },
+        {
+          "path": "dist/dsl.js",
+          "size": 3651,
+          "mode": 420
+        },
+        {
+          "path": "dist/dsl.js.map",
+          "size": 4664,
+          "mode": 420
+        },
+        {
+          "path": "dist/execution-policy.d.ts",
+          "size": 575,
+          "mode": 420
+        },
+        {
+          "path": "dist/execution-policy.d.ts.map",
+          "size": 484,
+          "mode": 420
+        },
+        {
+          "path": "dist/execution-policy.js",
+          "size": 2317,
+          "mode": 420
+        },
+        {
+          "path": "dist/execution-policy.js.map",
+          "size": 2368,
+          "mode": 420
+        },
+        {
+          "path": "dist/http-runtime.d.ts",
+          "size": 3406,
+          "mode": 420
+        },
+        {
+          "path": "dist/http-runtime.d.ts.map",
+          "size": 3256,
+          "mode": 420
+        },
+        {
+          "path": "dist/http-runtime.js",
+          "size": 17704,
+          "mode": 420
+        },
+        {
+          "path": "dist/http-runtime.js.map",
+          "size": 18274,
+          "mode": 420
+        },
+        {
+          "path": "dist/index.d.ts",
+          "size": 4113,
+          "mode": 420
+        },
+        {
+          "path": "dist/index.d.ts.map",
+          "size": 2944,
+          "mode": 420
+        },
+        {
+          "path": "dist/index.js",
+          "size": 1521,
+          "mode": 420
+        },
+        {
+          "path": "dist/index.js.map",
+          "size": 1319,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-fingerprint.d.ts",
+          "size": 262,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-fingerprint.d.ts.map",
+          "size": 245,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-fingerprint.js",
+          "size": 370,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-fingerprint.js.map",
+          "size": 372,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-scope.d.ts",
+          "size": 442,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-scope.d.ts.map",
+          "size": 403,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-scope.js",
+          "size": 1295,
+          "mode": 420
+        },
+        {
+          "path": "dist/module-scope.js.map",
+          "size": 1574,
+          "mode": 420
+        },
+        {
+          "path": "dist/openapi.d.ts",
+          "size": 725,
+          "mode": 420
+        },
+        {
+          "path": "dist/openapi.d.ts.map",
+          "size": 795,
+          "mode": 420
+        },
+        {
+          "path": "dist/openapi.js",
+          "size": 5012,
+          "mode": 420
+        },
+        {
+          "path": "dist/openapi.js.map",
+          "size": 4894,
+          "mode": 420
+        },
+        {
+          "path": "dist/operational-cli.d.ts",
+          "size": 335,
+          "mode": 420
+        },
+        {
+          "path": "dist/operational-cli.d.ts.map",
+          "size": 386,
+          "mode": 420
+        },
+        {
+          "path": "dist/operational-cli.js",
+          "size": 6880,
+          "mode": 420
+        },
+        {
+          "path": "dist/operational-cli.js.map",
+          "size": 6603,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/delivery.d.ts",
+          "size": 2393,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/delivery.d.ts.map",
+          "size": 2204,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/delivery.js",
+          "size": 11935,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/delivery.js.map",
+          "size": 8981,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/envelope.d.ts",
+          "size": 1556,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/envelope.d.ts.map",
+          "size": 1441,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/envelope.js",
+          "size": 5525,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/envelope.js.map",
+          "size": 5258,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/identifiers.d.ts",
+          "size": 484,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/identifiers.d.ts.map",
+          "size": 471,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/identifiers.js",
+          "size": 1540,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/identifiers.js.map",
+          "size": 1666,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/index.d.ts",
+          "size": 2817,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/index.d.ts.map",
+          "size": 1738,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/index.js",
+          "size": 1475,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/index.js.map",
+          "size": 910,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/materializer.d.ts",
+          "size": 739,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/materializer.d.ts.map",
+          "size": 711,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/materializer.js",
+          "size": 35013,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/materializer.js.map",
+          "size": 31761,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migration-executor.d.ts",
+          "size": 1984,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migration-executor.d.ts.map",
+          "size": 1605,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migration-executor.js",
+          "size": 6580,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migration-executor.js.map",
+          "size": 5158,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migrations.d.ts",
+          "size": 2812,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migrations.d.ts.map",
+          "size": 2214,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migrations.js",
+          "size": 24821,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/migrations.js.map",
+          "size": 25328,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/module-runtime.d.ts",
+          "size": 1630,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/module-runtime.d.ts.map",
+          "size": 1344,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/module-runtime.js",
+          "size": 31693,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/module-runtime.js.map",
+          "size": 27782,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/operations.d.ts",
+          "size": 2117,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/operations.d.ts.map",
+          "size": 714,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/operations.js",
+          "size": 6121,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/operations.js.map",
+          "size": 4959,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/public-saga-admission.d.ts",
+          "size": 911,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/public-saga-admission.d.ts.map",
+          "size": 729,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/public-saga-admission.js",
+          "size": 3039,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/public-saga-admission.js.map",
+          "size": 2897,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/renderer.d.ts",
+          "size": 179,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/renderer.d.ts.map",
+          "size": 232,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/renderer.js",
+          "size": 3206,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/renderer.js.map",
+          "size": 3306,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/runtime.d.ts",
+          "size": 2213,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/runtime.d.ts.map",
+          "size": 1997,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/runtime.js",
+          "size": 20498,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/runtime.js.map",
+          "size": 18812,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/saga-runtime.d.ts",
+          "size": 4028,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/saga-runtime.d.ts.map",
+          "size": 3800,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/saga-runtime.js",
+          "size": 22494,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/saga-runtime.js.map",
+          "size": 20019,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/storage-ir.d.ts",
+          "size": 1926,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/storage-ir.d.ts.map",
+          "size": 1953,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/storage-ir.js",
+          "size": 186,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/storage-ir.js.map",
+          "size": 289,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/view-runtime.d.ts",
+          "size": 1582,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/view-runtime.d.ts.map",
+          "size": 1423,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/view-runtime.js",
+          "size": 17589,
+          "mode": 420
+        },
+        {
+          "path": "dist/postgresql/view-runtime.js.map",
+          "size": 18506,
+          "mode": 420
+        },
+        {
+          "path": "dist/saga-plan.d.ts",
+          "size": 2478,
+          "mode": 420
+        },
+        {
+          "path": "dist/saga-plan.d.ts.map",
+          "size": 2411,
+          "mode": 420
+        },
+        {
+          "path": "dist/saga-plan.js",
+          "size": 8223,
+          "mode": 420
+        },
+        {
+          "path": "dist/saga-plan.js.map",
+          "size": 8763,
+          "mode": 420
+        },
+        {
+          "path": "dist/secrets.d.ts",
+          "size": 858,
+          "mode": 420
+        },
+        {
+          "path": "dist/secrets.d.ts.map",
+          "size": 663,
+          "mode": 420
+        },
+        {
+          "path": "dist/secrets.js",
+          "size": 2773,
+          "mode": 420
+        },
+        {
+          "path": "dist/secrets.js.map",
+          "size": 2321,
+          "mode": 420
+        },
+        {
+          "path": "dist/semantic-ir.d.ts",
+          "size": 5645,
+          "mode": 420
+        },
+        {
+          "path": "dist/semantic-ir.d.ts.map",
+          "size": 5130,
+          "mode": 420
+        },
+        {
+          "path": "dist/semantic-ir.js",
+          "size": 312,
+          "mode": 420
+        },
+        {
+          "path": "dist/semantic-ir.js.map",
+          "size": 439,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-artifacts.d.ts",
+          "size": 547,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-artifacts.d.ts.map",
+          "size": 438,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-artifacts.js",
+          "size": 11311,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-artifacts.js.map",
+          "size": 7283,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-compiler.d.ts",
+          "size": 4331,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-compiler.d.ts.map",
+          "size": 3845,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-compiler.js",
+          "size": 38616,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-compiler.js.map",
+          "size": 35011,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-configuration.d.ts",
+          "size": 6226,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-configuration.d.ts.map",
+          "size": 5656,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-configuration.js",
+          "size": 2813,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-configuration.js.map",
+          "size": 2883,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-runtime.d.ts",
+          "size": 2735,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-runtime.d.ts.map",
+          "size": 1476,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-runtime.js",
+          "size": 15428,
+          "mode": 420
+        },
+        {
+          "path": "dist/service-runtime.js.map",
+          "size": 14792,
+          "mode": 420
+        },
+        {
+          "path": "dist/source-parser.d.ts",
+          "size": 1409,
+          "mode": 420
+        },
+        {
+          "path": "dist/source-parser.d.ts.map",
+          "size": 1346,
+          "mode": 420
+        },
+        {
+          "path": "dist/source-parser.js",
+          "size": 96783,
+          "mode": 420
+        },
+        {
+          "path": "dist/source-parser.js.map",
+          "size": 93645,
+          "mode": 420
+        },
+        {
+          "path": "dist/telemetry.d.ts",
+          "size": 1306,
+          "mode": 420
+        },
+        {
+          "path": "dist/telemetry.d.ts.map",
+          "size": 1239,
+          "mode": 420
+        },
+        {
+          "path": "dist/telemetry.js",
+          "size": 3413,
+          "mode": 420
+        },
+        {
+          "path": "dist/telemetry.js.map",
+          "size": 3300,
+          "mode": 420
+        },
+        {
+          "path": "docs/compatibility.md",
+          "size": 3003,
+          "mode": 420
+        },
+        {
+          "path": "docs/conformance-findings.md",
+          "size": 7570,
+          "mode": 420
+        },
+        {
+          "path": "docs/conformance-matrix.md",
+          "size": 23572,
+          "mode": 420
+        },
+        {
+          "path": "docs/conformance-performance.md",
+          "size": 3969,
+          "mode": 420
+        },
+        {
+          "path": "docs/conformance.md",
+          "size": 8530,
+          "mode": 420
+        },
+        {
+          "path": "docs/operations.md",
+          "size": 8319,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-1-completion.md",
+          "size": 4642,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-2-completion.md",
+          "size": 7709,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-2-design.md",
+          "size": 4044,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-3-completion.md",
+          "size": 2467,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-3-design.md",
+          "size": 1846,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-4-completion.md",
+          "size": 4135,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-4-design.md",
+          "size": 2526,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-5-completion.md",
+          "size": 5702,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-5-design.md",
+          "size": 1978,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-6-completion.md",
+          "size": 7126,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-6-design.md",
+          "size": 1988,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-7-representation.md",
+          "size": 4229,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-8-completion.md",
+          "size": 4183,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-8-plan.md",
+          "size": 4381,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-9-plan.md",
+          "size": 6785,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-9-release.md",
+          "size": 2901,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-9-security.md",
+          "size": 5710,
+          "mode": 420
+        },
+        {
+          "path": "docs/phase-9-supply-chain.md",
+          "size": 7570,
+          "mode": 420
+        },
+        {
+          "path": "docs/postgresql.md",
+          "size": 4860,
+          "mode": 420
+        },
+        {
+          "path": "docs/public-api.md",
+          "size": 3498,
+          "mode": 420
+        },
+        {
+          "path": "docs/rc-publication.md",
+          "size": 3747,
+          "mode": 420
+        },
+        {
+          "path": "docs/sagas.md",
+          "size": 7721,
+          "mode": 420
+        },
+        {
+          "path": "docs/semantic-compiler.md",
+          "size": 11043,
+          "mode": 420
+        },
+        {
+          "path": "docs/service-configuration.md",
+          "size": 11960,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/billing.vane.ts",
+          "size": 1250,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/configuration.mjs",
+          "size": 3627,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/gateway.mjs",
+          "size": 875,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/quickstart.mjs",
+          "size": 4476,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/README.md",
+          "size": 3674,
+          "mode": 420
+        },
+        {
+          "path": "examples/sales-billing/sales.vane.ts",
+          "size": 1954,
+          "mode": 420
+        },
+        {
+          "path": "LICENSE",
+          "size": 1063,
+          "mode": 420
+        },
+        {
+          "path": "package.json",
+          "size": 2765,
+          "mode": 420
+        },
+        {
+          "path": "README.md",
+          "size": 5879,
+          "mode": 420
+        }
+      ]
+    }
+  ]
+}

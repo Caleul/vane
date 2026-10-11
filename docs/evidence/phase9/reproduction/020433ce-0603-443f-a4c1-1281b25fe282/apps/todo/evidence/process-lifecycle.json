@@ -1,0 +1,62 @@
+[
+  {
+    "pid": 19831,
+    "startedAt": "2026-10-11T01:19:56.969Z",
+    "paused": false,
+    "stdout": "{\"ready\":true,\"address\":{\"address\":\"127.0.0.1\",\"family\":\"IPv4\",\"port\":42003},\"namespace\":\"dogfood_todo_19760\"}\n",
+    "stderr": "",
+    "exitedAt": "2026-10-11T01:20:00.652Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "pid": 20089,
+    "startedAt": "2026-10-11T01:20:00.654Z",
+    "paused": false,
+    "stdout": "{\"ready\":true,\"address\":{\"address\":\"127.0.0.1\",\"family\":\"IPv4\",\"port\":43879},\"namespace\":\"dogfood_todo_19760\"}\n",
+    "stderr": "",
+    "exitedAt": "2026-10-11T01:20:01.072Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "pid": 20103,
+    "startedAt": "2026-10-11T01:20:01.074Z",
+    "paused": true,
+    "stdout": "{\"ready\":true,\"address\":{\"address\":\"127.0.0.1\",\"family\":\"IPv4\",\"port\":41405},\"namespace\":\"dogfood_todo_19760\"}\n",
+    "stderr": "",
+    "exitedAt": "2026-10-11T01:20:01.461Z",
+    "code": null,
+    "signal": "SIGKILL"
+  },
+  {
+    "pid": 20136,
+    "startedAt": "2026-10-11T01:20:01.463Z",
+    "paused": false,
+    "stdout": "{\"ready\":true,\"address\":{\"address\":\"127.0.0.1\",\"family\":\"IPv4\",\"port\":46731},\"namespace\":\"dogfood_todo_19760\"}\n",
+    "stderr": "",
+    "exitedAt": "2026-10-11T01:20:01.875Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "pid": 20151,
+    "startedAt": "2026-10-11T01:20:01.876Z",
+    "paused": true,
+    "stdout": "{\"ready\":true,\"address\":{\"address\":\"127.0.0.1\",\"family\":\"IPv4\",\"port\":44537},\"namespace\":\"dogfood_todo_19760\"}\n{\"barrier\":{\"kind\":\"entity-commit-before-checkpoint\",\"eventId\":\"5745d0df-a657-45ca-b5b0-da7748c3530b\",\"timestamp\":\"2026-10-11T01:20:02.264Z\",\"identification\":\"INSERT __vane_outbox then successful COMMIT on same reserved client\"}}\n",
+    "stderr": "",
+    "exitedAt": "2026-10-11T01:20:02.296Z",
+    "code": null,
+    "signal": "SIGKILL"
+  },
+  {
+    "pid": 20186,
+    "startedAt": "2026-10-11T01:20:02.298Z",
+    "paused": false,
+    "stdout": "{\"ready\":true,\"address\":{\"address\":\"127.0.0.1\",\"family\":\"IPv4\",\"port\":32915},\"namespace\":\"dogfood_todo_19760\"}\n",
+    "stderr": "",
+    "exitedAt": "2026-10-11T01:20:04.220Z",
+    "code": 0,
+    "signal": null
+  }
+]

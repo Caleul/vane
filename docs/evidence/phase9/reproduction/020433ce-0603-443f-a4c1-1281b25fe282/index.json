@@ -1,0 +1,651 @@
+{
+  "schema": "vane.reproduction-evidence-export",
+  "version": 1,
+  "runId": "020433ce-0603-443f-a4c1-1281b25fe282",
+  "tarballSha256": "b467027e13687831b0f073b4bd07cf140063ae446cec7d9fc7a29bb4964fea29",
+  "scenarioStatus": "PASS",
+  "exportedAt": "2026-10-11T01:24:37.798Z",
+  "commands": [
+    {
+      "app": "todo",
+      "command": "export VANE_DOGFOOD_DATABASE_URL=postgresql://vane:vane-local-only@127.0.0.1:55432/vane_dogfood",
+      "startedAt": "2026-10-11T01:19:51.959Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "todo",
+      "command": "npm ci",
+      "startedAt": "2026-10-11T01:19:51.959Z",
+      "finishedAt": "2026-10-11T01:19:52.457Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-1.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-1.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run typecheck",
+      "startedAt": "2026-10-11T01:19:52.457Z",
+      "finishedAt": "2026-10-11T01:19:53.356Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-2.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-2.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run build",
+      "startedAt": "2026-10-11T01:19:53.356Z",
+      "finishedAt": "2026-10-11T01:19:54.402Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-3.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-3.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:19:54.402Z",
+      "finishedAt": "2026-10-11T01:19:54.563Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-4.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-4.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run migrate",
+      "startedAt": "2026-10-11T01:19:54.563Z",
+      "finishedAt": "2026-10-11T01:19:55.049Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-5.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-5.log"
+    },
+    {
+      "app": "todo",
+      "command": "./node_modules/.bin/entity-event --help",
+      "startedAt": "2026-10-11T01:19:55.049Z",
+      "finishedAt": "2026-10-11T01:19:55.150Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-6.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-6.log"
+    },
+    {
+      "app": "todo",
+      "command": "./node_modules/.bin/entity-event unknown-dogfood-command",
+      "startedAt": "2026-10-11T01:19:55.150Z",
+      "finishedAt": "2026-10-11T01:19:55.237Z",
+      "exitCode": 1,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-7.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-7.log"
+    },
+    {
+      "app": "todo",
+      "command": "./node_modules/.bin/entity-event validate --config configuration.mjs --profile test --json",
+      "startedAt": "2026-10-11T01:19:55.237Z",
+      "finishedAt": "2026-10-11T01:19:55.610Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-8.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-8.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm start",
+      "startedAt": "2026-10-11T01:19:55.610Z",
+      "finishedAt": "2026-10-11T01:19:56.100Z",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "ready": true,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-start.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-start.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm test",
+      "startedAt": "2026-10-11T01:19:56.100Z",
+      "finishedAt": "2026-10-11T01:20:06.510Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-10.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-10.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:20:06.511Z",
+      "finishedAt": "2026-10-11T01:20:06.672Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-11.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-11.log"
+    },
+    {
+      "app": "commerce",
+      "command": "export VANE_DOGFOOD_DATABASE_URL=postgresql://vane:vane-local-only@127.0.0.1:55432/vane_dogfood",
+      "startedAt": "2026-10-11T01:20:06.677Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "commerce",
+      "command": "export VANE_DOGFOOD_MOTO_URL=http://127.0.0.1:55000",
+      "startedAt": "2026-10-11T01:20:06.677Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "commerce",
+      "command": "export AWS_EC2_METADATA_DISABLED=true",
+      "startedAt": "2026-10-11T01:20:06.677Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "commerce",
+      "command": "npm ci",
+      "startedAt": "2026-10-11T01:20:06.677Z",
+      "finishedAt": "2026-10-11T01:20:07.794Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-15.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-15.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run typecheck",
+      "startedAt": "2026-10-11T01:20:07.794Z",
+      "finishedAt": "2026-10-11T01:20:08.576Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-16.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-16.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run build",
+      "startedAt": "2026-10-11T01:20:08.576Z",
+      "finishedAt": "2026-10-11T01:20:09.276Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-17.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-17.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:20:09.276Z",
+      "finishedAt": "2026-10-11T01:20:09.730Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-18.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-18.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run migrate",
+      "startedAt": "2026-10-11T01:20:09.730Z",
+      "finishedAt": "2026-10-11T01:20:10.623Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-19.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-19.log"
+    },
+    {
+      "app": "commerce",
+      "command": "./node_modules/.bin/entity-event --help",
+      "startedAt": "2026-10-11T01:20:10.623Z",
+      "finishedAt": "2026-10-11T01:20:10.706Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-20.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-20.log"
+    },
+    {
+      "app": "commerce",
+      "command": "./node_modules/.bin/entity-event unknown-dogfood-command",
+      "startedAt": "2026-10-11T01:20:10.706Z",
+      "finishedAt": "2026-10-11T01:20:10.787Z",
+      "exitCode": 1,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-21.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-21.log"
+    },
+    {
+      "app": "commerce",
+      "command": "./node_modules/.bin/entity-event validate --config configuration.mjs --profile test --json",
+      "startedAt": "2026-10-11T01:20:10.788Z",
+      "finishedAt": "2026-10-11T01:20:11.091Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-22.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-22.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm start",
+      "startedAt": "2026-10-11T01:20:11.091Z",
+      "finishedAt": "2026-10-11T01:20:11.885Z",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "ready": true,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-start.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-start.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm test",
+      "startedAt": "2026-10-11T01:20:11.885Z",
+      "finishedAt": "2026-10-11T01:20:33.043Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-24.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-24.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:20:33.045Z",
+      "finishedAt": "2026-10-11T01:20:33.262Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-25.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-25.log"
+    },
+    {
+      "app": "reservation",
+      "command": "export VANE_DOGFOOD_DATABASE_URL=postgresql://vane:vane-local-only@127.0.0.1:55432/vane_dogfood",
+      "startedAt": "2026-10-11T01:20:33.266Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "reservation",
+      "command": "export CONFIRMATION_URL=http://127.0.0.1:1",
+      "startedAt": "2026-10-11T01:20:33.266Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "reservation",
+      "command": "npm ci",
+      "startedAt": "2026-10-11T01:20:33.266Z",
+      "finishedAt": "2026-10-11T01:20:33.681Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-28.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-28.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run typecheck",
+      "startedAt": "2026-10-11T01:20:33.681Z",
+      "finishedAt": "2026-10-11T01:20:34.454Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-29.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-29.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run build",
+      "startedAt": "2026-10-11T01:20:34.454Z",
+      "finishedAt": "2026-10-11T01:20:35.139Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-30.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-30.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:20:35.139Z",
+      "finishedAt": "2026-10-11T01:20:35.533Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-31.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-31.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run migrate",
+      "startedAt": "2026-10-11T01:20:35.533Z",
+      "finishedAt": "2026-10-11T01:20:35.956Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-32.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-32.log"
+    },
+    {
+      "app": "reservation",
+      "command": "./node_modules/.bin/entity-event --help",
+      "startedAt": "2026-10-11T01:20:35.956Z",
+      "finishedAt": "2026-10-11T01:20:36.035Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-33.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-33.log"
+    },
+    {
+      "app": "reservation",
+      "command": "./node_modules/.bin/entity-event unknown-dogfood-command",
+      "startedAt": "2026-10-11T01:20:36.035Z",
+      "finishedAt": "2026-10-11T01:20:36.115Z",
+      "exitCode": 1,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-34.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-34.log"
+    },
+    {
+      "app": "reservation",
+      "command": "./node_modules/.bin/entity-event validate --config configuration.mjs --profile test --json",
+      "startedAt": "2026-10-11T01:20:36.115Z",
+      "finishedAt": "2026-10-11T01:20:36.427Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-35.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-35.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm start",
+      "startedAt": "2026-10-11T01:20:36.427Z",
+      "finishedAt": "2026-10-11T01:20:36.856Z",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "ready": true,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-start.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-start.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm test",
+      "startedAt": "2026-10-11T01:20:36.856Z",
+      "finishedAt": "2026-10-11T01:22:20.950Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-37.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-37.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:22:20.951Z",
+      "finishedAt": "2026-10-11T01:22:21.367Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-38.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-38.log"
+    }
+  ],
+  "artifacts": [
+    {
+      "original": "/tmp/vane-independent-4M9UYI/apps/todo/evidence/contracts.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/apps/todo/evidence/contracts.json",
+      "bytes": 9424,
+      "sha256": "38c5ce67bcfb868a5783e2efc3a06e14e646c65ae150a187e34095273c037de3"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/apps/todo/evidence/invalid.vane.ts",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/apps/todo/evidence/invalid.vane.ts",
+      "bytes": 4652,
+      "sha256": "11038ab365a3dbccb9c286d7a604b2bff09c87527000d072514b96ea11deb21a"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/apps/todo/evidence/process-lifecycle.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/apps/todo/evidence/process-lifecycle.json",
+      "bytes": 2287,
+      "sha256": "0c5213bebc0d54f4e0cdb3a71dabf74098435e8cd83fde7a1ff6d21b66b77770"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/apps/todo/evidence/snapshots.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/apps/todo/evidence/snapshots.json",
+      "bytes": 727229,
+      "sha256": "66e64f674f291e9c22ffac82b81e936f90b0bd618ea6420f23844c6079d260d6"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/apps/todo/evidence/storage-ir.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/apps/todo/evidence/storage-ir.json",
+      "bytes": 27475,
+      "sha256": "3ebde26fa1d47fb7ebfc634726ff28b7257927a47ac21b569722cc5e09de3100"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/apps/todo/evidence/transcripts.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/apps/todo/evidence/transcripts.json",
+      "bytes": 33846,
+      "sha256": "59c66bd60ad795cc7ba237b36d63dee88bcb4251ed2eba5436cc9589eee4325f"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-15.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-15.log",
+      "bytes": 25,
+      "sha256": "822328641879e0c86acf8a18199db343fb9ab2f770889c34cec2791cf93fd31b"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-16.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-16.log",
+      "bytes": 57,
+      "sha256": "6858cb712f3fca1c482b1331a0c2e30bbf7aa04d99098c21e366dee38cd08003"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-17.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-17.log",
+      "bytes": 53,
+      "sha256": "17d19a5dfb34dc37b469d68ea6f3eafea6cac3c5c976d4df54d1948a1c2c5569"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-18.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-18.log",
+      "bytes": 67,
+      "sha256": "722dc50e7f0f5e78f151a9bc8fad3340b84eef81ac385e9c40ab348526735481"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-19.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-19.log",
+      "bytes": 184,
+      "sha256": "29e15e9a7c2c66bbef5e0641b5748fcb561f676405c7f4cb91600ea4d58a7a9a"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-20.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-20.log",
+      "bytes": 153,
+      "sha256": "a5bd6f3a8d82e1da0ed864f7d18dd55334e7d49cce4a12d6574a19ed85023884"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-21.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-21.log",
+      "bytes": 153,
+      "sha256": "a5bd6f3a8d82e1da0ed864f7d18dd55334e7d49cce4a12d6574a19ed85023884"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-22.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-22.log",
+      "bytes": 31,
+      "sha256": "e3baaeec06787234086dfb05640e008d02f3aa5cf7a8451f6ee7256eec21a578"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-24.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-24.log",
+      "bytes": 200,
+      "sha256": "231673ffb9913eb1a4d23b59d7db00a4a70236becb30476a1601920784499af7"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-25.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-25.log",
+      "bytes": 67,
+      "sha256": "722dc50e7f0f5e78f151a9bc8fad3340b84eef81ac385e9c40ab348526735481"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-detail.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-detail.json",
+      "bytes": 638752,
+      "sha256": "ea4de4cee4141a7b1811d2fe881601cff287920653f57ec34c0c6fcf41ed5176"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce-start.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-start.log",
+      "bytes": 139,
+      "sha256": "edfa3b7074f21f7528cc2c44a895f762f093ddc8ad8da6ba69010cca97dd7ba0"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce.json",
+      "bytes": 358071,
+      "sha256": "3e36588652b971c90bfed7aa35a9e6ab7c2b18f3c9f467f35a62cca893af3737"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/commerce.md",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce.md",
+      "bytes": 186309,
+      "sha256": "c2d87367d65760bc4bb50cc587f94ea2e007b91e9f45c48f570c097fa4934aac"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-28.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-28.log",
+      "bytes": 28,
+      "sha256": "78d98c3995f6a1dac8e1237dae15d7721c5a40ae1d464ff064aa85e8ad82086c"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-29.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-29.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-30.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-30.log",
+      "bytes": 16,
+      "sha256": "8fe4571ad4e1c8d99b7bc7e6576a20f57e5d161cc24c4d631421068c0431e2c1"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-31.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-31.log",
+      "bytes": 41,
+      "sha256": "aacee12b62deb105125c58a5f343e3110c21e4619fa121ca5e83b1eedd17801f"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-32.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-32.log",
+      "bytes": 31,
+      "sha256": "83c278f1ce6b91a6354f5e90165ed0c4ec59c7f26af453af7f4ea390e0f06ac7"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-33.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-33.log",
+      "bytes": 153,
+      "sha256": "a5bd6f3a8d82e1da0ed864f7d18dd55334e7d49cce4a12d6574a19ed85023884"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-34.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-34.log",
+      "bytes": 153,
+      "sha256": "a5bd6f3a8d82e1da0ed864f7d18dd55334e7d49cce4a12d6574a19ed85023884"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-35.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-35.log",
+      "bytes": 31,
+      "sha256": "e3baaeec06787234086dfb05640e008d02f3aa5cf7a8451f6ee7256eec21a578"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-37.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-37.log",
+      "bytes": 241,
+      "sha256": "a92e5da20a9d9bd92620fcc045d6b41f0519e8f30001e25c0743f827161c294c"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-38.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-38.log",
+      "bytes": 41,
+      "sha256": "aacee12b62deb105125c58a5f343e3110c21e4619fa121ca5e83b1eedd17801f"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-control.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-control.json",
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-ledger.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-ledger.json",
+      "bytes": 4898,
+      "sha256": "f8293ee9fcd3f24d99f1de3acec858f3347eebb968eabfb03071a8c367a06ad6"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-ledger.json.effects.ndjson",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-ledger.json.effects.ndjson",
+      "bytes": 2278,
+      "sha256": "097206fe548be0af2792b4131a147796399d196a3d306a77bac32e209fe5ba2e"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation-start.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-start.log",
+      "bytes": 93,
+      "sha256": "f02270b889200044ac47435dfa442a7db7e2265ced75b0661596d589854404f3"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation.json",
+      "bytes": 210282,
+      "sha256": "3b1c1ee42499e8304af1a51024336c87b972c921b29bd2254fdb2f462e60037f"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/reservation.md",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation.md",
+      "bytes": 99331,
+      "sha256": "4af119be27ed65632113d054388e4c72de2ad012e2757c595cd984adcb3a7c1f"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-1.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-1.log",
+      "bytes": 28,
+      "sha256": "2bbbcb2acfe947fe5a24d224c539da3d73cd86c2e1eb76f706c87fad275ebb5b"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-10.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-10.log",
+      "bytes": 152,
+      "sha256": "e09db84c89af848c80fb967e2df3c0392d2ff9427aa0fe2cfc7e0c5490a3952f"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-11.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-11.log",
+      "bytes": 52,
+      "sha256": "ebd7b4c0f08c9aaaec44ca06cc3483b80acd8caa454ea70f468c06e9f82f82e9"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-2.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-2.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-3.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-3.log",
+      "bytes": 16,
+      "sha256": "8fe4571ad4e1c8d99b7bc7e6576a20f57e5d161cc24c4d631421068c0431e2c1"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-4.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-4.log",
+      "bytes": 52,
+      "sha256": "ebd7b4c0f08c9aaaec44ca06cc3483b80acd8caa454ea70f468c06e9f82f82e9"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-5.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-5.log",
+      "bytes": 54,
+      "sha256": "03df262093421225d5c3686696b6cabf880cce2e91fbf5892d0f3b364589608e"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-6.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-6.log",
+      "bytes": 153,
+      "sha256": "a5bd6f3a8d82e1da0ed864f7d18dd55334e7d49cce4a12d6574a19ed85023884"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-7.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-7.log",
+      "bytes": 153,
+      "sha256": "a5bd6f3a8d82e1da0ed864f7d18dd55334e7d49cce4a12d6574a19ed85023884"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-8.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-8.log",
+      "bytes": 31,
+      "sha256": "e3baaeec06787234086dfb05640e008d02f3aa5cf7a8451f6ee7256eec21a578"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo-start.log",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-start.log",
+      "bytes": 133,
+      "sha256": "f4738fa610bb9d766c743d360af36d99aea9d3626f05b863bc890700d6953be6"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo.json",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo.json",
+      "bytes": 60766,
+      "sha256": "d049572d01bb56416dce73272a4eeec4b41feec5b1507ccf521ecd84bc85026f"
+    },
+    {
+      "original": "/tmp/vane-independent-4M9UYI/evidence/todo.md",
+      "exported": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo.md",
+      "bytes": 25236,
+      "sha256": "99d7158a63777f5ad9252f8ea1cac3e3295babc18c12c8cea8e5ad880884d9bb"
+    }
+  ]
+}

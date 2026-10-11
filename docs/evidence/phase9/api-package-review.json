@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "review": "prepublication artifact inspection; not published RC review",
+  "sha256": "b467027e13687831b0f073b4bd07cf140063ae446cec7d9fc7a29bb4964fea29",
+  "files": 193,
+  "apiAndPoliciesExact": true,
+  "canonicalModes": true,
+  "packageVersion": "0.1.0-rc.1",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  }
+}

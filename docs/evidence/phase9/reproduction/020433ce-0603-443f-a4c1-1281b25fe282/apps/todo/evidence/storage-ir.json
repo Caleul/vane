@@ -1,0 +1,968 @@
+{
+  "schema": "vane.postgresql-storage-ir",
+  "version": 1,
+  "provider": {
+    "name": "postgresql",
+    "minimumVersion": 16,
+    "namespace": "dogfood_todo_19760"
+  },
+  "tables": [
+    {
+      "semanticId": "Tasks.Project",
+      "module": "Tasks",
+      "name": "tasks__project",
+      "technical": false,
+      "columns": [
+        {
+          "semanticId": "Tasks.Project.__vane_created_at",
+          "name": "__vane_created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "Tasks.Project.__vane_revision",
+          "name": "__vane_revision",
+          "type": "bigint",
+          "nullable": false,
+          "defaultSql": "0::bigint",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "Tasks.Project.__vane_updated_at",
+          "name": "__vane_updated_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "Tasks.Project.id",
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": false
+        },
+        {
+          "semanticId": "Tasks.Project.name",
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": false
+        }
+      ],
+      "constraints": [
+        {
+          "semanticId": "Tasks.Project.name.minLength",
+          "name": "ck_tasks_project__name__min_length",
+          "kind": "check",
+          "columns": [
+            "name"
+          ],
+          "expression": "char_length(\"name\") >= 1",
+          "references": null
+        },
+        {
+          "semanticId": "Tasks.Project.primaryKey",
+          "name": "pk_tasks_project",
+          "kind": "primaryKey",
+          "columns": [
+            "id"
+          ],
+          "expression": null,
+          "references": null
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "semanticId": "Tasks.Todo",
+      "module": "Tasks",
+      "name": "tasks__todo",
+      "technical": false,
+      "columns": [
+        {
+          "semanticId": "Tasks.Todo.__vane_created_at",
+          "name": "__vane_created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "Tasks.Todo.__vane_revision",
+          "name": "__vane_revision",
+          "type": "bigint",
+          "nullable": false,
+          "defaultSql": "0::bigint",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "Tasks.Todo.__vane_updated_at",
+          "name": "__vane_updated_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "Tasks.Todo.completedUnits",
+          "name": "completed_units",
+          "type": "bigint",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": false
+        },
+        {
+          "semanticId": "Tasks.Todo.id",
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": false
+        },
+        {
+          "semanticId": "Tasks.Todo.projectId",
+          "name": "project_id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": false
+        },
+        {
+          "semanticId": "Tasks.Todo.title",
+          "name": "title",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": false
+        },
+        {
+          "semanticId": "Tasks.Todo.totalUnits",
+          "name": "total_units",
+          "type": "bigint",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": false
+        }
+      ],
+      "constraints": [
+        {
+          "semanticId": "Tasks.Todo.completedUnits.minimum",
+          "name": "ck_tasks_todo__completed_units__minimum",
+          "kind": "check",
+          "columns": [
+            "completed_units"
+          ],
+          "expression": "\"completed_units\" >= 0",
+          "references": null
+        },
+        {
+          "semanticId": "Tasks.Todo.primaryKey",
+          "name": "pk_tasks_todo",
+          "kind": "primaryKey",
+          "columns": [
+            "id"
+          ],
+          "expression": null,
+          "references": null
+        },
+        {
+          "semanticId": "Tasks.Todo.projectId.foreignKey",
+          "name": "fk_tasks_todo__project_id",
+          "kind": "foreignKey",
+          "columns": [
+            "project_id"
+          ],
+          "expression": null,
+          "references": {
+            "table": "tasks__project",
+            "column": "id",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        },
+        {
+          "semanticId": "Tasks.Todo.rule.WithinTotal",
+          "name": "ck_tasks_todo__within_total",
+          "kind": "check",
+          "columns": [
+            "completed_units",
+            "total_units"
+          ],
+          "expression": "(\"completed_units\" <= \"total_units\")",
+          "references": null
+        },
+        {
+          "semanticId": "Tasks.Todo.title.minLength",
+          "name": "ck_tasks_todo__title__min_length",
+          "kind": "check",
+          "columns": [
+            "title"
+          ],
+          "expression": "char_length(\"title\") >= 1",
+          "references": null
+        },
+        {
+          "semanticId": "Tasks.Todo.totalUnits.minimum",
+          "name": "ck_tasks_todo__total_units__minimum",
+          "kind": "check",
+          "columns": [
+            "total_units"
+          ],
+          "expression": "\"total_units\" >= 0",
+          "references": null
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "semanticId": "vane.infrastructure.failures",
+      "module": null,
+      "name": "__vane_failures",
+      "technical": true,
+      "columns": [
+        {
+          "semanticId": "vane.infrastructure.failures.attempt_count",
+          "name": "attempt_count",
+          "type": "bigint",
+          "nullable": false,
+          "defaultSql": "0::bigint",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.available_at",
+          "name": "available_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.causation_id",
+          "name": "causation_id",
+          "type": "uuid",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.code",
+          "name": "code",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.correlation_id",
+          "name": "correlation_id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.details",
+          "name": "details",
+          "type": "jsonb",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.event_id",
+          "name": "event_id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.event_identity",
+          "name": "event_identity",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.failure_id",
+          "name": "failure_id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": "gen_random_uuid()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.lease_owner",
+          "name": "lease_owner",
+          "type": "text",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.lease_token",
+          "name": "lease_token",
+          "type": "uuid",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.lease_until",
+          "name": "lease_until",
+          "type": "timestamptz",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.occurred_at",
+          "name": "occurred_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.resolved_at",
+          "name": "resolved_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.safe_message",
+          "name": "safe_message",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.saga_id",
+          "name": "saga_id",
+          "type": "uuid",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.status",
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": "'pending'::text",
+          "generated": null,
+          "technical": true
+        }
+      ],
+      "constraints": [
+        {
+          "semanticId": "vane.infrastructure.failures.check.status",
+          "name": "ck_vane_failures__status",
+          "kind": "check",
+          "columns": [
+            "status"
+          ],
+          "expression": "\"status\" IN ('pending', 'processing', 'resolved', 'dead')",
+          "references": null
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.primaryKey",
+          "name": "pk_vane_failures",
+          "kind": "primaryKey",
+          "columns": [
+            "failure_id"
+          ],
+          "expression": null,
+          "references": null
+        },
+        {
+          "semanticId": "vane.infrastructure.failures.unique.event_id",
+          "name": "uq_vane_failures__event_id",
+          "kind": "unique",
+          "columns": [
+            "event_id"
+          ],
+          "expression": null,
+          "references": null
+        }
+      ],
+      "indexes": [
+        {
+          "semanticId": "vane.infrastructure.failures.index.claim",
+          "name": "ix_vane_failures__claim",
+          "unique": false,
+          "columns": [
+            "status",
+            "available_at",
+            "lease_until"
+          ],
+          "where": null
+        }
+      ]
+    },
+    {
+      "semanticId": "vane.infrastructure.mailbox",
+      "module": null,
+      "name": "__vane_mailbox",
+      "technical": true,
+      "columns": [
+        {
+          "semanticId": "vane.infrastructure.mailbox.completed_at",
+          "name": "completed_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.event_id",
+          "name": "event_id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.event_identity",
+          "name": "event_identity",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.fingerprint",
+          "name": "fingerprint",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.lease_owner",
+          "name": "lease_owner",
+          "type": "text",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.lease_token",
+          "name": "lease_token",
+          "type": "uuid",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.lease_until",
+          "name": "lease_until",
+          "type": "timestamptz",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.payload",
+          "name": "payload",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.received_at",
+          "name": "received_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.result",
+          "name": "result",
+          "type": "jsonb",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.status",
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": "'processing'::text",
+          "generated": null,
+          "technical": true
+        }
+      ],
+      "constraints": [
+        {
+          "semanticId": "vane.infrastructure.mailbox.check.status",
+          "name": "ck_vane_mailbox__status",
+          "kind": "check",
+          "columns": [
+            "status"
+          ],
+          "expression": "\"status\" IN ('processing', 'success', 'fail')",
+          "references": null
+        },
+        {
+          "semanticId": "vane.infrastructure.mailbox.primaryKey",
+          "name": "pk_vane_mailbox",
+          "kind": "primaryKey",
+          "columns": [
+            "event_id"
+          ],
+          "expression": null,
+          "references": null
+        }
+      ],
+      "indexes": [
+        {
+          "semanticId": "vane.infrastructure.mailbox.index.lease",
+          "name": "ix_vane_mailbox__lease",
+          "unique": false,
+          "columns": [
+            "status",
+            "lease_until"
+          ],
+          "where": null
+        }
+      ]
+    },
+    {
+      "semanticId": "vane.infrastructure.migrations",
+      "module": null,
+      "name": "__vane_migrations",
+      "technical": true,
+      "columns": [
+        {
+          "semanticId": "vane.infrastructure.migrations.applied_at",
+          "name": "applied_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "clock_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.migrations.applied_order",
+          "name": "applied_order",
+          "type": "bigint",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": "identity",
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.migrations.approval_reason",
+          "name": "approval_reason",
+          "type": "text",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.migrations.classification",
+          "name": "classification",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.migrations.plan_hash",
+          "name": "plan_hash",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.migrations.source_hash",
+          "name": "source_hash",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.migrations.sql_hash",
+          "name": "sql_hash",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.migrations.target_hash",
+          "name": "target_hash",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        }
+      ],
+      "constraints": [
+        {
+          "semanticId": "vane.infrastructure.migrations.primaryKey",
+          "name": "pk_vane_migrations",
+          "kind": "primaryKey",
+          "columns": [
+            "plan_hash"
+          ],
+          "expression": null,
+          "references": null
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "semanticId": "vane.infrastructure.outbox",
+      "module": null,
+      "name": "__vane_outbox",
+      "technical": true,
+      "columns": [
+        {
+          "semanticId": "vane.infrastructure.outbox.attempt_count",
+          "name": "attempt_count",
+          "type": "bigint",
+          "nullable": false,
+          "defaultSql": "0::bigint",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.available_at",
+          "name": "available_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.causation_id",
+          "name": "causation_id",
+          "type": "uuid",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.correlation_id",
+          "name": "correlation_id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.event_id",
+          "name": "event_id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.event_identity",
+          "name": "event_identity",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.fingerprint",
+          "name": "fingerprint",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.last_error",
+          "name": "last_error",
+          "type": "text",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.lease_owner",
+          "name": "lease_owner",
+          "type": "text",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.lease_token",
+          "name": "lease_token",
+          "type": "uuid",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.lease_until",
+          "name": "lease_until",
+          "type": "timestamptz",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.message_id",
+          "name": "message_id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": "gen_random_uuid()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.occurred_at",
+          "name": "occurred_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.payload",
+          "name": "payload",
+          "type": "jsonb",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.published_at",
+          "name": "published_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.saga_id",
+          "name": "saga_id",
+          "type": "uuid",
+          "nullable": true,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.status",
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": "'pending'::text",
+          "generated": null,
+          "technical": true
+        }
+      ],
+      "constraints": [
+        {
+          "semanticId": "vane.infrastructure.outbox.check.status",
+          "name": "ck_vane_outbox__status",
+          "kind": "check",
+          "columns": [
+            "status"
+          ],
+          "expression": "\"status\" IN ('pending', 'publishing', 'published', 'failed')",
+          "references": null
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.primaryKey",
+          "name": "pk_vane_outbox",
+          "kind": "primaryKey",
+          "columns": [
+            "message_id"
+          ],
+          "expression": null,
+          "references": null
+        }
+      ],
+      "indexes": [
+        {
+          "semanticId": "vane.infrastructure.outbox.index.claim",
+          "name": "ix_vane_outbox__claim",
+          "unique": false,
+          "columns": [
+            "status",
+            "available_at",
+            "lease_until"
+          ],
+          "where": null
+        },
+        {
+          "semanticId": "vane.infrastructure.outbox.index.event",
+          "name": "ix_vane_outbox__event",
+          "unique": false,
+          "columns": [
+            "event_id"
+          ],
+          "where": null
+        }
+      ]
+    },
+    {
+      "semanticId": "vane.infrastructure.sagas",
+      "module": null,
+      "name": "__vane_sagas",
+      "technical": true,
+      "columns": [
+        {
+          "semanticId": "vane.infrastructure.sagas.created_at",
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.sagas.revision",
+          "name": "revision",
+          "type": "bigint",
+          "nullable": false,
+          "defaultSql": "0::bigint",
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.sagas.saga_id",
+          "name": "saga_id",
+          "type": "uuid",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.sagas.saga_identity",
+          "name": "saga_identity",
+          "type": "text",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.sagas.state",
+          "name": "state",
+          "type": "jsonb",
+          "nullable": false,
+          "defaultSql": null,
+          "generated": null,
+          "technical": true
+        },
+        {
+          "semanticId": "vane.infrastructure.sagas.updated_at",
+          "name": "updated_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "defaultSql": "transaction_timestamp()",
+          "generated": null,
+          "technical": true
+        }
+      ],
+      "constraints": [
+        {
+          "semanticId": "vane.infrastructure.sagas.primaryKey",
+          "name": "pk_vane_sagas",
+          "kind": "primaryKey",
+          "columns": [
+            "saga_id"
+          ],
+          "expression": null,
+          "references": null
+        }
+      ],
+      "indexes": [
+        {
+          "semanticId": "vane.infrastructure.sagas.index.runnable",
+          "name": "ix_vane_sagas__runnable",
+          "unique": false,
+          "columns": [
+            "saga_identity",
+            "updated_at",
+            "saga_id"
+          ],
+          "where": "(state ->> 'status') IN ('running', 'compensating')"
+        }
+      ]
+    }
+  ]
+}

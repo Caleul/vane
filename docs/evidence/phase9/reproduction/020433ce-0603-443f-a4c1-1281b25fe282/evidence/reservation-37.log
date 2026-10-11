@@ -1,0 +1,13 @@
+
+> test
+> node test.mjs
+
+reservation RB-AWS: N/A
+reservation RB-01: PASS
+reservation RB-02: PASS
+reservation RB-03: PASS
+reservation RB-04: PASS
+reservation RB-05: PASS
+reservation RB-06: PASS
+reservation RB-07: PASS
+reservation RB-08: PASS

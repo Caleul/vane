@@ -1,0 +1,659 @@
+{
+  "status": "PASS",
+  "partial": false,
+  "runId": "020433ce-0603-443f-a4c1-1281b25fe282",
+  "tarballSha256": "b467027e13687831b0f073b4bd07cf140063ae446cec7d9fc7a29bb4964fea29",
+  "provenance": {
+    "createdAt": "2026-10-11T01:19:00.182Z",
+    "package": "@lilka/vane",
+    "version": "0.1.0-rc.1",
+    "baselineCommit": null,
+    "expectedTree": null,
+    "node": "v24.19.0",
+    "commit": "216b1557af89dbb77a0af3e51a727fcf28469561",
+    "tree": "a5c41e948601dbce94e6c49f3187f48a54151ba0",
+    "sha256": "b467027e13687831b0f073b4bd07cf140063ae446cec7d9fc7a29bb4964fea29",
+    "docs": {
+      "README.md": "045011012febcd4b2ea93f944cf63ce91a5442e8516d925503d982d35fae76a4",
+      "examples/sales-billing/README.md": "f57c1f9c49f0abb5c84bff83865367f5929e77d4f86126a037e35f7884a71f12",
+      "docs/operations.md": "c8c075d350e906c2a09b349135ab95c0d11bacbeae29fbe345794c4c451e2536",
+      "docs/semantic-compiler.md": "8192cced39feb712b7585212a8f31492fcf4d17a3464e6bebd4defdfbf6e47c9",
+      "docs/service-configuration.md": "55e9c5a5641a9343c6db0585b803a4a0441c5392c6d9acc1da541557852c2b58",
+      "docs/sagas.md": "54d2ceb7ce6f3250bcac315cb9c8cf2937ae5edf1ef9f42fe20e212f5f6c43f9"
+    }
+  },
+  "docsHashes": {
+    "docs/compatibility.md": "05fc43bb504a68613537c965750e08a4b5f74273101f223536d8d11b3b7fffa7",
+    "docs/conformance-findings.md": "6ae52f977c89b7d5673c84f78a5abff68b5f2e4ac14543e13147db4c168f2f03",
+    "docs/conformance-matrix.md": "a3a2a0d33823c6d1d899905d539bdfd57007474fe405900e2bb8ef2261883f5f",
+    "docs/conformance-performance.md": "77f2d04a54cc8f3c3ca36c8fc25057dec7502b88cf7b407d3efcd33d8db6646a",
+    "docs/conformance.md": "1df5054491d1b2e3f6209760a5f153db57d96d372e02c59dfe4a5e35e201e039",
+    "docs/operations.md": "c8c075d350e906c2a09b349135ab95c0d11bacbeae29fbe345794c4c451e2536",
+    "docs/phase-1-completion.md": "19c2e84c0282b4620117bcc5b145876638523b2e9fda3f017c48c7442eedcada",
+    "docs/phase-2-completion.md": "da176a9e7b14342df81b0318d71810ca6202c081da3a96f60c082361e6c86e61",
+    "docs/phase-2-design.md": "6b64f520c27b3e2a0dc43ce028d8d215253eec58fc72df6db53b72365991adae",
+    "docs/phase-3-completion.md": "5975c6503d4fd887b6a9ff9a7622a0225a5c31aa11dc3fe2b84582f2e2464ac7",
+    "docs/phase-3-design.md": "146d00162a9b4d9e956d5cb0922f65dd8d2bb1d0444145695e51a36a3b115677",
+    "docs/phase-4-completion.md": "33759f6bf1a60b07bdfdf7cc5dd926d4f299ee55078a5092392c1375bda678b9",
+    "docs/phase-4-design.md": "a02ff9aa75a3f184f4ebea258446f49b7512aecfb914b58595695c13e0ec1fb9",
+    "docs/phase-5-completion.md": "8377cbd78ab1fefaef5eb78f3c107d841abc0582d8ab4e686d3cd82efc134c8d",
+    "docs/phase-5-design.md": "f65bdd7d677890b34b8e9299b47085d3cad9013f7902137579fb5a8ce31fa8bb",
+    "docs/phase-6-completion.md": "8cdc38a277e02c43662ab2a81a95c77571031c3b341016e0f0d8f80f11b4281c",
+    "docs/phase-6-design.md": "5807e00cbfe07a28befc2db120add8d981adf0ab19573e8b36190f8bb8badf25",
+    "docs/phase-7-representation.md": "d9d7a7c62caa1e5024493eea7fa3e2348d1e86264206f16c0269ee611f63d1b0",
+    "docs/phase-8-completion.md": "a4c2b20102ad6af4fc2b1686697170406808ccb87bfc54d82110979a6fbd00fe",
+    "docs/phase-8-plan.md": "293d44e818e8b2384d3eaa9eecc6cfbaa8a89c9faecd55226d9282704d655505",
+    "docs/phase-9-plan.md": "066a79dc1f1307405f9cc75302087f6a7256e98de4223c7d6cdd894bed537b2a",
+    "docs/phase-9-release.md": "4bac66634605778841630b4ff1cd933b47af74d01fd406522293e7380fa19722",
+    "docs/phase-9-security.md": "77ee4ff424925970433758c1f4442c0ea0cba4fba772fd3d620e242d60f84926",
+    "docs/phase-9-supply-chain.md": "e9b2f853ccd4891563b71818991638e147eb2c51ef543904ec30b68aede9b792",
+    "docs/postgresql.md": "e4a272777ea702c8ef24b97cef0b6633d63158647a7f62c6bfc986eb8dd5c770",
+    "docs/public-api.md": "b9b30d21e6c731349569dc03d6eafb14b969791017d87f6bdeeea881009c8a68",
+    "docs/rc-publication.md": "3227f42000041b156533ac6ba293efe5ff364ea16dbc971f685b029a8b183799",
+    "docs/sagas.md": "54d2ceb7ce6f3250bcac315cb9c8cf2937ae5edf1ef9f42fe20e212f5f6c43f9",
+    "docs/semantic-compiler.md": "8192cced39feb712b7585212a8f31492fcf4d17a3464e6bebd4defdfbf6e47c9",
+    "docs/service-configuration.md": "55e9c5a5641a9343c6db0585b803a4a0441c5392c6d9acc1da541557852c2b58",
+    "README.md": "045011012febcd4b2ea93f944cf63ce91a5442e8516d925503d982d35fae76a4"
+  },
+  "sourceHashes": {
+    "todo": {
+      "cleanup.mjs": "8acda240df23579343616d167249663b525ed3fa032728a1abe7521e0c25ec89",
+      "configuration.mjs": "7241d30a8c5d39e0c97ff74b33fc9d3d7bd013156fb447b853cb98fd4719e49e",
+      "diagnose.mjs": "3a9d044408d37b99d96571c347888ef1858cdb57957bdcb74bb66d946b9fd759",
+      "migrate.mjs": "b82accd454d0ec1727f6ca3b6feb31fd8669140972b2d9cb835bdd2f0e97a9c7",
+      "model.vane.ts": "884d0f27fcc9bdc7ce8c3232fb570f52b85b2a2261226693008497e6e0c8fe64",
+      "package-lock.json": "17e012d6851f9cf3291efccb8ada289cd7f942157fa7ed94c2b0dcce736524a2",
+      "package.json": "5896966406bf5d1888a661102795f42dafd3639b4adfe80e86491a2297d2a08e",
+      "README.md": "614a4f78ddd35a601bced40a22fc66403c2170a04c26898b5b5246dacc828672",
+      "server.mjs": "1e3afa57c0cd6af86e2ad60d0d8c14e1dec7f67045405af4f06a9f3d455df4d8",
+      "test.mjs": "df70e4cb32f58f5c1c6fef8503c3435e063f53bc7d797164a182d2634dbc3a1d",
+      "tsconfig.json": "319ccac57383ce6cd95ccd9197eefe8e71dbf7d95a9606cb3f8d6dd23b0c4750",
+      "types.ts": "7a10f522201f69d22592d6257e41d448a2385920116d75e80279a2e0bbd2bfb6"
+    },
+    "commerce": {
+      "commerce.vane.ts": "282bba6b6c2b07ad92b084d575ce2aade65242b509d7f4a95f2932e14f6ef996",
+      "configuration.mjs": "ed34fbe1e00bdce13c526e0650fc32d6f1e3fd1e05d445bb540ac0833daae748",
+      "friction.json": "6d01352af1560b2dd86bc04c11405bcc5bcac3a91f304de631bf755725a48f72",
+      "gateway.mjs": "c1f339a300edef8818d90bd2eeb2cb8e917f5d0ed1f423d4e86006db5fa4436e",
+      "lib.mjs": "bdbcf8c2bdec4d187c906e3c29959ec20fd9995cea7ec1b6baa5cb7c331a5d2d",
+      "model.mjs": "f0961a6f6753674786f6882bdc1215b4524dd7b4826bb20613a187a9bacc198f",
+      "package-lock.json": "20f74475c236dece5ad76e02eb3e3a33584f2a2032820a88dacbcf1536e23257",
+      "package.json": "5ec93b279bef7869f38004cc0058160b5a2b5502b9d549d063ac493646d8687c",
+      "README.md": "7e122878e519eeb556a3574c8040713bf1aa0a52e1cbcd92f9ccc3d4fd6a5bfb",
+      "scripts.mjs": "96c0f1a978ace51fd40c3b5f2187e9625d9c26494461b5ca9c41685e92b41d89",
+      "server.mjs": "c5127bf3edb702d74220531c02a810c740314bdc80cb2290a974f1d7f5fae151",
+      "test.mjs": "c8dc26a7df445b5fec928b13d37d8618877683bb5efa1295f183e727f67a4dc0",
+      "tsconfig.json": "2d3964c70a5226d78e038bfacc9c77162888324b44cb417b534cfda46e56caad"
+    },
+    "reservation": {
+      "booking.vane.ts": "f146e05c03341b0f3d7b202895b836de25fc8ab6abd2a339646f840870653f74",
+      "configuration.mjs": "9d277a0616550c920c235e677341005181f56d95bca1efc122fc25169c191c7a",
+      "consultations.json": "7df067114a8437259f85ba233584197bcdd911f6a346e9d30b977fb1eb990a96",
+      "gateway.mjs": "fd3fe83b48e8199eb093030762f04806c6f3b96e0aa89c9a5b146b9d7b7ac7ee",
+      "migrate.mjs": "b1242f1ed4d2e8c4690b693080377f8468b8c3f941da5aa8c2f54e8bc37912c8",
+      "package-lock.json": "972d204da68ae462f973be7eb41068447820aae684d5d223f12e1c0a1d6253bf",
+      "package.json": "167377b7bf4823b2b79f4812318c4df195450483c62988329524bfeead625186",
+      "README.md": "9dc7172320190dea7524b2170b0b275225c6cdda72c762dd0eaef92ec7f572f2",
+      "server.mjs": "1101262399ff8d472b8d685add2b023d230b381604966751629c1e43e5ba97c1",
+      "test.mjs": "e255a4f471ecf45d97f1ac01b07b16160a0e93b757895b1ccb36402ff394d8eb",
+      "tsconfig.json": "0797b978f13526e594ffe082f2df6cd288183ff7508c5ca153fe9fa1fe38817e"
+    }
+  },
+  "startedAt": "2026-10-11T01:19:51.877Z",
+  "finishedAt": "2026-10-11T01:22:21.367Z",
+  "destination": "/tmp/vane-independent-4M9UYI",
+  "node": "v24.19.0",
+  "coreSourceConsultations": 0,
+  "method": "Independent reviewer supplied only external consumer files, tarball and public documentation. README install/build/migration/start/test/cleanup commands executed from fresh directories. Tests own real HTTP processes. TD-06 final coverage composes package fixture and this independent reproduction.",
+  "apps": [
+    {
+      "app": "todo",
+      "status": "PASS",
+      "startedAt": "2026-10-11T01:19:51.943Z",
+      "coreSourceConsultations": 0,
+      "sourceHashes": {
+        "cleanup.mjs": "8acda240df23579343616d167249663b525ed3fa032728a1abe7521e0c25ec89",
+        "configuration.mjs": "7241d30a8c5d39e0c97ff74b33fc9d3d7bd013156fb447b853cb98fd4719e49e",
+        "diagnose.mjs": "3a9d044408d37b99d96571c347888ef1858cdb57957bdcb74bb66d946b9fd759",
+        "migrate.mjs": "b82accd454d0ec1727f6ca3b6feb31fd8669140972b2d9cb835bdd2f0e97a9c7",
+        "model.vane.ts": "884d0f27fcc9bdc7ce8c3232fb570f52b85b2a2261226693008497e6e0c8fe64",
+        "package-lock.json": "17e012d6851f9cf3291efccb8ada289cd7f942157fa7ed94c2b0dcce736524a2",
+        "package.json": "5896966406bf5d1888a661102795f42dafd3639b4adfe80e86491a2297d2a08e",
+        "README.md": "614a4f78ddd35a601bced40a22fc66403c2170a04c26898b5b5246dacc828672",
+        "server.mjs": "1e3afa57c0cd6af86e2ad60d0d8c14e1dec7f67045405af4f06a9f3d455df4d8",
+        "test.mjs": "df70e4cb32f58f5c1c6fef8503c3435e063f53bc7d797164a182d2634dbc3a1d",
+        "tsconfig.json": "319ccac57383ce6cd95ccd9197eefe8e71dbf7d95a9606cb3f8d6dd23b0c4750",
+        "types.ts": "7a10f522201f69d22592d6257e41d448a2385920116d75e80279a2e0bbd2bfb6"
+      },
+      "cli": {
+        "requirements": ["VR-DX-007"],
+        "helpExitCode": 0,
+        "invalidCommandExitCode": 1,
+        "validateExitCode": 0,
+        "friction": "--help prints usage and exits 0; Phase 8 DX/P2 friction resolved"
+      },
+      "testCases": [
+        {
+          "id": "TD-01",
+          "status": "PASS"
+        },
+        {
+          "id": "TD-02",
+          "status": "PASS"
+        },
+        {
+          "id": "TD-03",
+          "status": "PASS"
+        },
+        {
+          "id": "TD-04",
+          "status": "PASS"
+        },
+        {
+          "id": "TD-05",
+          "status": "PASS"
+        },
+        {
+          "id": "TD-06-package",
+          "status": "PASS"
+        },
+        {
+          "id": "TD-AWS",
+          "status": "N/A"
+        }
+      ],
+      "firstFunctionalScenario": "TD-01",
+      "firstFunctionalTimestamp": "2026-10-11T01:19:58.022Z",
+      "timeFromTestStartToFirstFunctionalEventViewMs": 1922,
+      "timeToFirstFunctionalEventViewMs": 6079,
+      "reproductionDurationMs": 14634,
+      "finishedAt": "2026-10-11T01:20:06.672Z"
+    },
+    {
+      "app": "commerce",
+      "status": "PASS",
+      "startedAt": "2026-10-11T01:20:06.672Z",
+      "coreSourceConsultations": 0,
+      "sourceHashes": {
+        "commerce.vane.ts": "282bba6b6c2b07ad92b084d575ce2aade65242b509d7f4a95f2932e14f6ef996",
+        "configuration.mjs": "ed34fbe1e00bdce13c526e0650fc32d6f1e3fd1e05d445bb540ac0833daae748",
+        "friction.json": "6d01352af1560b2dd86bc04c11405bcc5bcac3a91f304de631bf755725a48f72",
+        "gateway.mjs": "c1f339a300edef8818d90bd2eeb2cb8e917f5d0ed1f423d4e86006db5fa4436e",
+        "lib.mjs": "bdbcf8c2bdec4d187c906e3c29959ec20fd9995cea7ec1b6baa5cb7c331a5d2d",
+        "model.mjs": "f0961a6f6753674786f6882bdc1215b4524dd7b4826bb20613a187a9bacc198f",
+        "package-lock.json": "20f74475c236dece5ad76e02eb3e3a33584f2a2032820a88dacbcf1536e23257",
+        "package.json": "5ec93b279bef7869f38004cc0058160b5a2b5502b9d549d063ac493646d8687c",
+        "README.md": "7e122878e519eeb556a3574c8040713bf1aa0a52e1cbcd92f9ccc3d4fd6a5bfb",
+        "scripts.mjs": "96c0f1a978ace51fd40c3b5f2187e9625d9c26494461b5ca9c41685e92b41d89",
+        "server.mjs": "c5127bf3edb702d74220531c02a810c740314bdc80cb2290a974f1d7f5fae151",
+        "test.mjs": "c8dc26a7df445b5fec928b13d37d8618877683bb5efa1295f183e727f67a4dc0",
+        "tsconfig.json": "2d3964c70a5226d78e038bfacc9c77162888324b44cb417b534cfda46e56caad"
+      },
+      "cli": {
+        "requirements": ["VR-DX-007"],
+        "helpExitCode": 0,
+        "invalidCommandExitCode": 1,
+        "validateExitCode": 0,
+        "friction": "--help prints usage and exits 0; Phase 8 DX/P2 friction resolved"
+      },
+      "testCases": [
+        {
+          "id": "CM-01",
+          "status": "PASS"
+        },
+        {
+          "id": "CM-02",
+          "status": "PASS"
+        },
+        {
+          "id": "CM-03",
+          "status": "PASS"
+        },
+        {
+          "id": "CM-04",
+          "status": "PASS"
+        },
+        {
+          "id": "CM-05",
+          "status": "PASS"
+        },
+        {
+          "id": "CM-06",
+          "status": "PASS"
+        },
+        {
+          "id": "CM-07",
+          "status": "PASS"
+        }
+      ],
+      "firstFunctionalScenario": "CM-01",
+      "firstFunctionalTimestamp": "2026-10-11T01:20:14.534Z",
+      "timeFromTestStartToFirstFunctionalEventViewMs": 2649,
+      "timeToFirstFunctionalEventViewMs": 7862,
+      "reproductionDurationMs": 41168,
+      "finishedAt": "2026-10-11T01:20:33.262Z"
+    },
+    {
+      "app": "reservation",
+      "status": "PASS",
+      "startedAt": "2026-10-11T01:20:33.262Z",
+      "coreSourceConsultations": 0,
+      "sourceHashes": {
+        "booking.vane.ts": "f146e05c03341b0f3d7b202895b836de25fc8ab6abd2a339646f840870653f74",
+        "configuration.mjs": "9d277a0616550c920c235e677341005181f56d95bca1efc122fc25169c191c7a",
+        "consultations.json": "7df067114a8437259f85ba233584197bcdd911f6a346e9d30b977fb1eb990a96",
+        "gateway.mjs": "fd3fe83b48e8199eb093030762f04806c6f3b96e0aa89c9a5b146b9d7b7ac7ee",
+        "migrate.mjs": "b1242f1ed4d2e8c4690b693080377f8468b8c3f941da5aa8c2f54e8bc37912c8",
+        "package-lock.json": "972d204da68ae462f973be7eb41068447820aae684d5d223f12e1c0a1d6253bf",
+        "package.json": "167377b7bf4823b2b79f4812318c4df195450483c62988329524bfeead625186",
+        "README.md": "9dc7172320190dea7524b2170b0b275225c6cdda72c762dd0eaef92ec7f572f2",
+        "server.mjs": "1101262399ff8d472b8d685add2b023d230b381604966751629c1e43e5ba97c1",
+        "test.mjs": "e255a4f471ecf45d97f1ac01b07b16160a0e93b757895b1ccb36402ff394d8eb",
+        "tsconfig.json": "0797b978f13526e594ffe082f2df6cd288183ff7508c5ca153fe9fa1fe38817e"
+      },
+      "cli": {
+        "requirements": ["VR-DX-007"],
+        "helpExitCode": 0,
+        "invalidCommandExitCode": 1,
+        "validateExitCode": 0,
+        "friction": "--help prints usage and exits 0; Phase 8 DX/P2 friction resolved"
+      },
+      "testCases": [
+        {
+          "id": "RB-AWS",
+          "status": "N/A"
+        },
+        {
+          "id": "RB-01",
+          "status": "PASS"
+        },
+        {
+          "id": "RB-02",
+          "status": "PASS"
+        },
+        {
+          "id": "RB-03",
+          "status": "PASS"
+        },
+        {
+          "id": "RB-04",
+          "status": "PASS"
+        },
+        {
+          "id": "RB-05",
+          "status": "PASS"
+        },
+        {
+          "id": "RB-06",
+          "status": "PASS"
+        },
+        {
+          "id": "RB-07",
+          "status": "PASS"
+        },
+        {
+          "id": "RB-08",
+          "status": "PASS"
+        }
+      ],
+      "firstFunctionalScenario": "RB-01",
+      "firstFunctionalTimestamp": "2026-10-11T01:20:38.619Z",
+      "timeFromTestStartToFirstFunctionalEventViewMs": 1763,
+      "timeToFirstFunctionalEventViewMs": 5357,
+      "reproductionDurationMs": 149074,
+      "finishedAt": "2026-10-11T01:22:21.367Z"
+    }
+  ],
+  "commands": [
+    {
+      "app": "todo",
+      "command": "export VANE_DOGFOOD_DATABASE_URL=postgresql://vane:vane-local-only@127.0.0.1:55432/vane_dogfood",
+      "startedAt": "2026-10-11T01:19:51.959Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "todo",
+      "command": "npm ci",
+      "startedAt": "2026-10-11T01:19:51.959Z",
+      "finishedAt": "2026-10-11T01:19:52.457Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-1.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-1.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run typecheck",
+      "startedAt": "2026-10-11T01:19:52.457Z",
+      "finishedAt": "2026-10-11T01:19:53.356Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-2.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-2.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run build",
+      "startedAt": "2026-10-11T01:19:53.356Z",
+      "finishedAt": "2026-10-11T01:19:54.402Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-3.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-3.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:19:54.402Z",
+      "finishedAt": "2026-10-11T01:19:54.563Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-4.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-4.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run migrate",
+      "startedAt": "2026-10-11T01:19:54.563Z",
+      "finishedAt": "2026-10-11T01:19:55.049Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-5.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-5.log"
+    },
+    {
+      "app": "todo",
+      "command": "./node_modules/.bin/entity-event --help",
+      "startedAt": "2026-10-11T01:19:55.049Z",
+      "finishedAt": "2026-10-11T01:19:55.150Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-6.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-6.log"
+    },
+    {
+      "app": "todo",
+      "command": "./node_modules/.bin/entity-event unknown-dogfood-command",
+      "startedAt": "2026-10-11T01:19:55.150Z",
+      "finishedAt": "2026-10-11T01:19:55.237Z",
+      "exitCode": 1,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-7.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-7.log"
+    },
+    {
+      "app": "todo",
+      "command": "./node_modules/.bin/entity-event validate --config configuration.mjs --profile test --json",
+      "startedAt": "2026-10-11T01:19:55.237Z",
+      "finishedAt": "2026-10-11T01:19:55.610Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-8.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-8.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm start",
+      "startedAt": "2026-10-11T01:19:55.610Z",
+      "finishedAt": "2026-10-11T01:19:56.100Z",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "ready": true,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-start.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-start.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm test",
+      "startedAt": "2026-10-11T01:19:56.100Z",
+      "finishedAt": "2026-10-11T01:20:06.510Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-10.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-10.log"
+    },
+    {
+      "app": "todo",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:20:06.511Z",
+      "finishedAt": "2026-10-11T01:20:06.672Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/todo-11.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/todo-11.log"
+    },
+    {
+      "app": "commerce",
+      "command": "export VANE_DOGFOOD_DATABASE_URL=postgresql://vane:vane-local-only@127.0.0.1:55432/vane_dogfood",
+      "startedAt": "2026-10-11T01:20:06.677Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "commerce",
+      "command": "export VANE_DOGFOOD_MOTO_URL=http://127.0.0.1:55000",
+      "startedAt": "2026-10-11T01:20:06.677Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "commerce",
+      "command": "export AWS_EC2_METADATA_DISABLED=true",
+      "startedAt": "2026-10-11T01:20:06.677Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "commerce",
+      "command": "npm ci",
+      "startedAt": "2026-10-11T01:20:06.677Z",
+      "finishedAt": "2026-10-11T01:20:07.794Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-15.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-15.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run typecheck",
+      "startedAt": "2026-10-11T01:20:07.794Z",
+      "finishedAt": "2026-10-11T01:20:08.576Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-16.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-16.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run build",
+      "startedAt": "2026-10-11T01:20:08.576Z",
+      "finishedAt": "2026-10-11T01:20:09.276Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-17.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-17.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:20:09.276Z",
+      "finishedAt": "2026-10-11T01:20:09.730Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-18.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-18.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run migrate",
+      "startedAt": "2026-10-11T01:20:09.730Z",
+      "finishedAt": "2026-10-11T01:20:10.623Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-19.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-19.log"
+    },
+    {
+      "app": "commerce",
+      "command": "./node_modules/.bin/entity-event --help",
+      "startedAt": "2026-10-11T01:20:10.623Z",
+      "finishedAt": "2026-10-11T01:20:10.706Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-20.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-20.log"
+    },
+    {
+      "app": "commerce",
+      "command": "./node_modules/.bin/entity-event unknown-dogfood-command",
+      "startedAt": "2026-10-11T01:20:10.706Z",
+      "finishedAt": "2026-10-11T01:20:10.787Z",
+      "exitCode": 1,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-21.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-21.log"
+    },
+    {
+      "app": "commerce",
+      "command": "./node_modules/.bin/entity-event validate --config configuration.mjs --profile test --json",
+      "startedAt": "2026-10-11T01:20:10.788Z",
+      "finishedAt": "2026-10-11T01:20:11.091Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-22.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-22.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm start",
+      "startedAt": "2026-10-11T01:20:11.091Z",
+      "finishedAt": "2026-10-11T01:20:11.885Z",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "ready": true,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-start.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-start.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm test",
+      "startedAt": "2026-10-11T01:20:11.885Z",
+      "finishedAt": "2026-10-11T01:20:33.043Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-24.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-24.log"
+    },
+    {
+      "app": "commerce",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:20:33.045Z",
+      "finishedAt": "2026-10-11T01:20:33.262Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/commerce-25.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/commerce-25.log"
+    },
+    {
+      "app": "reservation",
+      "command": "export VANE_DOGFOOD_DATABASE_URL=postgresql://vane:vane-local-only@127.0.0.1:55432/vane_dogfood",
+      "startedAt": "2026-10-11T01:20:33.266Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "reservation",
+      "command": "export CONFIRMATION_URL=http://127.0.0.1:1",
+      "startedAt": "2026-10-11T01:20:33.266Z",
+      "exitCode": 0,
+      "source": "Versioned consumer README"
+    },
+    {
+      "app": "reservation",
+      "command": "npm ci",
+      "startedAt": "2026-10-11T01:20:33.266Z",
+      "finishedAt": "2026-10-11T01:20:33.681Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-28.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-28.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run typecheck",
+      "startedAt": "2026-10-11T01:20:33.681Z",
+      "finishedAt": "2026-10-11T01:20:34.454Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-29.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-29.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run build",
+      "startedAt": "2026-10-11T01:20:34.454Z",
+      "finishedAt": "2026-10-11T01:20:35.139Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-30.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-30.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:20:35.139Z",
+      "finishedAt": "2026-10-11T01:20:35.533Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-31.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-31.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run migrate",
+      "startedAt": "2026-10-11T01:20:35.533Z",
+      "finishedAt": "2026-10-11T01:20:35.956Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-32.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-32.log"
+    },
+    {
+      "app": "reservation",
+      "command": "./node_modules/.bin/entity-event --help",
+      "startedAt": "2026-10-11T01:20:35.956Z",
+      "finishedAt": "2026-10-11T01:20:36.035Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-33.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-33.log"
+    },
+    {
+      "app": "reservation",
+      "command": "./node_modules/.bin/entity-event unknown-dogfood-command",
+      "startedAt": "2026-10-11T01:20:36.035Z",
+      "finishedAt": "2026-10-11T01:20:36.115Z",
+      "exitCode": 1,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-34.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-34.log"
+    },
+    {
+      "app": "reservation",
+      "command": "./node_modules/.bin/entity-event validate --config configuration.mjs --profile test --json",
+      "startedAt": "2026-10-11T01:20:36.115Z",
+      "finishedAt": "2026-10-11T01:20:36.427Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-35.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-35.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm start",
+      "startedAt": "2026-10-11T01:20:36.427Z",
+      "finishedAt": "2026-10-11T01:20:36.856Z",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "ready": true,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-start.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-start.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm test",
+      "startedAt": "2026-10-11T01:20:36.856Z",
+      "finishedAt": "2026-10-11T01:22:20.950Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-37.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-37.log"
+    },
+    {
+      "app": "reservation",
+      "command": "npm run cleanup",
+      "startedAt": "2026-10-11T01:22:20.951Z",
+      "finishedAt": "2026-10-11T01:22:21.367Z",
+      "exitCode": 0,
+      "log": "/tmp/vane-independent-4M9UYI/evidence/reservation-38.log",
+      "exportedLog": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/evidence/reservation-38.log"
+    }
+  ],
+  "evidenceExport": {
+    "index": "evidence/reproduction/020433ce-0603-443f-a4c1-1281b25fe282/index.json",
+    "files": 49,
+    "exportedAt": "2026-10-11T01:24:37.798Z"
+  }
+}

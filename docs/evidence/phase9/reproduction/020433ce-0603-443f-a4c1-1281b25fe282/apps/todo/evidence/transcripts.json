@@ -1,0 +1,670 @@
+[
+  {
+    "timestamp": "2026-10-11T01:19:57.354Z",
+    "method": "POST",
+    "path": "/tasks/events/Project.Create",
+    "body": {
+      "id": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "name": "Dogfood"
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"5cf74b1e-d1ed-4120-aa86-a2cefd34d62d\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.413Z",
+    "method": "GET",
+    "path": "/tasks/sagas/5cf74b1e-d1ed-4120-aa86-a2cefd34d62d",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"name\":\"Dogfood\"}],\"kind\":\"view\",\"view\":\"ProjectCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.418Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "initial-alpha",
+      "totalUnits": 5,
+      "completedUnits": 0
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"0949d471-8200-445f-b8b1-a5fbe4a453de\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.472Z",
+    "method": "GET",
+    "path": "/tasks/sagas/0949d471-8200-445f-b8b1-a5fbe4a453de",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"title\":\"initial-alpha\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":5,\"completedUnits\":0}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.478Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Complete",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb",
+      "units": 2
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"2f7e0130-76c6-4fa2-b7d9-408b5d4e5f69\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.532Z",
+    "method": "GET",
+    "path": "/tasks/sagas/2f7e0130-76c6-4fa2-b7d9-408b5d4e5f69",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"title\":\"initial-alpha\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":5,\"completedUnits\":2}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.536Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Update",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb",
+      "title": "alpha",
+      "totalUnits": 6
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"5c4f8a9c-f84c-4a31-8d41-1bbca709abe6\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.589Z",
+    "method": "GET",
+    "path": "/tasks/sagas/5c4f8a9c-f84c-4a31-8d41-1bbca709abe6",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"title\":\"alpha\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":6,\"completedUnits\":2}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.592Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoCard",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb"
+    },
+    "status": 200,
+    "text": "[{\"completedUnits\":2,\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"title\":\"alpha\",\"totalUnits\":6}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.596Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "453f4b2c-ecee-43b6-80ec-228cfb6e7a84",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "bravo",
+      "totalUnits": 5,
+      "completedUnits": 0
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"c8300e45-a46e-4dc4-8b16-fe2e0b9c4b39\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.650Z",
+    "method": "GET",
+    "path": "/tasks/sagas/c8300e45-a46e-4dc4-8b16-fe2e0b9c4b39",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"453f4b2c-ecee-43b6-80ec-228cfb6e7a84\",\"title\":\"bravo\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":5,\"completedUnits\":0}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.654Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "44fe6f4c-2594-4c36-950e-b4e13c3867f2",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "charlie",
+      "totalUnits": 5,
+      "completedUnits": 0
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"9e93580a-0333-44e0-9795-6e1a5aa426c5\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.710Z",
+    "method": "GET",
+    "path": "/tasks/sagas/9e93580a-0333-44e0-9795-6e1a5aa426c5",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"44fe6f4c-2594-4c36-950e-b4e13c3867f2\",\"title\":\"charlie\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":5,\"completedUnits\":0}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.714Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "4fb32649-cf2b-4b96-9dd5-92e8b6edd785",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "delta",
+      "totalUnits": 5,
+      "completedUnits": 0
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"6df7977b-b145-45f7-bef5-1b648a385eda\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.772Z",
+    "method": "GET",
+    "path": "/tasks/sagas/6df7977b-b145-45f7-bef5-1b648a385eda",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"4fb32649-cf2b-4b96-9dd5-92e8b6edd785\",\"title\":\"delta\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":5,\"completedUnits\":0}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.776Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoList",
+    "body": {
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "completedUnits": 0,
+      "limit": 2,
+      "offset": 0
+    },
+    "status": 200,
+    "text": "[{\"completedUnits\":0,\"id\":\"453f4b2c-ecee-43b6-80ec-228cfb6e7a84\",\"title\":\"bravo\"},{\"completedUnits\":0,\"id\":\"44fe6f4c-2594-4c36-950e-b4e13c3867f2\",\"title\":\"charlie\"}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.778Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoList",
+    "body": {
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "completedUnits": 0,
+      "limit": 2,
+      "offset": 2
+    },
+    "status": 200,
+    "text": "[{\"completedUnits\":0,\"id\":\"4fb32649-cf2b-4b96-9dd5-92e8b6edd785\",\"title\":\"delta\"}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.782Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Delete",
+    "body": {
+      "id": "4fb32649-cf2b-4b96-9dd5-92e8b6edd785"
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"211dc5b5-dcb7-4f71-8c57-94921f051bc2\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.836Z",
+    "method": "GET",
+    "path": "/tasks/sagas/211dc5b5-dcb7-4f71-8c57-94921f051bc2",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.838Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoCard",
+    "body": {
+      "id": "4fb32649-cf2b-4b96-9dd5-92e8b6edd785"
+    },
+    "status": 200,
+    "text": "[]"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.842Z",
+    "method": "POST",
+    "path": "/tasks/events/Project.Create",
+    "body": {
+      "id": "2d5276a8-7f4f-4a85-a4fa-6b82fa34078d",
+      "name": "temporary"
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"fd0092f5-2d4b-44e2-a303-77a8b0b3cb05\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.897Z",
+    "method": "GET",
+    "path": "/tasks/sagas/fd0092f5-2d4b-44e2-a303-77a8b0b3cb05",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"2d5276a8-7f4f-4a85-a4fa-6b82fa34078d\",\"name\":\"temporary\"}],\"kind\":\"view\",\"view\":\"ProjectCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.900Z",
+    "method": "POST",
+    "path": "/tasks/events/Project.Update",
+    "body": {
+      "id": "2d5276a8-7f4f-4a85-a4fa-6b82fa34078d",
+      "name": "renamed"
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"6932af0d-f0a8-4556-9e26-cd5696979812\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.953Z",
+    "method": "GET",
+    "path": "/tasks/sagas/6932af0d-f0a8-4556-9e26-cd5696979812",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"2d5276a8-7f4f-4a85-a4fa-6b82fa34078d\",\"name\":\"renamed\"}],\"kind\":\"view\",\"view\":\"ProjectCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.956Z",
+    "method": "POST",
+    "path": "/tasks/views/ProjectCard",
+    "body": {
+      "id": "2d5276a8-7f4f-4a85-a4fa-6b82fa34078d"
+    },
+    "status": 200,
+    "text": "[{\"id\":\"2d5276a8-7f4f-4a85-a4fa-6b82fa34078d\",\"name\":\"renamed\"}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:57.960Z",
+    "method": "POST",
+    "path": "/tasks/events/Project.Delete",
+    "body": {
+      "id": "2d5276a8-7f4f-4a85-a4fa-6b82fa34078d"
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"08cb2130-0cdc-4b3c-8d6f-52789b6f6917\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.014Z",
+    "method": "GET",
+    "path": "/tasks/sagas/08cb2130-0cdc-4b3c-8d6f-52789b6f6917",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[],\"kind\":\"view\",\"view\":\"ProjectCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.018Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoList",
+    "body": {
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "completedUnits": 0,
+      "limit": 50,
+      "offset": 0
+    },
+    "status": 200,
+    "text": "[{\"completedUnits\":0,\"id\":\"453f4b2c-ecee-43b6-80ec-228cfb6e7a84\",\"title\":\"bravo\"},{\"completedUnits\":0,\"id\":\"44fe6f4c-2594-4c36-950e-b4e13c3867f2\",\"title\":\"charlie\"}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.024Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoCard",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb"
+    },
+    "status": 200,
+    "text": "[{\"completedUnits\":2,\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"title\":\"alpha\",\"totalUnits\":6}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.030Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "duplicate",
+      "totalUnits": 8,
+      "completedUnits": 0
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"7ea1afa6-31aa-4aef-9b2e-e5427847811c\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.085Z",
+    "method": "GET",
+    "path": "/tasks/sagas/7ea1afa6-31aa-4aef-9b2e-e5427847811c",
+    "status": 200,
+    "text": "event: fail\ndata: {\"code\":\"VANE_EVENT_CONSTRAINT_VIOLATION\",\"message\":\"The Event violates an Entity constraint.\",\"correlationId\":\"fe4ea19f-c6f8-4ada-9ddc-1f1b852a7795\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.089Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "d1843aef-4164-4d89-8c46-659c3868131a",
+      "projectId": "98ef0bed-7006-44fa-b99e-5c2ed2fe0ebf",
+      "title": "fk",
+      "totalUnits": 1,
+      "completedUnits": 0
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"442488f1-64c0-4bbb-b6aa-7e6bdacc82a0\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.141Z",
+    "method": "GET",
+    "path": "/tasks/sagas/442488f1-64c0-4bbb-b6aa-7e6bdacc82a0",
+    "status": 200,
+    "text": "event: fail\ndata: {\"code\":\"VANE_EVENT_CONSTRAINT_VIOLATION\",\"message\":\"The Event violates an Entity constraint.\",\"correlationId\":\"222d10f0-e6ff-465f-b37c-f69c76b2b8da\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.144Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "030a4a60-5ca9-471c-a475-7e683d867ed7",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "rule",
+      "totalUnits": 1,
+      "completedUnits": 2
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"f91f7123-0482-429d-af84-3b766fd3b4c7\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.247Z",
+    "method": "GET",
+    "path": "/tasks/sagas/f91f7123-0482-429d-af84-3b766fd3b4c7",
+    "status": 200,
+    "text": "event: fail\ndata: {\"code\":\"VANE_EVENT_RULE_VIOLATION\",\"message\":\"The Event violates an Entity Rule.\",\"correlationId\":\"d6bfec32-a044-4b9e-b2c3-08bd04b65e71\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.250Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "a47fbdd4-4b19-41c4-abad-2737d193ebb7",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "negative",
+      "totalUnits": -1,
+      "completedUnits": 0
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"ed71e7c1-7063-46ec-a00d-00169870cf01\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.361Z",
+    "method": "GET",
+    "path": "/tasks/sagas/ed71e7c1-7063-46ec-a00d-00169870cf01",
+    "status": 200,
+    "text": "event: fail\ndata: {\"code\":\"VANE_EVENT_CONSTRAINT_VIOLATION\",\"message\":\"The Event violates an Entity constraint.\",\"correlationId\":\"510fab49-51f7-4824-80dd-79e19c908f02\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.364Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "0e86d1e9-8c50-42b7-a36c-cb5de59a5b61",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "",
+      "totalUnits": 1,
+      "completedUnits": 0
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"5c244aa5-dfec-40ba-8b01-780caacf3fd2\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.418Z",
+    "method": "GET",
+    "path": "/tasks/sagas/5c244aa5-dfec-40ba-8b01-780caacf3fd2",
+    "status": 200,
+    "text": "event: fail\ndata: {\"code\":\"VANE_EVENT_CONSTRAINT_VIOLATION\",\"message\":\"The Event violates an Entity constraint.\",\"correlationId\":\"a0145b1d-464b-48f6-993a-acbb9016c653\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.422Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Complete",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb",
+      "units": 99
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"f6a2ec82-755d-4698-a3ce-e0b9812eaf2c\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.475Z",
+    "method": "GET",
+    "path": "/tasks/sagas/f6a2ec82-755d-4698-a3ce-e0b9812eaf2c",
+    "status": 200,
+    "text": "event: fail\ndata: {\"code\":\"VANE_EVENT_RULE_VIOLATION\",\"message\":\"The Event violates an Entity Rule.\",\"correlationId\":\"9afd4cab-15a2-4b73-b606-9485f03801b2\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.479Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Update",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb",
+      "title": "bad",
+      "totalUnits": 1
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"b6c3a5c3-da00-470b-909f-3e0e3a67e891\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.531Z",
+    "method": "GET",
+    "path": "/tasks/sagas/b6c3a5c3-da00-470b-909f-3e0e3a67e891",
+    "status": 200,
+    "text": "event: fail\ndata: {\"code\":\"VANE_EVENT_RULE_VIOLATION\",\"message\":\"The Event violates an Entity Rule.\",\"correlationId\":\"7e37eadf-e70f-4cd1-80e9-2c3769b54846\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.535Z",
+    "method": "POST",
+    "path": "/tasks/events/Project.Delete",
+    "body": {
+      "id": "d1c836b0-a837-4ea8-a3a1-a6aedb476015"
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"b59688ec-f323-44e4-8efe-63f167e152e0\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.588Z",
+    "method": "GET",
+    "path": "/tasks/sagas/b59688ec-f323-44e4-8efe-63f167e152e0",
+    "status": 200,
+    "text": "event: fail\ndata: {\"code\":\"VANE_EVENT_CONSTRAINT_VIOLATION\",\"message\":\"The Event violates an Entity constraint.\",\"correlationId\":\"a468b501-35e1-49d7-b28e-77b2c8e19581\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.590Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "bad",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "bad",
+      "totalUnits": "1",
+      "completedUnits": 0
+    },
+    "status": 400,
+    "text": "{\"code\":\"VANE_EVENT_INPUT_INVALID\",\"message\":\"The input is invalid: id must be uuid, totalUnits must be integer.\",\"correlationId\":\"3fa0ed9c-6a3c-41c1-a2c0-e2b5b5476ba9\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.591Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoList",
+    "body": {
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "completedUnits": 0,
+      "limit": "bad",
+      "offset": 0
+    },
+    "status": 400,
+    "text": "{\"code\":\"VANE_VIEW_INPUT_INVALID\",\"message\":\"The input is invalid: limit must be integer.\",\"correlationId\":\"835cd0bc-cae1-417c-8694-c561558729d9\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:19:58.594Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoCard",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb"
+    },
+    "status": 200,
+    "text": "[{\"completedUnits\":2,\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"title\":\"alpha\",\"totalUnits\":6}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:00.542Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoCard",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb"
+    },
+    "status": 200,
+    "text": "[{\"completedUnits\":2,\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"title\":\"alpha\",\"totalUnits\":6}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:00.546Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Complete",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb",
+      "units": 1
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"7c1267bf-61d9-4fc6-8f7c-66086b0cb177\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:00.598Z",
+    "method": "GET",
+    "path": "/tasks/sagas/7c1267bf-61d9-4fc6-8f7c-66086b0cb177",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"title\":\"alpha\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":6,\"completedUnits\":3}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:01.018Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoCard",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb"
+    },
+    "status": 200,
+    "text": "[{\"completedUnits\":3,\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"title\":\"alpha\",\"totalUnits\":6}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:01.021Z",
+    "method": "GET",
+    "path": "/tasks/sagas/7c1267bf-61d9-4fc6-8f7c-66086b0cb177",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"title\":\"alpha\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":6,\"completedUnits\":3}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:01.451Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Create",
+    "body": {
+      "id": "5013be7b-59ab-46d6-8125-fcba0a58a84b",
+      "projectId": "d1c836b0-a837-4ea8-a3a1-a6aedb476015",
+      "title": "admission-recovery",
+      "totalUnits": 10,
+      "completedUnits": 0
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"c5ec1db3-7f12-4f38-a9be-bc8d79e5cadf\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:01.452Z",
+    "method": "GET",
+    "path": "/__test/saga/c5ec1db3-7f12-4f38-a9be-bc8d79e5cadf",
+    "status": 200,
+    "text": "{\"fail\":null,\"input\":{\"id\":\"5013be7b-59ab-46d6-8125-fcba0a58a84b\",\"title\":\"admission-recovery\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":10,\"completedUnits\":0},\"steps\":[{\"fail\":null,\"name\":\"apply\",\"result\":null,\"status\":\"pending\",\"envelope\":{\"sagaId\":\"c5ec1db3-7f12-4f38-a9be-bc8d79e5cadf\",\"schema\":\"vane.event\",\"eventId\":\"4604016d-b92e-407b-9171-67e1c84beb45\",\"payload\":{\"id\":\"5013be7b-59ab-46d6-8125-fcba0a58a84b\",\"title\":\"admission-recovery\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":10,\"completedUnits\":0},\"version\":1,\"occurredAt\":\"2026-10-11T01:20:01.447Z\",\"causationId\":null,\"fingerprint\":\"8c04e3cbe725789f8da51ba441ce4dc082f014b66012f2ab68144d7fb44a2dc9\",\"correlationId\":\"5087657c-11fc-45d5-b856-05b02a928a7c\",\"eventIdentity\":\"Todo.Create\"},\"compensation\":null,\"causedByEventIds\":[],\"compensationFail\":null,\"compensationStatus\":null}],\"schema\":\"vane.saga-state\",\"status\":\"running\",\"version\":1,\"planHash\":\"805a0cb584c6197fbf01d5e68dcf1d42b1bc1fab17e9b776fd1f7f397f098160\",\"policies\":{\"Todo.Create\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Delete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Update\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Complete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Create\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Delete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Update\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"}},\"terminal\":null,\"correlationId\":\"5087657c-11fc-45d5-b856-05b02a928a7c\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:01.456Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoCard",
+    "body": {
+      "id": "5013be7b-59ab-46d6-8125-fcba0a58a84b"
+    },
+    "status": 200,
+    "text": "[]"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:01.861Z",
+    "method": "GET",
+    "path": "/tasks/sagas/c5ec1db3-7f12-4f38-a9be-bc8d79e5cadf",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"5013be7b-59ab-46d6-8125-fcba0a58a84b\",\"title\":\"admission-recovery\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":10,\"completedUnits\":0}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:01.862Z",
+    "method": "GET",
+    "path": "/__test/saga/c5ec1db3-7f12-4f38-a9be-bc8d79e5cadf",
+    "status": 200,
+    "text": "{\"fail\":null,\"input\":{\"id\":\"5013be7b-59ab-46d6-8125-fcba0a58a84b\",\"title\":\"admission-recovery\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":10,\"completedUnits\":0},\"steps\":[{\"fail\":null,\"name\":\"apply\",\"result\":null,\"status\":\"success\",\"retryAt\":null,\"attempts\":1,\"envelope\":{\"sagaId\":\"c5ec1db3-7f12-4f38-a9be-bc8d79e5cadf\",\"schema\":\"vane.event\",\"eventId\":\"4604016d-b92e-407b-9171-67e1c84beb45\",\"payload\":{\"id\":\"5013be7b-59ab-46d6-8125-fcba0a58a84b\",\"title\":\"admission-recovery\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":10,\"completedUnits\":0},\"version\":1,\"occurredAt\":\"2026-10-11T01:20:01.447Z\",\"causationId\":null,\"fingerprint\":\"8c04e3cbe725789f8da51ba441ce4dc082f014b66012f2ab68144d7fb44a2dc9\",\"correlationId\":\"5087657c-11fc-45d5-b856-05b02a928a7c\",\"eventIdentity\":\"Todo.Create\"},\"compensation\":null,\"causedByEventIds\":[],\"compensationFail\":null,\"compensationStatus\":null}],\"schema\":\"vane.saga-state\",\"status\":\"terminal\",\"version\":1,\"planHash\":\"805a0cb584c6197fbf01d5e68dcf1d42b1bc1fab17e9b776fd1f7f397f098160\",\"policies\":{\"Todo.Create\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Delete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Update\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Complete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Create\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Delete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Update\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"}},\"terminal\":{\"data\":[{\"id\":\"5013be7b-59ab-46d6-8125-fcba0a58a84b\",\"title\":\"admission-recovery\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":10,\"completedUnits\":0}],\"kind\":\"view\",\"view\":\"TodoCard\"},\"correlationId\":\"5087657c-11fc-45d5-b856-05b02a928a7c\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.234Z",
+    "method": "POST",
+    "path": "/__test/arm",
+    "body": {},
+    "status": 200,
+    "text": "{}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.240Z",
+    "method": "POST",
+    "path": "/tasks/views/TodoCard",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb"
+    },
+    "status": 200,
+    "text": "[{\"completedUnits\":3,\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"title\":\"alpha\",\"totalUnits\":6}]"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.246Z",
+    "method": "POST",
+    "path": "/tasks/events/Todo.Complete",
+    "body": {
+      "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb",
+      "units": 2
+    },
+    "status": 202,
+    "text": "{\"sagaId\":\"36c0198e-ca7f-4d39-8cf6-f9ec1bfef836\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.248Z",
+    "method": "POST",
+    "path": "/__test/workers",
+    "body": {},
+    "status": 200,
+    "text": "{}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.250Z",
+    "method": "GET",
+    "path": "/__test/barrier",
+    "status": 200,
+    "text": "null"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.278Z",
+    "method": "GET",
+    "path": "/__test/barrier",
+    "status": 200,
+    "text": "{\"kind\":\"entity-commit-before-checkpoint\",\"eventId\":\"5745d0df-a657-45ca-b5b0-da7748c3530b\",\"timestamp\":\"2026-10-11T01:20:02.264Z\",\"identification\":\"INSERT __vane_outbox then successful COMMIT on same reserved client\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.285Z",
+    "method": "GET",
+    "path": "/__test/saga/36c0198e-ca7f-4d39-8cf6-f9ec1bfef836",
+    "status": 200,
+    "text": "{\"fail\":null,\"input\":{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"units\":2},\"steps\":[{\"fail\":null,\"name\":\"apply\",\"result\":null,\"status\":\"executing\",\"retryAt\":null,\"attempts\":1,\"envelope\":{\"sagaId\":\"36c0198e-ca7f-4d39-8cf6-f9ec1bfef836\",\"schema\":\"vane.event\",\"eventId\":\"5745d0df-a657-45ca-b5b0-da7748c3530b\",\"payload\":{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"units\":2},\"version\":1,\"occurredAt\":\"2026-10-11T01:20:02.243Z\",\"causationId\":null,\"fingerprint\":\"f480a218c07fc88febc30a063facad213f4a9607970db109cd52f289cb81050f\",\"correlationId\":\"760ef6d9-30e3-47e6-8774-b1e7b7558550\",\"eventIdentity\":\"Todo.Complete\"},\"compensation\":null,\"causedByEventIds\":[],\"compensationFail\":null,\"compensationStatus\":null}],\"schema\":\"vane.saga-state\",\"status\":\"running\",\"version\":1,\"planHash\":\"f1d1f5c54c0bb1013295ee59724d7945e845e98b10d84f5c9ce765e68cfbb9a4\",\"policies\":{\"Todo.Create\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Delete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Update\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Complete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Create\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Delete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Update\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"}},\"terminal\":null,\"correlationId\":\"760ef6d9-30e3-47e6-8774-b1e7b7558550\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.688Z",
+    "method": "GET",
+    "path": "/tasks/sagas/36c0198e-ca7f-4d39-8cf6-f9ec1bfef836",
+    "status": 200,
+    "text": "event: view\ndata: {\"data\":[{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"title\":\"alpha\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":6,\"completedUnits\":5}],\"kind\":\"view\",\"view\":\"TodoCard\"}\n\n"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.691Z",
+    "method": "GET",
+    "path": "/__test/saga/36c0198e-ca7f-4d39-8cf6-f9ec1bfef836",
+    "status": 200,
+    "text": "{\"fail\":null,\"input\":{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"units\":2},\"steps\":[{\"fail\":null,\"name\":\"apply\",\"result\":null,\"status\":\"success\",\"retryAt\":null,\"attempts\":1,\"envelope\":{\"sagaId\":\"36c0198e-ca7f-4d39-8cf6-f9ec1bfef836\",\"schema\":\"vane.event\",\"eventId\":\"5745d0df-a657-45ca-b5b0-da7748c3530b\",\"payload\":{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"units\":2},\"version\":1,\"occurredAt\":\"2026-10-11T01:20:02.243Z\",\"causationId\":null,\"fingerprint\":\"f480a218c07fc88febc30a063facad213f4a9607970db109cd52f289cb81050f\",\"correlationId\":\"760ef6d9-30e3-47e6-8774-b1e7b7558550\",\"eventIdentity\":\"Todo.Complete\"},\"compensation\":null,\"causedByEventIds\":[],\"compensationFail\":null,\"compensationStatus\":null}],\"schema\":\"vane.saga-state\",\"status\":\"terminal\",\"version\":1,\"planHash\":\"f1d1f5c54c0bb1013295ee59724d7945e845e98b10d84f5c9ce765e68cfbb9a4\",\"policies\":{\"Todo.Create\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Delete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Update\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Todo.Complete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Create\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Delete\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"},\"Project.Update\":{\"retry\":{\"backoff\":\"fixed\",\"delayMs\":0,\"attempts\":1,\"maxDelayMs\":0},\"timeoutMs\":10000,\"idempotency\":\"required\",\"deduplication\":\"durable\"}},\"terminal\":{\"data\":[{\"id\":\"24a89861-6fb0-4f4a-8cbb-e6196f002ccb\",\"title\":\"alpha\",\"projectId\":\"d1c836b0-a837-4ea8-a3a1-a6aedb476015\",\"totalUnits\":6,\"completedUnits\":5}],\"kind\":\"view\",\"view\":\"TodoCard\"},\"correlationId\":\"760ef6d9-30e3-47e6-8774-b1e7b7558550\"}"
+  },
+  {
+    "timestamp": "2026-10-11T01:20:02.695Z",
+    "method": "POST",
+    "path": "/__test/replay",
+    "body": {
+      "sagaId": "36c0198e-ca7f-4d39-8cf6-f9ec1bfef836",
+      "schema": "vane.event",
+      "eventId": "5745d0df-a657-45ca-b5b0-da7748c3530b",
+      "payload": {
+        "id": "24a89861-6fb0-4f4a-8cbb-e6196f002ccb",
+        "units": 2
+      },
+      "version": 1,
+      "occurredAt": "2026-10-11T01:20:02.243Z",
+      "causationId": null,
+      "fingerprint": "f480a218c07fc88febc30a063facad213f4a9607970db109cd52f289cb81050f",
+      "correlationId": "760ef6d9-30e3-47e6-8774-b1e7b7558550",
+      "eventIdentity": "Todo.Complete"
+    },
+    "status": 200,
+    "text": "{\"kind\":\"duplicate\",\"eventId\":\"5745d0df-a657-45ca-b5b0-da7748c3530b\",\"result\":{\"kind\":\"success\",\"eventId\":\"5745d0df-a657-45ca-b5b0-da7748c3530b\",\"revision\":\"5\"}}"
+  }
+]

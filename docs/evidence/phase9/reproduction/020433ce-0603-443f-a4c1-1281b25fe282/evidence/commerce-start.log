@@ -1,0 +1,5 @@
+
+> vane-dogfood-commerce@1.0.0 start
+> node scripts.mjs start
+
+{"application":"http://127.0.0.1:37217","gateway":"http://127.0.0.1:43531"}

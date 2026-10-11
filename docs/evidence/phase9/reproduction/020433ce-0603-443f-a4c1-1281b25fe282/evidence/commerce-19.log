@@ -1,0 +1,5 @@
+
+> vane-dogfood-commerce@1.0.0 migrate
+> node scripts.mjs migrate
+
+{"status":"applied","planHash":"e7cefd79984e4891d61c1b4b89d699498b47ed0a3e8c79516e7378c53c884be4","appliedSteps":18}

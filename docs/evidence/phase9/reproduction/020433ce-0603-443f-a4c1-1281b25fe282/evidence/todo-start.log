@@ -1,0 +1,5 @@
+
+> start
+> node server.mjs
+
+{"ready":true,"address":{"address":"127.0.0.1","family":"IPv4","port":37943},"namespace":"dogfood_todo"}

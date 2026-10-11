@@ -1,0 +1,11 @@
+
+> vane-dogfood-commerce@1.0.0 test
+> node test.mjs
+
+commerce CM-01: PASS
+commerce CM-02: PASS
+commerce CM-03: PASS
+commerce CM-04: PASS
+commerce CM-05: PASS
+commerce CM-06: PASS
+commerce CM-07: PASS
