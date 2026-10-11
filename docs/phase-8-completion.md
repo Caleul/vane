@@ -73,7 +73,9 @@ directory, builds and packs the current clean framework checkout, records fresh
 package/docs provenance, and executes all consumers and independent adoption.
 It uploads evidence and cleans services even on failures. Archive reports describe
 the historical accepted run; each CI run produces its own identity and gate result.
-Package changes require refreshing the external dependency locks against the new
-tarball before running CI; evidence from an old package cannot establish a new RC.
+The workflow refreshes the external file-dependency locks against its freshly
+packed tarball before installation and records those locks in the new source
+identity. This includes README-only changes because npm always packs README.
+Evidence from an old package cannot establish a new RC.
 
 Release preparation follows the [Phase 9 plan](phase-9-plan.md).

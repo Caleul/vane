@@ -35,6 +35,12 @@ jobs:
           cp -R docs "$RUNNER_TEMP/vane-dogfood/public-docs/docs"
           cd "$RUNNER_TEMP/vane-dogfood"
           node harness/provenance.mjs "$GITHUB_WORKSPACE"
+      - name: Refresh consumer locks against the newly packed candidate
+        run: |
+          for app in todo commerce reservation; do
+            cd "$RUNNER_TEMP/vane-dogfood/apps/$app"
+            npm install @lilka/vane@file:../../artifacts/vane.tgz --package-lock-only --ignore-scripts
+          done
       - name: Install and provision PostgreSQL and Moto
         run: cd "$RUNNER_TEMP/vane-dogfood" && npm run setup
       - name: Verify public types and reporting failure paths
