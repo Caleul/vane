@@ -1,0 +1,58 @@
+name: Phase 8 external consumers
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dogfood:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: npm
+      - name: Extract independent consumers outside the framework
+        run: tar -xzf docs/evidence/phase-8/consumers.tar.gz -C "$RUNNER_TEMP"
+      - name: Build and pack this exact checkout
+        run: |
+          npm ci
+          npm run build
+          npm pack --pack-destination "$RUNNER_TEMP/vane-dogfood/artifacts"
+          mv "$RUNNER_TEMP/vane-dogfood/artifacts/lilka-vane-"*.tgz "$RUNNER_TEMP/vane-dogfood/artifacts/vane.tgz"
+      - name: Record current package and documentation identity
+        run: |
+          rm -rf "$RUNNER_TEMP/vane-dogfood/public-docs"
+          mkdir -p "$RUNNER_TEMP/vane-dogfood/public-docs"
+          cp README.md "$RUNNER_TEMP/vane-dogfood/public-docs/README.md"
+          cp -R docs "$RUNNER_TEMP/vane-dogfood/public-docs/docs"
+          cd "$RUNNER_TEMP/vane-dogfood"
+          node harness/provenance.mjs "$GITHUB_WORKSPACE"
+      - name: Install and provision PostgreSQL and Moto
+        run: cd "$RUNNER_TEMP/vane-dogfood" && npm run setup
+      - name: Verify public types and reporting failure paths
+        run: |
+          cd "$RUNNER_TEMP/vane-dogfood"
+          npm run typecheck
+          node --test harness/contracts.test.mjs
+      - name: Run clean adoption and all scenario gates
+        run: cd "$RUNNER_TEMP/vane-dogfood" && npm test
+      - name: Preserve evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-8-external-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/vane-dogfood/evidence
+            ${{ runner.temp }}/vane-dogfood/artifacts/candidate.json
+          if-no-files-found: warn
+      - name: Clean disposable services
+        if: always()
+        run: cd "$RUNNER_TEMP/vane-dogfood" && npm run cleanup

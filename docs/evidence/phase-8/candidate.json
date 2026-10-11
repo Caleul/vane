@@ -1,0 +1,19 @@
+{
+  "createdAt": "2026-10-10T01:15:46.038Z",
+  "package": "@lilka/vane",
+  "version": "0.0.0",
+  "baselineCommit": "3465e6c60353796d880022d09f6771d2f46509fe",
+  "expectedTree": "e4c8fa170d3d6a36bca533f9f3df0526e3678b59",
+  "node": "v24.19.0",
+  "commit": "12ee6a1182f7c6750e02cf3cf6dd4a3b5663ac2e",
+  "tree": "e4c8fa170d3d6a36bca533f9f3df0526e3678b59",
+  "sha256": "786c90654e9430cb32233d2b7647656c09a8cf8a2bbae54de2b1d2a6cf5ce043",
+  "docs": {
+    "README.md": "f7e62248a2026d302a4ee12dd42db35f70837731bb314174fb10827248da9634",
+    "examples/sales-billing/README.md": "f57c1f9c49f0abb5c84bff83865367f5929e77d4f86126a037e35f7884a71f12",
+    "docs/operations.md": "c8c075d350e906c2a09b349135ab95c0d11bacbeae29fbe345794c4c451e2536",
+    "docs/semantic-compiler.md": "8192cced39feb712b7585212a8f31492fcf4d17a3464e6bebd4defdfbf6e47c9",
+    "docs/service-configuration.md": "55e9c5a5641a9343c6db0585b803a4a0441c5392c6d9acc1da541557852c2b58",
+    "docs/sagas.md": "54d2ceb7ce6f3250bcac315cb9c8cf2937ae5edf1ef9f42fe20e212f5f6c43f9"
+  }
+}

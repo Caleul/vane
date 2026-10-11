@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "timestamp": "2026-10-10T01:39:51.203Z",
+  "apps": [
+    {
+      "app": "todo",
+      "status": "PASS",
+      "cases": 7,
+      "tarballSha256": "786c90654e9430cb32233d2b7647656c09a8cf8a2bbae54de2b1d2a6cf5ce043"
+    },
+    {
+      "app": "commerce",
+      "status": "PASS",
+      "cases": 7,
+      "tarballSha256": "786c90654e9430cb32233d2b7647656c09a8cf8a2bbae54de2b1d2a6cf5ce043"
+    },
+    {
+      "app": "reservation",
+      "status": "PASS",
+      "cases": 9,
+      "tarballSha256": "786c90654e9430cb32233d2b7647656c09a8cf8a2bbae54de2b1d2a6cf5ce043"
+    },
+    {
+      "app": "independent-reproduction",
+      "status": "PASS",
+      "runId": "6282d09a-bb44-4181-9b45-6dca4f3c5378",
+      "tarballSha256": "786c90654e9430cb32233d2b7647656c09a8cf8a2bbae54de2b1d2a6cf5ce043"
+    },
+    {
+      "app": "TD-06-composite",
+      "status": "PASS",
+      "components": [
+        "todo TD-06-package",
+        "independent-reproduction all apps with matching package/source/docs identities"
+      ]
+    }
+  ]
+}

@@ -97,6 +97,11 @@ recovery, operational tooling and reference application evidence.
 
 ## Independent conformance candidate
 
+The [Phase 8 completion report](docs/phase-8-completion.md) preserves three
+independent external consumers and their verified evidence. The
+[Phase 9 release plan](docs/phase-9-plan.md) maps package, API, security, RC and GA
+tasks to the release requirements.
+
 The [Entity Event conformance suite](docs/conformance.md) installs the packed
 public API in an external consumer and reports source-mapped EE requirements.
 Run `npm run conformance` (set `VANE_CONFORMANCE_DATABASE_URL` for real PostgreSQL
